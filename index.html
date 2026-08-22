@@ -191,6 +191,20 @@
   .info-tag:hover::after { opacity: 1; }
   .config-row input.config-value { flex: 0 0 160px; background: var(--card); border: 1px solid var(--border); color: var(--text); border-radius: 6px; padding: 5px 8px; font-size: 13px; }
 
+  .disk-cleanup-status {
+    margin-top: 14px; border-top: 1px solid var(--border); padding-top: 10px;
+    font-size: 12px; color: var(--muted);
+  }
+  .disk-cleanup-status h3 { font-size: 12px; color: var(--text); margin: 0 0 8px; font-weight: 600; }
+  .disk-cleanup-status .badge { font-size: 10px; padding: 1px 6px; border-radius: 999px; font-weight: 600; margin-left: 6px; }
+  .disk-cleanup-status .badge.dry-run { background: #4a3d1a; color: var(--warn); }
+  .disk-cleanup-status .badge.real { background: #1c4030; color: var(--good); }
+  .disk-cleanup-status .badge.alert { background: #4a1c1c; color: var(--danger); }
+  .disk-cleanup-file-list { max-height: 140px; overflow-y: auto; margin-top: 6px; border: 1px solid var(--border); border-radius: 6px; }
+  .disk-cleanup-file-row { display: flex; justify-content: space-between; gap: 10px; padding: 4px 8px; font-size: 11px; border-bottom: 1px solid var(--border); }
+  .disk-cleanup-file-row:last-child { border-bottom: none; }
+  .disk-cleanup-file-row .path { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
   .advanced-config { margin-top: 14px; border-top: 1px solid var(--border); padding-top: 10px; }
   .advanced-config summary { cursor: pointer; font-size: 12px; color: var(--warn); font-weight: 600; }
   .advanced-config summary:hover { color: var(--danger); }
@@ -291,6 +305,8 @@
   <div id="configPanel">
     <h2>Bot Config <span class="idea-notes">(changes apply within a few minutes - the streaming-PC app re-checks periodically)</span></h2>
     <div id="configList"></div>
+
+    <div class="disk-cleanup-status" id="diskCleanupStatus"></div>
 
     <details class="advanced-config">
       <summary>⚠ Advanced Config — don't touch unless you know what this does</summary>
@@ -1284,6 +1300,83 @@
         rootInput.dataset.original = rootInput.value;
       } catch (err) {
         onError(err);
+      }
+
+      try {
+        var statusSnap = await getDoc(doc(db, 'system', 'diskCleanupStatus'));
+        renderDiskCleanupStatus(statusSnap.exists() ? statusSnap.data() : null);
+      } catch (err) {
+        // Not fatal - the rest of the Config panel still works without
+        // this. Most likely cause: the local app hasn't run a disk-cleanup
+        // pass yet (doc doesn't exist), which getDoc handles fine above -
+        // this catch is for a genuine read error instead.
+        console.error('[disk-cleanup-status]', err);
+      }
+    }
+
+    function bytesToGB(bytes) {
+      return (bytes / 1024 ** 3).toFixed(1);
+    }
+
+    function renderDiskCleanupStatus(status) {
+      var el = document.getElementById('diskCleanupStatus');
+      el.innerHTML = '';
+
+      var heading = document.createElement('h3');
+      heading.textContent = 'Disk Cleanup (streaming PC)';
+      el.appendChild(heading);
+
+      if (!status) {
+        var none = document.createElement('div');
+        none.textContent = 'No cleanup pass reported yet - the streaming-PC app writes this after its first check.';
+        el.appendChild(none);
+        return;
+      }
+
+      var lastRunMs = status.lastRunAt && status.lastRunAt.toMillis ? status.lastRunAt.toMillis() : null;
+      var summary = document.createElement('div');
+      var modeBadge = '<span class="badge ' + (status.dryRun ? 'dry-run' : 'real') + '">' + (status.dryRun ? 'DRY RUN' : 'REAL - files actually deleted') + '</span>';
+      summary.innerHTML = 'Last checked ' + (lastRunMs ? formatLocalTime(lastRunMs) : 'unknown') + modeBadge;
+      el.appendChild(summary);
+
+      var usage = document.createElement('div');
+      usage.style.marginTop = '4px';
+      usage.textContent = bytesToGB(status.totalBeforeBytes) + 'GB before -> ' + bytesToGB(status.totalAfterBytes) + 'GB after (trigger ' + bytesToGB(status.triggerBytes) + 'GB, target ' + bytesToGB(status.targetBytes) + 'GB)';
+      el.appendChild(usage);
+
+      if (status.totalAfterBytes > status.triggerBytes) {
+        var alert = document.createElement('span');
+        alert.className = 'badge alert';
+        alert.textContent = 'STILL OVER TRIGGER';
+        alert.title = 'Even after cleanup, usage is still above the trigger size - nothing eligible left to delete (too new or protected).';
+        usage.appendChild(alert);
+      }
+
+      var files = status.deletedFiles || [];
+      var filesHeader = document.createElement('div');
+      filesHeader.style.marginTop = '6px';
+      filesHeader.textContent = files.length
+        ? (status.dryRun ? 'Would delete ' : 'Deleted ') + files.length + ' file(s):'
+        : 'Nothing needed cleanup at last check.';
+      el.appendChild(filesHeader);
+
+      if (files.length) {
+        var list = document.createElement('div');
+        list.className = 'disk-cleanup-file-list';
+        files.forEach(function (f) {
+          var row = document.createElement('div');
+          row.className = 'disk-cleanup-file-row';
+          var pathEl = document.createElement('span');
+          pathEl.className = 'path';
+          pathEl.textContent = f.path;
+          pathEl.title = f.path;
+          var sizeEl = document.createElement('span');
+          sizeEl.textContent = bytesToGB(f.sizeBytes) + 'GB';
+          row.appendChild(pathEl);
+          row.appendChild(sizeEl);
+          list.appendChild(row);
+        });
+        el.appendChild(list);
       }
     }
 
