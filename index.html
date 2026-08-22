@@ -86,6 +86,9 @@
   .folder-section { background: var(--panel); border-radius: 10px; }
   .folder-section.main { border: 1px solid var(--accent); }
   .folder-header { display: flex; align-items: center; gap: 8px; padding: 10px 14px; flex-wrap: wrap; }
+  .folder-section:not(.main) .folder-header:active { cursor: grabbing; }
+  .sortable-ghost { opacity: 0.4; }
+  .sortable-chosen .folder-header { background: var(--card); }
   .folder-toggle { background: transparent; border: none; color: var(--muted); font-size: 13px; padding: 2px 4px; cursor: pointer; }
   .folder-name { font-size: 14px; font-weight: 700; cursor: text; }
   .folder-name-input { font-size: 14px; font-weight: 700; background: var(--card); border: 1px solid var(--border); border-radius: 4px; color: var(--text); padding: 2px 6px; }
@@ -259,6 +262,7 @@
 
   <div id="foldersContainer"></div>
 
+  <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
   <script type="module">
     import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.13.2/firebase-app.js';
     import {
@@ -330,26 +334,58 @@
 
     // ---------- top-level render ----------
 
+    var folderSortable = null;
+
     function renderFolders() {
       var container = document.getElementById('foldersContainer');
       container.innerHTML = '';
 
-      var folders = state.folders.slice().sort(function (a, b) {
-        if (a.isMain !== b.isMain) return a.isMain ? -1 : 1;
-        return (a.createdAtMs || 0) - (b.createdAtMs || 0);
-      });
+      var mainFolder = state.folders.find(function (f) { return f.isMain; });
+      var otherFolders = state.folders
+        .filter(function (f) { return !f.isMain && (!f.archived || showArchivedFolders); })
+        .sort(function (a, b) {
+          // order is only set once a folder's actually been dragged - until
+          // then, fall back to creation order (oldest first), same as
+          // before free reordering existed.
+          var ao = a.order !== undefined ? a.order : a.createdAtMs || 0;
+          var bo = b.order !== undefined ? b.order : b.createdAtMs || 0;
+          return ao - bo;
+        });
 
-      var archivedCount = folders.filter(function (f) { return f.archived; }).length;
+      var archivedCount = state.folders.filter(function (f) { return f.archived; }).length;
       var toggleBtn = document.getElementById('toggleArchivedFoldersBtn');
       toggleBtn.textContent = (showArchivedFolders ? 'Hide Archived Folders' : 'Show Archived Folders') + (archivedCount ? ' (' + archivedCount + ')' : '');
       toggleBtn.disabled = archivedCount === 0 && !showArchivedFolders;
 
-      folders.forEach(function (folder) {
-        if (folder.archived && !showArchivedFolders) return;
-        container.appendChild(renderFolderSection(folder));
-      });
+      if (mainFolder) container.appendChild(renderFolderSection(mainFolder));
 
-      if (!folders.length) {
+      var sortableWrap = document.createElement('div');
+      sortableWrap.id = 'sortableFolders';
+      otherFolders.forEach(function (folder) { sortableWrap.appendChild(renderFolderSection(folder)); });
+      container.appendChild(sortableWrap);
+
+      if (folderSortable) { folderSortable.destroy(); folderSortable = null; }
+      if (otherFolders.length > 1 && window.Sortable) {
+        folderSortable = Sortable.create(sortableWrap, {
+          // Whole tab is draggable, but a press-and-HOLD, not an instant
+          // grab - short clicks/taps still just expand/collapse (see the
+          // header's own click handler) instead of accidentally starting
+          // a drag.
+          delay: 250,
+          delayOnTouchOnly: true,
+          animation: 150,
+          filter: 'button, input, a, select, textarea, summary',
+          preventOnFilter: false,
+          onEnd: function () {
+            Array.from(sortableWrap.children).forEach(function (el, i) {
+              var id = el.dataset.folderId;
+              if (id) updateDoc(doc(db, 'folders', id), { order: i }).catch(onError);
+            });
+          },
+        });
+      }
+
+      if (!state.folders.length) {
         var empty = document.createElement('div');
         empty.className = 'idea-row-empty';
         empty.textContent = 'No folders yet - the streaming-PC app creates a default "Main" folder the first time it runs.';
@@ -367,9 +403,21 @@
 
       var section = document.createElement('div');
       section.className = 'folder-section' + (isMain ? ' main' : '');
+      section.dataset.folderId = folder.id;
 
       var header = document.createElement('div');
       header.className = 'folder-header';
+      if (!isMain) {
+        // Click anywhere on the tab (not just the small arrow) to
+        // expand/collapse - except the actual controls inside it
+        // (rename input, buttons, links), which handle their own clicks.
+        header.style.cursor = 'pointer';
+        header.addEventListener('click', function (e) {
+          if (e.target.closest('button, input, a, select, .folder-name')) return;
+          expandedFolders[folder.id] = !expanded;
+          renderFolders();
+        });
+      }
 
       if (!isMain) {
         var toggleBtn = document.createElement('button');
