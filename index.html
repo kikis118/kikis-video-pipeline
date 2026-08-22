@@ -112,6 +112,10 @@
     margin-bottom: 8px;
   }
   .card.do-fast { border-left: 3px solid var(--danger); }
+  .card:hover { cursor: grab; }
+  .card:active { cursor: grabbing; }
+  .card:not(.do-fast):hover { border-color: var(--accent); }
+  .card.do-fast:hover { box-shadow: inset 0 0 0 1px var(--accent); }
   .card-title {
     font-size: 14px;
     font-weight: 600;
@@ -162,7 +166,15 @@
   #configPanel.open { display: block; }
   #configPanel h2 { font-size: 13px; color: var(--muted); margin: 0 0 10px; font-weight: 600; }
   .config-row { display: flex; align-items: center; gap: 10px; padding: 6px 0; }
-  .config-row .config-key { flex: 0 0 240px; font-size: 13px; font-family: monospace; color: var(--text); }
+  .config-row .config-key { flex: 0 0 240px; font-size: 13px; font-family: monospace; color: var(--text); display: flex; align-items: center; gap: 6px; }
+  .info-tag {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 14px; height: 14px; border-radius: 50%; background: var(--card);
+    border: 1px solid var(--border); color: var(--muted); font-size: 10px;
+    font-family: -apple-system, Segoe UI, Roboto, sans-serif; font-weight: 700;
+    cursor: help; flex-shrink: 0;
+  }
+  .info-tag:hover { color: var(--accent); border-color: var(--accent); }
   .config-row input.config-value { flex: 0 0 160px; background: var(--card); border: 1px solid var(--border); color: var(--text); border-radius: 6px; padding: 5px 8px; font-size: 13px; }
 
   .advanced-config { margin-top: 14px; border-top: 1px solid var(--border); padding-top: 10px; }
@@ -341,6 +353,7 @@
     // ---------- top-level render ----------
 
     var folderSortable = null;
+    var cardSortables = []; // one per rendered column + one per collapsed folder's drop zone - see renderFolderBody/renderFolderSection
 
     function renderFolders() {
       var container = document.getElementById('foldersContainer');
@@ -352,6 +365,8 @@
       // as each folder's ideas panel is built.
       ideaSortables.forEach(function (s) { s.destroy(); });
       ideaSortables = [];
+      cardSortables.forEach(function (s) { s.destroy(); });
+      cardSortables = [];
 
       var mainFolder = state.folders.find(function (f) { return f.isMain; });
       var otherFolders = state.folders
@@ -498,14 +513,6 @@
         uploadLink.rel = 'noopener';
         uploadLink.textContent = '↥ For Ghazzy - Manually Upload Recording';
         actions.appendChild(uploadLink);
-
-        var openFolderLink = document.createElement('a');
-        openFolderLink.className = 'secondary';
-        openFolderLink.href = 'https://drive.google.com/drive/folders/' + encodeURIComponent(folder.driveFolderId);
-        openFolderLink.target = '_blank';
-        openFolderLink.rel = 'noopener';
-        openFolderLink.textContent = 'Open Folder in Google Drive';
-        actions.appendChild(openFolderLink);
       } else {
         var provisioning = document.createElement('span');
         provisioning.className = 'folder-count';
@@ -534,6 +541,29 @@
 
       header.appendChild(actions);
       section.appendChild(header);
+
+      // Collapsed folders are still a valid drop target - drag a card from
+      // an open folder's column and drop it straight onto the closed tab.
+      // put-only (pull:false): the header itself never becomes draggable,
+      // it only accepts cards coming FROM the open-column groups below.
+      // draggable: '.card' means only real card elements are ever treated
+      // as sortable items here - the header's own buttons/name span are
+      // never mistaken for drag items.
+      if (!isMain && !expanded && window.Sortable) {
+        header.dataset.folderId = folder.id; // so a card's origin-column onEnd can tell this was a cross-folder drop, not a same-list reorder
+        var headerDrop = Sortable.create(header, {
+          group: { name: 'folder-tab-drop-' + folder.id, pull: false, put: ['cards-Recorded', 'cards-Finished'] },
+          sort: false,
+          draggable: '.card',
+          onAdd: function (evt) {
+            var cardId = evt.item.dataset.cardId;
+            if (evt.item.parentNode) evt.item.parentNode.removeChild(evt.item);
+            if (cardId) updateDoc(doc(db, 'pipeline', cardId), { folder: folder.id }).catch(onError);
+            renderFolders();
+          },
+        });
+        cardSortables.push(headerDrop);
+      }
 
       if (expanded) section.appendChild(renderFolderBody(folder, rows));
       return section;
@@ -564,6 +594,8 @@
 
         var col = document.createElement('div');
         col.className = 'column';
+        col.dataset.folderId = folder.id;
+        col.dataset.status = statusName;
         col.innerHTML = '<h2>' + statusName + ' <span class="count">(' + totalCount + ')</span></h2>';
         displayRows.forEach(function (row) { col.appendChild(renderCard(row, rows)); });
 
@@ -575,6 +607,37 @@
           col.appendChild(toggleBtn);
         }
         board.appendChild(col);
+
+        // Cards drag freely between any OPEN folders' columns of the same
+        // status (group name is shared across folders, keyed by status) -
+        // dragging only ever changes which folder a card lives in, never
+        // its status, so a Recorded card can't accidentally land in a
+        // Finished column just by being dropped in the wrong folder.
+        if (window.Sortable) {
+          var cardSortable = Sortable.create(col, {
+            group: 'cards-' + statusName,
+            delay: 250,
+            delayOnTouchOnly: true,
+            animation: 150,
+            draggable: '.card',
+            onEnd: function (evt) {
+              var cardId = evt.item.dataset.cardId;
+              var fromFolderId = evt.from.dataset.folderId;
+              var toFolderId = evt.to.dataset.folderId;
+              if (!cardId) return;
+              if (toFolderId && toFolderId !== fromFolderId) {
+                updateDoc(doc(db, 'pipeline', cardId), { folder: toFolderId }).catch(onError);
+              } else {
+                // Dropped back in the same column - nothing persisted (card
+                // order isn't a stored field, just doFast+recency), so snap
+                // back to the real canonical order instead of leaving a
+                // reorder on screen that won't survive the next update.
+                renderFolders();
+              }
+            },
+          });
+          cardSortables.push(cardSortable);
+        }
       });
       wrap.appendChild(board);
 
@@ -829,6 +892,7 @@
       var unlabeled = needsLabel(row);
       var card = document.createElement('div');
       card.className = 'card' + (row.doFast ? ' do-fast' : '') + (unlabeled ? ' needs-label' : '');
+      card.dataset.cardId = row.id;
 
       if (unlabeled) {
         var badge = document.createElement('div');
@@ -1125,6 +1189,12 @@
 
     var CONFIG_KEYS = ['DISK_CLEANUP_TRIGGER_GB', 'DISK_CLEANUP_TARGET_GB', 'DISK_CLEANUP_DRY_RUN', 'UPLOAD_THROTTLE_MBPS'];
     var CONFIG_DEFAULTS = { DISK_CLEANUP_TRIGGER_GB: '150', DISK_CLEANUP_TARGET_GB: '130', DISK_CLEANUP_DRY_RUN: 'true', UPLOAD_THROTTLE_MBPS: '50' };
+    var CONFIG_DESCRIPTIONS = {
+      DISK_CLEANUP_TRIGGER_GB: 'Once the recordings folder on the streaming PC reaches this size (in GB), automatic cleanup kicks in and starts deleting the oldest already-uploaded clips.',
+      DISK_CLEANUP_TARGET_GB: 'When cleanup runs, it keeps deleting the oldest clips until the folder drops back down to this size (in GB). Always lower than the trigger size above.',
+      DISK_CLEANUP_DRY_RUN: '"true" = cleanup only logs what it would delete, without deleting anything - safe to test with. Set to "false" once you\'ve checked the streaming PC\'s console and are confident it\'s picking the right files.',
+      UPLOAD_THROTTLE_MBPS: 'Caps how fast clips upload to Google Drive, in megabits per second - keeps uploads from hogging all of the streaming PC\'s internet bandwidth while live.',
+    };
 
     async function refreshConfig() {
       try {
@@ -1169,7 +1239,14 @@
 
         var key = document.createElement('span');
         key.className = 'config-key';
-        key.textContent = row.key;
+        key.appendChild(document.createTextNode(row.key));
+        if (CONFIG_DESCRIPTIONS[row.key]) {
+          var info = document.createElement('span');
+          info.className = 'info-tag';
+          info.textContent = 'i';
+          info.title = CONFIG_DESCRIPTIONS[row.key];
+          key.appendChild(info);
+        }
         el.appendChild(key);
 
         var value = document.createElement('input');
