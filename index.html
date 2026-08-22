@@ -142,18 +142,31 @@
     font-size: 12px; text-transform: uppercase; letter-spacing: 0.04em;
     color: var(--muted); margin: 0 0 8px;
   }
-  #ideasList { display: flex; flex-direction: column; gap: 4px; }
+  #ideasList { display: flex; flex-direction: column; gap: 6px; }
   .idea-row {
-    display: flex; align-items: center; gap: 10px;
-    padding: 6px 10px; border-radius: 6px;
+    display: flex; flex-direction: column; gap: 4px;
+    padding: 8px 10px; border-radius: 6px;
     background: transparent; border: 1px dashed var(--border);
   }
+  .idea-row-top { display: flex; align-items: center; gap: 8px; }
   .idea-row input.idea-title {
     flex: 1; background: transparent; border: none; color: var(--text);
-    font-size: 13px; padding: 2px 0;
+    font-size: 14px; font-weight: 600; padding: 2px 0;
   }
   .idea-row input.idea-title:focus { outline: 1px solid var(--accent); border-radius: 3px; }
-  .idea-row .idea-notes { color: var(--muted); font-size: 11px; }
+  .idea-notes-view {
+    color: var(--muted); font-size: 12px; padding: 2px 0; cursor: text;
+    white-space: pre-wrap; word-break: break-word; min-height: 16px;
+  }
+  .idea-notes-view a { color: var(--accent); }
+  .idea-notes-view.empty { font-style: italic; opacity: 0.7; }
+  .idea-notes-edit {
+    width: 100%; background: transparent; border: none; color: var(--text);
+    font-size: 12px; resize: vertical; min-height: 40px; padding: 2px 0;
+    font-family: inherit;
+  }
+  .idea-notes-edit:focus { outline: 1px solid var(--accent); border-radius: 3px; }
+  .idea-row-actions { display: flex; gap: 6px; justify-content: flex-end; }
   .idea-row-empty { color: var(--muted); font-size: 12px; font-style: italic; padding: 4px 10px; }
 
   .card.needs-label { border-color: var(--warn); }
@@ -310,29 +323,31 @@
         var el = document.createElement('div');
         el.className = 'idea-row';
 
+        var top = document.createElement('div');
+        top.className = 'idea-row-top';
+
         var title = document.createElement('input');
         title.className = 'idea-title';
+        title.placeholder = 'Idea title';
         title.value = row.title;
         title.addEventListener('focus', function () { editing[row.id + ':title'] = true; });
         title.addEventListener('blur', function () {
           delete editing[row.id + ':title'];
           if (title.value.trim() && title.value.trim() !== row.title) updateDoc(doc(db, 'pipeline', row.id), { title: title.value.trim() }).catch(onError);
         });
-        el.appendChild(title);
+        top.appendChild(title);
+        el.appendChild(top);
 
-        if (row.notes) {
-          var notes = document.createElement('span');
-          notes.className = 'idea-notes';
-          notes.textContent = row.notes;
-          el.appendChild(notes);
-        }
+        el.appendChild(renderIdeaNotes(row));
+
+        var actions = document.createElement('div');
+        actions.className = 'idea-row-actions';
 
         var flagBtn = document.createElement('button');
         flagBtn.className = 'flag-btn' + (row.doFast ? ' active' : '');
-        flagBtn.textContent = row.doFast ? '★' : '☆';
-        flagBtn.title = 'Do Fast';
+        flagBtn.textContent = row.doFast ? '★ Do Fast' : '☆ Do Fast';
         flagBtn.onclick = function () { updateDoc(doc(db, 'pipeline', row.id), { doFast: !row.doFast }).catch(onError); };
-        el.appendChild(flagBtn);
+        actions.appendChild(flagBtn);
 
         var deleteBtn = document.createElement('button');
         deleteBtn.className = 'danger';
@@ -340,10 +355,48 @@
         deleteBtn.onclick = function () {
           if (confirm('Delete idea "' + row.title + '"?')) deleteDoc(doc(db, 'pipeline', row.id)).catch(onError);
         };
-        el.appendChild(deleteBtn);
+        actions.appendChild(deleteBtn);
 
+        el.appendChild(actions);
         list.appendChild(el);
       });
+    }
+
+    // Description/notes for an idea - a proper multi-line field, distinct
+    // from the title, with URLs rendered as clickable links when not being
+    // edited (click-to-edit, like title/notes elsewhere on the board).
+    function renderIdeaNotes(row) {
+      if (isEditing(row.id, 'notes')) {
+        var textarea = document.createElement('textarea');
+        textarea.className = 'idea-notes-edit';
+        textarea.placeholder = 'Description…';
+        textarea.value = row.notes || '';
+        textarea.dataset.ideaNotesEdit = row.id;
+        textarea.addEventListener('blur', function () {
+          delete editing[row.id + ':notes'];
+          if (textarea.value !== row.notes) updateDoc(doc(db, 'pipeline', row.id), { notes: textarea.value }).catch(onError);
+          else render();
+        });
+        return textarea;
+      }
+
+      var view = document.createElement('div');
+      view.tabIndex = 0;
+      if (row.notes) {
+        view.className = 'idea-notes-view';
+        view.innerHTML = linkify(row.notes);
+      } else {
+        view.className = 'idea-notes-view empty';
+        view.textContent = 'Add a description…';
+      }
+      view.addEventListener('click', function (e) {
+        if (e.target.tagName === 'A') return; // let real links through
+        editing[row.id + ':notes'] = true;
+        render();
+        var el = document.querySelector('textarea[data-idea-notes-edit="' + row.id + '"]');
+        if (el) { el.focus(); el.setSelectionRange(el.value.length, el.value.length); }
+      });
+      return view;
     }
 
     function renderCard(row) {
@@ -536,6 +589,13 @@
       var div = document.createElement('div');
       div.textContent = s;
       return div.innerHTML;
+    }
+
+    function linkify(text) {
+      var escaped = escapeHtml(text || '');
+      return escaped.replace(/(https?:\/\/[^\s<]+)/g, function (url) {
+        return '<a href="' + url + '" target="_blank" rel="noopener noreferrer">' + url + '</a>';
+      });
     }
 
     // Idea adopts the video's row (title + appended notes), the idea row
