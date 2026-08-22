@@ -166,35 +166,13 @@
     width: 100%; margin-top: 6px; background: var(--card); color: var(--text);
     border: 1px solid var(--border); border-radius: 6px; padding: 5px; font-size: 12px;
   }
-
-  #tokenGate {
-    position: fixed; inset: 0; background: var(--bg); display: flex;
-    align-items: center; justify-content: center; z-index: 100;
-  }
-  #tokenGate .box { background: var(--panel); border: 1px solid var(--border); border-radius: 10px; padding: 24px; width: 320px; }
-  #tokenGate h2 { margin: 0 0 6px; font-size: 15px; }
-  #tokenGate p { margin: 0 0 14px; font-size: 12px; color: var(--muted); }
-  #tokenGate input { width: 100%; background: var(--card); border: 1px solid var(--border); color: var(--text); border-radius: 6px; padding: 8px 10px; font-size: 13px; margin-bottom: 10px; }
-  #tokenGate button { width: 100%; }
-  #tokenGate .err { color: var(--danger); font-size: 12px; margin-top: 8px; min-height: 14px; }
 </style>
 </head>
 <body>
-  <div id="tokenGate" style="display:none;">
-    <div class="box">
-      <h2>Access token required</h2>
-      <p>Paste the access link/token you were given (ask the editor if you don't have one).</p>
-      <input id="tokenInput" placeholder="Access token" autocomplete="off" />
-      <button onclick="submitToken()">Continue</button>
-      <div class="err" id="tokenErr"></div>
-    </div>
-  </div>
-
   <header>
     <h1>Ghazzy's YT Video Pipeline</h1>
     <button class="secondary" onclick="toggleConfig()">&#9881; Config</button>
     <a id="uploadLink" class="btn-upload" href="#" target="_blank" rel="noopener" style="text-decoration:none;">&#8613; Upload a Recording</a>
-    <button class="secondary" onclick="syncDrive()">&#128260; Sync Google Drive</button>
     <button class="secondary" id="toggleArchivedBtn" onclick="toggleArchived()">Show Archived</button>
     <button onclick="toggleAddForm()">+ Add Idea</button>
   </header>
@@ -211,7 +189,7 @@
     <button class="secondary" onclick="toggleAddForm()">Cancel</button>
   </div>
 
-  <div id="status">Loading&hellip;</div>
+  <div id="status">Connecting&hellip;</div>
 
   <div id="board"></div>
 
@@ -225,13 +203,33 @@
     <div id="archivedList"></div>
   </div>
 
-  <script>
-    // Points at the Apps Script JSON API (see webapp/Code.gs). This is a
-    // plain fetch() over normal HTTPS - no iframe, no google.script.run -
-    // which is the whole reason this page is a separate static site instead
-    // of being served by Apps Script's HtmlService directly (see
-    // WORKFLOW.md "Frontend architecture" for why).
-    var API_URL = 'https://script.google.com/macros/s/AKfycbyrK-bNBBl1PxYmP5LJT3VGgKp3Z9xC-gfKcoLyZhdk5_UAiE2gXjLMA1_tcpZFNLQP/exec';
+  <script type="module">
+    import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.13.2/firebase-app.js';
+    import {
+      getFirestore, collection, doc, addDoc, updateDoc, deleteDoc, getDoc, setDoc,
+      onSnapshot, serverTimestamp,
+    } from 'https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore.js';
+    import { getAuth, signInAnonymously } from 'https://www.gstatic.com/firebasejs/10.13.2/firebase-auth.js';
+
+    // Not a secret - Firebase web config is meant to be public; the real
+    // gate is Firestore Security Rules (require signed-in, even
+    // anonymously - see webapp/SETUP.md "Access model" for what that does
+    // and doesn't protect against).
+    const firebaseConfig = {
+      apiKey: 'AIzaSyCHyVL3XBiqnKRqK1gRIml0EYDnB3A8d6U',
+      authDomain: 'ghazzy-video-pipeline-8ecd4.firebaseapp.com',
+      projectId: 'ghazzy-video-pipeline-8ecd4',
+      storageBucket: 'ghazzy-video-pipeline-8ecd4.firebasestorage.app',
+      messagingSenderId: '889310513985',
+      appId: '1:889310513985:web:faac82e551a72345d86fc0',
+    };
+    // Not secret either - Drive folder sharing permissions are the real
+    // gate on who can actually open/download files, same as before.
+    const DRIVE_FOLDER_URL = 'https://drive.google.com/drive/folders/10ch9Ji9dFXOqvyB172W_1_XDYaqgxwPY';
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+    const auth = getAuth(app);
 
     var COLUMNS = ['Recorded', 'Finished'];
     var NEXT_STATUS = { Recorded: 'Finished', Finished: null };
@@ -239,78 +237,12 @@
 
     var state = { rows: [] };
     var editing = {};
-    var expandedActions = {}; // rowIndex -> true while "More actions" (Archive/Delete) is revealed
+    var expandedActions = {}; // id -> true while "More actions" (Archive/Delete) is revealed
     var showArchived = false;
     var showAllFinished = false;
     var FINISHED_COLLAPSED_COUNT = 3;
-    var pollTimer = null;
-    var TOKEN = null;
 
-    // --- Access token: never stored in this (public) repo's source - it's
-    // handed out separately and saved to this browser's localStorage only,
-    // either by pasting it once or via a one-time "?token=..." link that
-    // gets stripped from the URL bar immediately after saving. ---
-    function initToken() {
-      var params = new URLSearchParams(location.search);
-      var fromUrl = params.get('token');
-      if (fromUrl) {
-        localStorage.setItem('ghazzy_token', fromUrl);
-        history.replaceState({}, '', location.pathname);
-      }
-      TOKEN = localStorage.getItem('ghazzy_token');
-      if (!TOKEN) {
-        document.getElementById('tokenGate').style.display = 'flex';
-        return false;
-      }
-      return true;
-    }
-
-    function submitToken() {
-      var val = document.getElementById('tokenInput').value.trim();
-      if (!val) return;
-      localStorage.setItem('ghazzy_token', val);
-      TOKEN = val;
-      document.getElementById('tokenGate').style.display = 'none';
-      setTimeout(boot, 0);
-    }
-
-    // --- API helpers ---
-    function apiGet(action) {
-      return fetch(API_URL + '?action=' + encodeURIComponent(action) + '&token=' + encodeURIComponent(TOKEN))
-        .then(function (r) { return r.json(); });
-    }
-
-    // Deliberately no explicit Content-Type header - leaving it as the
-    // fetch default (text/plain) keeps this a CORS "simple request" so the
-    // browser skips the preflight OPTIONS call, which Apps Script web apps
-    // can't answer. The body is still valid JSON; Code.gs parses it with
-    // JSON.parse regardless of the declared content type.
-    function apiPost(action, params) {
-      var body = Object.assign({ action: action, token: TOKEN }, params || {});
-      return fetch(API_URL, { method: 'POST', body: JSON.stringify(body) })
-        .then(function (r) { return r.json(); });
-    }
-
-    function refresh() {
-      apiGet('rows').then(onRowsLoaded).catch(onError);
-    }
-
-    function onRowsLoaded(result) {
-      var el = document.getElementById('status');
-      if (result && result.error) return onError(result.error);
-      if (!Array.isArray(result)) {
-        console.error('[DEBUG] onRowsLoaded received a non-array value:', result);
-        el.textContent = '⚠ Error: server returned unexpected data (see browser console) - previous view kept.';
-        el.style.color = 'var(--danger)';
-        el.style.fontWeight = '600';
-        return;
-      }
-      state.rows = result;
-      el.textContent = 'Updated ' + new Date().toLocaleTimeString() + ' — refreshes automatically every few seconds.';
-      el.style.color = '';
-      el.style.fontWeight = '';
-      render();
-    }
+    document.getElementById('uploadLink').href = DRIVE_FOLDER_URL;
 
     function onError(err) {
       var el = document.getElementById('status');
@@ -321,8 +253,8 @@
       console.error('[error]', err);
     }
 
-    function isEditing(rowIndex, field) {
-      return editing[rowIndex + ':' + field] === true;
+    function isEditing(id, field) {
+      return editing[id + ':' + field] === true;
     }
 
     function render() {
@@ -330,12 +262,10 @@
       board.innerHTML = '';
       COLUMNS.forEach(function (statusName) {
         // Do Fast items float to the top; within each group, most
-        // recently added first - rowIndex is the Sheet's insertion order,
-        // the closest thing to a "recency" signal available without a
-        // separate timestamp-per-status-change.
+        // recently added first.
         var rows = state.rows.filter(function (r) { return r.status === statusName; }).slice().sort(function (a, b) {
           if (a.doFast !== b.doFast) return a.doFast ? -1 : 1;
-          return b.rowIndex - a.rowIndex;
+          return (b.createdAtMs || 0) - (a.createdAtMs || 0);
         });
         var totalCount = rows.length;
         var isFinished = statusName === 'Finished';
@@ -349,9 +279,7 @@
         if (isFinished && totalCount > FINISHED_COLLAPSED_COUNT) {
           var toggleBtn = document.createElement('button');
           toggleBtn.className = 'secondary column-more';
-          toggleBtn.textContent = showAllFinished
-            ? 'Show fewer'
-            : 'View all (' + totalCount + ')';
+          toggleBtn.textContent = showAllFinished ? 'Show fewer' : 'View all (' + totalCount + ')';
           toggleBtn.onclick = function () { showAllFinished = !showAllFinished; render(); };
           col.appendChild(toggleBtn);
         }
@@ -385,10 +313,10 @@
         var title = document.createElement('input');
         title.className = 'idea-title';
         title.value = row.title;
-        title.addEventListener('focus', function () { editing[row.rowIndex + ':title'] = true; });
+        title.addEventListener('focus', function () { editing[row.id + ':title'] = true; });
         title.addEventListener('blur', function () {
-          delete editing[row.rowIndex + ':title'];
-          if (title.value.trim() && title.value.trim() !== row.title) call('updateTitle', { rowIndex: row.rowIndex, newTitle: title.value.trim() });
+          delete editing[row.id + ':title'];
+          if (title.value.trim() && title.value.trim() !== row.title) updateDoc(doc(db, 'pipeline', row.id), { title: title.value.trim() }).catch(onError);
         });
         el.appendChild(title);
 
@@ -403,14 +331,14 @@
         flagBtn.className = 'flag-btn' + (row.doFast ? ' active' : '');
         flagBtn.textContent = row.doFast ? '★' : '☆';
         flagBtn.title = 'Do Fast';
-        flagBtn.onclick = function () { call('toggleDoFast', { rowIndex: row.rowIndex, value: !row.doFast }); };
+        flagBtn.onclick = function () { updateDoc(doc(db, 'pipeline', row.id), { doFast: !row.doFast }).catch(onError); };
         el.appendChild(flagBtn);
 
         var deleteBtn = document.createElement('button');
         deleteBtn.className = 'danger';
         deleteBtn.textContent = 'Delete';
         deleteBtn.onclick = function () {
-          if (confirm('Delete idea "' + row.title + '"?')) call('deleteRow', { rowIndex: row.rowIndex });
+          if (confirm('Delete idea "' + row.title + '"?')) deleteDoc(doc(db, 'pipeline', row.id)).catch(onError);
         };
         el.appendChild(deleteBtn);
 
@@ -433,12 +361,12 @@
       var title = document.createElement('input');
       title.className = 'card-title';
       title.value = row.title;
-      if (!isEditing(row.rowIndex, 'title')) title.value = row.title;
-      title.addEventListener('focus', function () { editing[row.rowIndex + ':title'] = true; });
+      if (!isEditing(row.id, 'title')) title.value = row.title;
+      title.addEventListener('focus', function () { editing[row.id + ':title'] = true; });
       title.addEventListener('blur', function () {
-        delete editing[row.rowIndex + ':title'];
+        delete editing[row.id + ':title'];
         if (title.value.trim() && title.value.trim() !== row.title) {
-          call('updateTitle', { rowIndex: row.rowIndex, newTitle: title.value.trim() });
+          updateDoc(doc(db, 'pipeline', row.id), { title: title.value.trim() }).catch(onError);
         }
       });
       card.appendChild(title);
@@ -447,10 +375,10 @@
       notes.className = 'card-notes';
       notes.placeholder = 'Notes…';
       notes.value = row.notes || '';
-      notes.addEventListener('focus', function () { editing[row.rowIndex + ':notes'] = true; });
+      notes.addEventListener('focus', function () { editing[row.id + ':notes'] = true; });
       notes.addEventListener('blur', function () {
-        delete editing[row.rowIndex + ':notes'];
-        if (notes.value !== row.notes) call('updateNotes', { rowIndex: row.rowIndex, newNotes: notes.value });
+        delete editing[row.id + ':notes'];
+        if (notes.value !== row.notes) updateDoc(doc(db, 'pipeline', row.id), { notes: notes.value }).catch(onError);
       });
       card.appendChild(notes);
 
@@ -464,13 +392,13 @@
         select.appendChild(placeholder);
         ideas.forEach(function (idea) {
           var opt = document.createElement('option');
-          opt.value = idea.rowIndex;
+          opt.value = idea.id;
           opt.textContent = idea.title;
           select.appendChild(opt);
         });
         select.onchange = function () {
           if (!select.value) return;
-          call('linkIdeaToRecorded', { recordedRowIndex: row.rowIndex, ideaRowIndex: Number(select.value) });
+          linkIdeaToRecorded(row.id, select.value).catch(onError);
         };
         card.appendChild(select);
       }
@@ -524,32 +452,31 @@
       var flagBtn = document.createElement('button');
       flagBtn.className = 'flag-btn' + (row.doFast ? ' active' : '');
       flagBtn.textContent = row.doFast ? '★ Do Fast' : '☆ Do Fast';
-      flagBtn.onclick = function () { call('toggleDoFast', { rowIndex: row.rowIndex, value: !row.doFast }); };
+      flagBtn.onclick = function () { updateDoc(doc(db, 'pipeline', row.id), { doFast: !row.doFast }).catch(onError); };
       right.appendChild(flagBtn);
 
       if (PREV_STATUS[row.status]) {
         var back = document.createElement('button');
         back.className = 'secondary';
         back.textContent = '← ' + PREV_STATUS[row.status];
-        back.onclick = function () { call('updateStatus', { rowIndex: row.rowIndex, newStatus: PREV_STATUS[row.status] }); };
+        back.onclick = function () { updateDoc(doc(db, 'pipeline', row.id), { status: PREV_STATUS[row.status] }).catch(onError); };
         right.appendChild(back);
       }
       if (NEXT_STATUS[row.status]) {
         var fwd = document.createElement('button');
         fwd.textContent = NEXT_STATUS[row.status] + ' →';
-        fwd.onclick = function () { call('updateStatus', { rowIndex: row.rowIndex, newStatus: NEXT_STATUS[row.status] }); };
+        fwd.onclick = function () { updateDoc(doc(db, 'pipeline', row.id), { status: NEXT_STATUS[row.status] }).catch(onError); };
         right.appendChild(fwd);
       }
 
-      // Archive/Delete are deliberately not one-click-visible - see
-      // WORKFLOW.md "Delete is now Drive-aware" for why: this is a "More
-      // actions" reveal, not a confirm dialog, so a stray click on the card
-      // can't land on either by accident.
-      if (expandedActions[row.rowIndex]) {
+      // Archive/Delete are deliberately not one-click-visible - a "More
+      // actions" reveal, not a confirm dialog, so a stray click on the
+      // card can't land on either by accident.
+      if (expandedActions[row.id]) {
         var archiveBtn = document.createElement('button');
         archiveBtn.className = 'secondary';
         archiveBtn.textContent = 'Archive';
-        archiveBtn.onclick = function () { call('archiveRow', { rowIndex: row.rowIndex }); };
+        archiveBtn.onclick = function () { updateDoc(doc(db, 'pipeline', row.id), { status: 'Archived' }).catch(onError); };
         right.appendChild(archiveBtn);
 
         var deleteBtn = document.createElement('button');
@@ -557,10 +484,14 @@
         deleteBtn.textContent = 'Delete';
         deleteBtn.onclick = function () {
           var driveNote = row.driveFileId
-            ? ' The uploaded file will also be moved to Google Drive\'s trash (recoverable there for a while, not gone instantly).'
+            ? ' The uploaded file will also be moved to Google Drive\'s trash (recoverable there for a while, not gone instantly - handled by the streaming-PC app within a few minutes, not instantly).'
             : '';
           if (confirm('Delete "' + row.title + '" permanently?' + driveNote + ' This cannot be undone from here (consider Archive instead).')) {
-            call('deleteRow', { rowIndex: row.rowIndex });
+            // Soft delete - the local app is the one with Drive access, so
+            // it does the real Drive-trash + doc removal on its own
+            // periodic pass (see app/lib/driveSync.js). Filtered out of
+            // the board immediately below regardless.
+            updateDoc(doc(db, 'pipeline', row.id), { pendingDelete: true }).catch(onError);
           }
         };
         right.appendChild(deleteBtn);
@@ -569,13 +500,13 @@
         closeBtn.className = 'secondary';
         closeBtn.textContent = '✕';
         closeBtn.title = 'Hide';
-        closeBtn.onclick = function () { delete expandedActions[row.rowIndex]; render(); };
+        closeBtn.onclick = function () { delete expandedActions[row.id]; render(); };
         right.appendChild(closeBtn);
       } else {
         var moreBtn = document.createElement('button');
         moreBtn.className = 'secondary';
         moreBtn.textContent = '⋯ More';
-        moreBtn.onclick = function () { expandedActions[row.rowIndex] = true; render(); };
+        moreBtn.onclick = function () { expandedActions[row.id] = true; render(); };
         right.appendChild(moreBtn);
       }
 
@@ -595,7 +526,7 @@
         var restoreBtn = document.createElement('button');
         restoreBtn.className = 'secondary';
         restoreBtn.textContent = 'Restore to Finished';
-        restoreBtn.onclick = function () { call('updateStatus', { rowIndex: row.rowIndex, newStatus: 'Finished' }); };
+        restoreBtn.onclick = function () { updateDoc(doc(db, 'pipeline', row.id), { status: 'Finished' }).catch(onError); };
         el.appendChild(restoreBtn);
         list.appendChild(el);
       });
@@ -607,44 +538,23 @@
       return div.innerHTML;
     }
 
-    // Optimistic update: apply the change to state.rows and re-render
-    // immediately (so clicking/renaming feels instant), then send the real
-    // request in the background. Sheets/Apps Script round-trips are
-    // genuinely slow (each one re-reads the whole sheet), and there's
-    // nothing to be done about that without leaving Sheets - this just
-    // stops the UI from waiting on it. If the server call actually fails,
-    // the optimistic change is rolled back and the error shown, so the
-    // screen never lies about what really happened.
-    function applyOptimistic(action, params) {
-      var row = state.rows.find(function (r) { return r.rowIndex === params.rowIndex; });
-      if (action === 'toggleDoFast' && row) row.doFast = params.value;
-      else if (action === 'updateStatus' && row) row.status = params.newStatus;
-      else if (action === 'archiveRow' && row) row.status = 'Archived';
-      else if (action === 'updateNotes' && row) row.notes = params.newNotes;
-      else if (action === 'updateTitle' && row) row.title = params.newTitle;
-      else if (action === 'deleteRow') state.rows = state.rows.filter(function (r) { return r.rowIndex !== params.rowIndex; });
-      // addIdea / linkIdeaToRecorded touch row counts/cross-row state in
-      // ways not worth faking client-side - those just wait for the server
-      // as before.
-    }
+    // Idea adopts the video's row (title + appended notes), the idea row
+    // is deleted - the info now lives on the real video, keeping a
+    // duplicate note around would just be clutter. Sequential, not a
+    // batch/transaction: acceptable at this app's scale (two people,
+    // rarely if ever hitting this at the same instant).
+    async function linkIdeaToRecorded(recordedId, ideaId) {
+      var ideaSnap = await getDoc(doc(db, 'pipeline', ideaId));
+      if (!ideaSnap.exists() || ideaSnap.data().status !== 'Idea') {
+        throw new Error('That idea no longer exists (it may have already been linked or removed).');
+      }
+      var idea = ideaSnap.data();
+      var recordedSnap = await getDoc(doc(db, 'pipeline', recordedId));
+      var recorded = recordedSnap.data() || {};
+      var mergedNotes = idea.notes ? (recorded.notes ? recorded.notes + '\n' + idea.notes : idea.notes) : recorded.notes;
 
-    function call(action, params) {
-      var snapshot = state.rows.map(function (r) { return Object.assign({}, r); });
-      applyOptimistic(action, params);
-      render();
-
-      apiPost(action, params).then(function (result) {
-        if (result && result.error) {
-          state.rows = snapshot;
-          render();
-          return onError(result.error);
-        }
-        onRowsLoaded(result);
-      }).catch(function (err) {
-        state.rows = snapshot;
-        render();
-        onError(err);
-      });
+      await updateDoc(doc(db, 'pipeline', recordedId), { title: idea.title, notes: mergedNotes || '' });
+      await deleteDoc(doc(db, 'pipeline', ideaId));
     }
 
     function toggleArchived() {
@@ -666,12 +576,23 @@
       if (opening && !configLoaded) refreshConfig();
     }
 
-    function refreshConfig() {
-      apiGet('config').then(renderConfig).catch(onError);
+    var CONFIG_KEYS = ['DISK_CLEANUP_TRIGGER_GB', 'DISK_CLEANUP_TARGET_GB', 'DISK_CLEANUP_DRY_RUN', 'UPLOAD_THROTTLE_MBPS'];
+    var CONFIG_DEFAULTS = { DISK_CLEANUP_TRIGGER_GB: '150', DISK_CLEANUP_TARGET_GB: '130', DISK_CLEANUP_DRY_RUN: 'true', UPLOAD_THROTTLE_MBPS: '50' };
+
+    async function refreshConfig() {
+      try {
+        var snap = await getDoc(doc(db, 'config', 'settings'));
+        var values = snap.exists() ? snap.data() : {};
+        var rows = CONFIG_KEYS.map(function (key) {
+          return { key: key, value: values[key] !== undefined ? values[key] : CONFIG_DEFAULTS[key] };
+        });
+        renderConfig(rows);
+      } catch (err) {
+        onError(err);
+      }
     }
 
     function renderConfig(rows) {
-      if (rows && rows.error) return onError(rows.error);
       configLoaded = true;
       var list = document.getElementById('configList');
       list.innerHTML = '';
@@ -689,35 +610,15 @@
         value.value = row.value;
         value.addEventListener('blur', function () {
           if (value.value !== String(row.value)) {
-            apiPost('updateConfigValue', { rowIndex: row.rowIndex, newValue: value.value }).then(renderConfig).catch(onError);
+            var patch = {};
+            patch[row.key] = value.value;
+            setDoc(doc(db, 'config', 'settings'), patch, { merge: true }).catch(onError);
           }
         });
         el.appendChild(value);
 
         list.appendChild(el);
       });
-    }
-
-    function syncDrive() {
-      document.getElementById('status').textContent = 'Syncing with Google Drive…';
-      apiPost('syncDriveFolder', {}).then(function (result) {
-        if (result && result.error) return onError(result.error);
-        onRowsLoaded(result.rows);
-        document.getElementById('status').textContent =
-          (result.added > 0 ? 'Found ' + result.added + ' new file(s) in Google Drive. ' : 'No new files in Google Drive. ') +
-          'Updated ' + new Date().toLocaleTimeString() + ' — refreshes automatically every few seconds.';
-      }).catch(onError);
-    }
-
-    function autoSyncDrive() {
-      apiPost('syncDriveFolder', {}).then(function (result) {
-        if (result && result.error) { console.error('[auto-sync] failed:', result.error); return; }
-        onRowsLoaded(result.rows);
-        if (result.added > 0) {
-          document.getElementById('status').textContent =
-            'Found ' + result.added + ' new file(s) in Google Drive. Updated ' + new Date().toLocaleTimeString() + '.';
-        }
-      }).catch(function (err) { console.error('[auto-sync] failed:', err); });
     }
 
     function submitIdea() {
@@ -731,10 +632,11 @@
         return;
       }
       var notes = document.getElementById('newNotes').value.trim();
-      document.getElementById('status').textContent = 'Adding idea…';
-      apiPost('addIdea', { title: title, notes: notes }).then(function (result) {
-        if (result && result.error) return onError(result.error);
-        onRowsLoaded(result);
+      addDoc(collection(db, 'pipeline'), {
+        title: title, status: 'Idea', doFast: false, notes: notes,
+        upload: '', filename: '', driveFileId: '', pendingDelete: false,
+        createdAt: serverTimestamp(),
+      }).then(function () {
         titleInput.value = '';
         document.getElementById('newNotes').value = '';
         toggleAddForm();
@@ -742,17 +644,33 @@
     }
 
     function boot() {
-      apiGet('driveFolderUrl').then(function (result) {
-        if (result && result.url) document.getElementById('uploadLink').href = result.url;
-      }).catch(function (err) { console.error('[upload-link]', err); });
-
-      refresh();
-      if (pollTimer) clearInterval(pollTimer);
-      pollTimer = setInterval(refresh, 4000);
-      setInterval(autoSyncDrive, 60000);
+      onSnapshot(collection(db, 'pipeline'), function (snapshot) {
+        state.rows = snapshot.docs
+          .map(function (d) {
+            var data = d.data();
+            return Object.assign({ id: d.id }, data, {
+              createdAtMs: data.createdAt && data.createdAt.toMillis ? data.createdAt.toMillis() : 0,
+            });
+          })
+          // Soft-deleted rows disappear immediately, even before the
+          // local app has actually processed the delete in the background.
+          .filter(function (r) { return !r.pendingDelete; });
+        document.getElementById('status').textContent = 'Live — updates instantly, no refresh needed.';
+        document.getElementById('status').style.color = '';
+        document.getElementById('status').style.fontWeight = '';
+        render();
+      }, onError);
     }
 
-    if (initToken()) setTimeout(boot, 0);
+    // Module scripts don't expose top-level functions on window, but the
+    // HTML uses inline onclick="..." attributes for these - so they need
+    // to be attached explicitly.
+    window.toggleConfig = toggleConfig;
+    window.toggleArchived = toggleArchived;
+    window.toggleAddForm = toggleAddForm;
+    window.submitIdea = submitIdea;
+
+    signInAnonymously(auth).then(boot).catch(onError);
   </script>
 </body>
 </html>
