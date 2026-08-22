@@ -329,10 +329,14 @@
       var board = document.getElementById('board');
       board.innerHTML = '';
       COLUMNS.forEach(function (statusName) {
-        // Most-recently-added first within a column - rowIndex is the
-        // Sheet's insertion order, the closest thing to a "recency" signal
-        // available without a separate timestamp-per-status-change.
-        var rows = state.rows.filter(function (r) { return r.status === statusName; }).slice().reverse();
+        // Do Fast items float to the top; within each group, most
+        // recently added first - rowIndex is the Sheet's insertion order,
+        // the closest thing to a "recency" signal available without a
+        // separate timestamp-per-status-change.
+        var rows = state.rows.filter(function (r) { return r.status === statusName; }).slice().sort(function (a, b) {
+          if (a.doFast !== b.doFast) return a.doFast ? -1 : 1;
+          return b.rowIndex - a.rowIndex;
+        });
         var totalCount = rows.length;
         var isFinished = statusName === 'Finished';
         var displayRows = (isFinished && !showAllFinished) ? rows.slice(0, FINISHED_COLLAPSED_COUNT) : rows;
