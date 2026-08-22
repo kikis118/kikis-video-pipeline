@@ -172,9 +172,22 @@
     width: 14px; height: 14px; border-radius: 50%; background: var(--card);
     border: 1px solid var(--border); color: var(--muted); font-size: 10px;
     font-family: -apple-system, Segoe UI, Roboto, sans-serif; font-weight: 700;
-    cursor: help; flex-shrink: 0;
+    cursor: help; flex-shrink: 0; position: relative;
   }
   .info-tag:hover { color: var(--accent); border-color: var(--accent); }
+  /* Custom tooltip instead of the native title="" attribute - browsers
+     delay native tooltips by ~500-1000ms before showing, this shows the
+     instant you hover. */
+  .info-tag::after {
+    content: attr(data-tooltip);
+    position: absolute; left: 50%; bottom: 130%; transform: translateX(-50%);
+    background: var(--card); border: 1px solid var(--border); color: var(--text);
+    padding: 6px 9px; border-radius: 6px; font-size: 11px; font-weight: 400;
+    line-height: 1.4; white-space: normal; width: max-content; max-width: 260px;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.35);
+    opacity: 0; pointer-events: none; z-index: 20;
+  }
+  .info-tag:hover::after { opacity: 1; }
   .config-row input.config-value { flex: 0 0 160px; background: var(--card); border: 1px solid var(--border); color: var(--text); border-radius: 6px; padding: 5px 8px; font-size: 13px; }
 
   .advanced-config { margin-top: 14px; border-top: 1px solid var(--border); padding-top: 10px; }
@@ -1244,7 +1257,7 @@
           var info = document.createElement('span');
           info.className = 'info-tag';
           info.textContent = 'i';
-          info.title = CONFIG_DESCRIPTIONS[row.key];
+          info.dataset.tooltip = CONFIG_DESCRIPTIONS[row.key];
           key.appendChild(info);
         }
         el.appendChild(key);
