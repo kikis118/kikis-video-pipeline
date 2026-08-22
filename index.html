@@ -204,6 +204,11 @@
   .disk-cleanup-file-row { display: flex; justify-content: space-between; gap: 10px; padding: 4px 8px; font-size: 11px; border-bottom: 1px solid var(--border); }
   .disk-cleanup-file-row:last-child { border-bottom: none; }
   .disk-cleanup-file-row .path { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .disk-cleanup-blocked {
+    background: #4a1c1c; border: 1px solid var(--danger); color: #ffb4b4;
+    border-radius: 6px; padding: 8px 10px; margin-bottom: 8px; font-size: 12px; line-height: 1.5;
+  }
+  .disk-cleanup-blocked strong { color: var(--danger); }
 
   .advanced-config { margin-top: 14px; border-top: 1px solid var(--border); padding-top: 10px; }
   .advanced-config summary { cursor: pointer; font-size: 12px; color: var(--warn); font-weight: 600; }
@@ -1333,6 +1338,16 @@
         return;
       }
 
+      if (status.blocked) {
+        var blockedBox = document.createElement('div');
+        blockedBox.className = 'disk-cleanup-blocked';
+        var attemptMs = status.lastCheckAttemptAt && status.lastCheckAttemptAt.toMillis ? status.lastCheckAttemptAt.toMillis() : null;
+        blockedBox.innerHTML = '<strong>Cleanup skipped</strong> (' + (attemptMs ? formatLocalTime(attemptMs) : 'unknown time') + ') - ' + escapeHtml(status.blockedReason || 'reason unknown') + ' Nothing was deleted. The numbers below are from the last successful check.';
+        el.appendChild(blockedBox);
+      }
+
+      if (!status.lastRunAt) return; // blocked before any real check ever succeeded - nothing else to show yet
+
       var lastRunMs = status.lastRunAt && status.lastRunAt.toMillis ? status.lastRunAt.toMillis() : null;
       var summary = document.createElement('div');
       var modeBadge = '<span class="badge ' + (status.dryRun ? 'dry-run' : 'real') + '">' + (status.dryRun ? 'DRY RUN' : 'REAL - files actually deleted') + '</span>';
@@ -1420,15 +1435,36 @@
         value.className = 'config-value';
         value.value = row.value;
         value.addEventListener('blur', function () {
-          if (value.value !== String(row.value)) {
-            var patch = {};
-            patch[row.key] = value.value;
-            setDoc(doc(db, 'config', 'settings'), patch, { merge: true }).catch(onError);
+          if (value.value === String(row.value)) return;
+          // Extra confirmation gate specifically for turning dry-run off -
+          // this is the one setting in this whole panel that starts
+          // permanently deleting real files. Everything else here just
+          // saves on blur; this one requires an explicit yes first.
+          var turningDryRunOff = row.key === 'DISK_CLEANUP_DRY_RUN' && String(value.value).toLowerCase() === 'false';
+          if (turningDryRunOff && !confirm(
+            'Turn OFF dry-run mode?\n\nThe streaming PC will start PERMANENTLY DELETING real recording files ' +
+            'from RECORDING_ROOT on its next check (oldest files first, once past the trigger size) - not just ' +
+            'logging what it would delete anymore.\n\nOnly do this after you\'ve checked the Disk Cleanup status ' +
+            'box above and confirmed it\'s picking the right files.'
+          )) {
+            value.value = String(row.value);
+            return;
           }
+          var patch = {};
+          patch[row.key] = value.value;
+          setDoc(doc(db, 'config', 'settings'), patch, { merge: true }).catch(onError);
         });
         el.appendChild(value);
 
         list.appendChild(el);
+
+        if (row.key === 'DISK_CLEANUP_DRY_RUN') {
+          var warning = document.createElement('div');
+          warning.className = 'disk-cleanup-blocked';
+          warning.style.marginTop = '-2px';
+          warning.innerHTML = '<strong>Careful:</strong> setting this to <code>false</code> makes the streaming PC start actually deleting real recording files, not just logging what it would delete.';
+          list.appendChild(warning);
+        }
       });
     }
 
