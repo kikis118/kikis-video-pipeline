@@ -592,8 +592,44 @@
       return div.innerHTML;
     }
 
+    // Optimistic update: apply the change to state.rows and re-render
+    // immediately (so clicking/renaming feels instant), then send the real
+    // request in the background. Sheets/Apps Script round-trips are
+    // genuinely slow (each one re-reads the whole sheet), and there's
+    // nothing to be done about that without leaving Sheets - this just
+    // stops the UI from waiting on it. If the server call actually fails,
+    // the optimistic change is rolled back and the error shown, so the
+    // screen never lies about what really happened.
+    function applyOptimistic(action, params) {
+      var row = state.rows.find(function (r) { return r.rowIndex === params.rowIndex; });
+      if (action === 'toggleDoFast' && row) row.doFast = params.value;
+      else if (action === 'updateStatus' && row) row.status = params.newStatus;
+      else if (action === 'archiveRow' && row) row.status = 'Archived';
+      else if (action === 'updateNotes' && row) row.notes = params.newNotes;
+      else if (action === 'updateTitle' && row) row.title = params.newTitle;
+      else if (action === 'deleteRow') state.rows = state.rows.filter(function (r) { return r.rowIndex !== params.rowIndex; });
+      // addIdea / linkIdeaToRecorded touch row counts/cross-row state in
+      // ways not worth faking client-side - those just wait for the server
+      // as before.
+    }
+
     function call(action, params) {
-      apiPost(action, params).then(onRowsLoaded).catch(onError);
+      var snapshot = state.rows.map(function (r) { return Object.assign({}, r); });
+      applyOptimistic(action, params);
+      render();
+
+      apiPost(action, params).then(function (result) {
+        if (result && result.error) {
+          state.rows = snapshot;
+          render();
+          return onError(result.error);
+        }
+        onRowsLoaded(result);
+      }).catch(function (err) {
+        state.rows = snapshot;
+        render();
+        onError(err);
+      });
     }
 
     function toggleArchived() {
