@@ -240,7 +240,7 @@
       localStorage.setItem('ghazzy_token', val);
       TOKEN = val;
       document.getElementById('tokenGate').style.display = 'none';
-      boot();
+      setTimeout(boot, 0);
     }
 
     // --- API helpers ---
@@ -611,7 +611,7 @@
       setInterval(autoSyncDrive, 60000);
     }
 
-    if (initToken()) boot();
+    if (initToken()) setTimeout(boot, 0);
   </script>
 </body>
 </html>
