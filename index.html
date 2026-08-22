@@ -33,6 +33,7 @@
   }
   header h1 { font-size: 16px; margin: 0 8px 0 0; }
   header button, header a { white-space: nowrap; }
+  header .spacer { flex: 1; }
   button, a.secondary, a.btn-upload {
     background: var(--accent);
     color: #10131c;
@@ -62,13 +63,35 @@
   }
   .flag-btn:hover { border-color: var(--muted); }
 
-  #board { display: flex; gap: 14px; padding: 16px; align-items: flex-start; }
-  .column { flex: 1; min-width: 240px; background: var(--panel); border-radius: 10px; padding: 10px; }
+  #uploadLink.btn-upload { background: #1c4030; color: var(--good); border: 1px solid var(--good); }
+
+  #status { font-size: 11px; color: var(--muted); padding: 8px 20px 0; }
+
+  #createFolderForm { display: none; gap: 8px; padding: 10px 20px 0; }
+  #createFolderForm.open { display: flex; }
+  #createFolderForm input { flex: 1; max-width: 320px; background: var(--card); border: 1px solid var(--border); color: var(--text); border-radius: 6px; padding: 7px 10px; }
+
+  #foldersContainer { display: flex; flex-direction: column; gap: 10px; padding: 12px 20px 20px; }
+  .folder-section { background: var(--panel); border-radius: 10px; }
+  .folder-section.main { border: 1px solid var(--accent); }
+  .folder-header { display: flex; align-items: center; gap: 8px; padding: 10px 14px; flex-wrap: wrap; }
+  .folder-toggle { background: transparent; border: none; color: var(--muted); font-size: 13px; padding: 2px 4px; cursor: pointer; }
+  .folder-name { font-size: 14px; font-weight: 700; cursor: text; }
+  .folder-name-input { font-size: 14px; font-weight: 700; background: var(--card); border: 1px solid var(--border); border-radius: 4px; color: var(--text); padding: 2px 6px; }
+  .folder-badge { background: var(--accent); color: #10131c; font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 999px; letter-spacing: 0.03em; }
+  .folder-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--danger); display: inline-block; flex-shrink: 0; }
+  .folder-count { color: var(--muted); font-size: 12px; }
+  .folder-actions { display: flex; gap: 6px; }
+  .folder-actions button { padding: 4px 8px; font-size: 11px; }
+  .folder-body { padding: 0 14px 14px; }
+
+  .board { display: flex; gap: 14px; align-items: flex-start; margin-bottom: 12px; }
+  .column { flex: 1; min-width: 240px; background: var(--card); border-radius: 10px; padding: 10px; }
   .column h2 { font-size: 13px; text-transform: uppercase; letter-spacing: 0.04em; color: var(--muted); margin: 4px 6px 10px; }
   .column .count { color: var(--muted); font-weight: 400; }
 
   .card {
-    background: var(--card);
+    background: var(--panel);
     border: 1px solid var(--border);
     border-radius: 8px;
     padding: 10px;
@@ -104,9 +127,13 @@
   .badge.failed { background: #4a1c1c; color: var(--danger); }
   .card-actions { display: flex; justify-content: space-between; align-items: center; gap: 6px; margin-top: 8px; flex-wrap: wrap; }
   .card-actions button { padding: 4px 8px; font-size: 11px; }
-  .actions-left, .actions-right { display: flex; gap: 6px; flex-wrap: wrap; }
+  .actions-left, .actions-right { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
   .flag-btn { background: transparent; border: 1px solid var(--border); color: var(--muted); }
   .flag-btn.active { background: var(--danger); color: #2a0a0a; border-color: var(--danger); }
+  .move-folder-select {
+    background: var(--card); color: var(--text); border: 1px solid var(--border);
+    border-radius: 6px; padding: 4px 6px; font-size: 11px; width: 100%; margin-top: 6px;
+  }
 
   .column-more { width: 100%; margin-top: 4px; }
 
@@ -117,17 +144,6 @@
   .btn-view { background: var(--accent); color: #10131c; }
   .btn-download { background: var(--good); color: #06261a; }
 
-  #uploadLink.btn-upload { background: #1c4030; color: var(--good); border: 1px solid var(--good); }
-
-  #addForm { display: none; gap: 8px; padding: 10px 20px; background: var(--panel); border-bottom: 1px solid var(--border); }
-  #addForm.open { display: flex; }
-  #addForm input { flex: 1; background: var(--card); border: 1px solid var(--border); color: var(--text); border-radius: 6px; padding: 7px 10px; }
-
-  #archivedPanel { display: none; padding: 0 20px 20px; }
-  #archivedPanel.open { display: block; }
-  #archivedPanel h2 { font-size: 13px; color: var(--muted); }
-  .archived-row { display: flex; justify-content: space-between; align-items: center; padding: 6px 10px; background: var(--panel); border-radius: 6px; margin-bottom: 4px; font-size: 13px; }
-
   #configPanel { display: none; padding: 12px 20px; background: var(--panel); border-bottom: 1px solid var(--border); }
   #configPanel.open { display: block; }
   #configPanel h2 { font-size: 13px; color: var(--muted); margin: 0 0 10px; font-weight: 600; }
@@ -135,14 +151,15 @@
   .config-row .config-key { flex: 0 0 240px; font-size: 13px; font-family: monospace; color: var(--text); }
   .config-row input.config-value { flex: 0 0 160px; background: var(--card); border: 1px solid var(--border); color: var(--text); border-radius: 6px; padding: 5px 8px; font-size: 13px; }
 
-  #status { font-size: 11px; color: var(--muted); padding: 0 20px; }
-
-  #ideasPanel { padding: 12px 20px; }
-  #ideasPanel h2 {
+  .ideas-panel { margin-bottom: 12px; }
+  .ideas-panel h2 {
     font-size: 12px; text-transform: uppercase; letter-spacing: 0.04em;
-    color: var(--muted); margin: 0 0 8px;
+    color: var(--muted); margin: 8px 0 8px;
   }
-  #ideasList { display: flex; flex-direction: column; gap: 6px; }
+  .add-form { display: none; gap: 8px; margin: 8px 0; }
+  .add-form.open { display: flex; }
+  .add-form input { flex: 1; background: var(--card); border: 1px solid var(--border); color: var(--text); border-radius: 6px; padding: 7px 10px; }
+  .ideas-list { display: flex; flex-direction: column; gap: 6px; }
   .idea-row {
     display: flex; flex-direction: column; gap: 4px;
     padding: 8px 10px; border-radius: 6px;
@@ -169,6 +186,9 @@
   .idea-row-actions { display: flex; gap: 6px; justify-content: flex-end; }
   .idea-row-empty { color: var(--muted); font-size: 12px; font-style: italic; padding: 4px 10px; }
 
+  .archived-panel { margin-top: 8px; }
+  .archived-row { display: flex; justify-content: space-between; align-items: center; padding: 6px 10px; background: var(--card); border-radius: 6px; margin-bottom: 4px; font-size: 13px; }
+
   .card.needs-label { border-color: var(--warn); }
   .needs-label-badge {
     display: inline-block; background: #4a3d1a; color: var(--warn);
@@ -183,11 +203,11 @@
 </head>
 <body>
   <header>
-    <h1>Ghazzy's YT Video Pipeline</h1>
-    <button class="secondary" onclick="toggleConfig()">&#9881; Config</button>
     <a id="uploadLink" class="btn-upload" href="#" target="_blank" rel="noopener" style="text-decoration:none;">&#8613; Upload a Recording</a>
-    <button class="secondary" id="toggleArchivedBtn" onclick="toggleArchived()">Show Archived</button>
-    <button onclick="toggleAddForm()">+ Add Idea</button>
+    <button class="secondary" id="toggleArchivedFoldersBtn" onclick="toggleArchivedFolders()">Show Archived Folders</button>
+    <button onclick="toggleCreateFolderForm()">+ Create Folder</button>
+    <div class="spacer"></div>
+    <button class="secondary" onclick="toggleConfig()">&#9881; Config</button>
   </header>
 
   <div id="configPanel">
@@ -195,26 +215,15 @@
     <div id="configList"></div>
   </div>
 
-  <div id="addForm">
-    <input id="newTitle" placeholder="Video idea title" />
-    <input id="newNotes" placeholder="Notes (optional)" />
-    <button onclick="submitIdea()">Add</button>
-    <button class="secondary" onclick="toggleAddForm()">Cancel</button>
+  <div id="createFolderForm">
+    <input id="newFolderName" placeholder="Folder name (e.g. PoE 2 0.5.5)" />
+    <button onclick="submitCreateFolder()">Create</button>
+    <button class="secondary" onclick="toggleCreateFolderForm()">Cancel</button>
   </div>
 
   <div id="status">Connecting&hellip;</div>
 
-  <div id="board"></div>
-
-  <div id="ideasPanel">
-    <h2>Ideas <span class="count" id="ideasCount"></span></h2>
-    <div id="ideasList"></div>
-  </div>
-
-  <div id="archivedPanel">
-    <h2>Archived</h2>
-    <div id="archivedList"></div>
-  </div>
+  <div id="foldersContainer"></div>
 
   <script type="module">
     import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.13.2/firebase-app.js';
@@ -247,13 +256,17 @@
     var COLUMNS = ['Recorded', 'Finished'];
     var NEXT_STATUS = { Recorded: 'Finished', Finished: null };
     var PREV_STATUS = { Finished: 'Recorded' };
-
-    var state = { rows: [] };
-    var editing = {};
-    var expandedActions = {}; // id -> true while "More actions" (Archive/Delete) is revealed
-    var showArchived = false;
-    var showAllFinished = false;
     var FINISHED_COLLAPSED_COUNT = 3;
+
+    var state = { rows: [], folders: [] };
+    var editing = {};
+    var expandedActions = {}; // pipeline doc id -> true while "More actions" (Archive/Delete/Move) is revealed
+    var expandedFolders = {}; // folder id -> true while expanded (Main is always expanded, not stored here)
+    var showArchivedByFolder = {}; // folder id -> true while its per-clip Archived list is shown
+    var showAllFinishedByFolder = {}; // "folderId:Finished" -> true while fully expanded
+    var showArchivedFolders = false;
+    var addFormOpenFolder = null; // folder id whose "+ Add Idea" form is open, or null
+    var renamingFolder = null; // folder id currently showing a rename input, or null
 
     document.getElementById('uploadLink').href = DRIVE_FOLDER_URL;
 
@@ -270,96 +283,334 @@
       return editing[id + ':' + field] === true;
     }
 
-    function render() {
-      var board = document.getElementById('board');
-      board.innerHTML = '';
-      COLUMNS.forEach(function (statusName) {
-        // Do Fast items float to the top; within each group, most
-        // recently added first.
-        var rows = state.rows.filter(function (r) { return r.status === statusName; }).slice().sort(function (a, b) {
-          if (a.doFast !== b.doFast) return a.doFast ? -1 : 1;
-          return (b.createdAtMs || 0) - (a.createdAtMs || 0);
-        });
-        var totalCount = rows.length;
-        var isFinished = statusName === 'Finished';
-        var displayRows = (isFinished && !showAllFinished) ? rows.slice(0, FINISHED_COLLAPSED_COUNT) : rows;
-
-        var col = document.createElement('div');
-        col.className = 'column';
-        col.innerHTML = '<h2>' + statusName + ' <span class="count">(' + totalCount + ')</span></h2>';
-        displayRows.forEach(function (row) { col.appendChild(renderCard(row)); });
-
-        if (isFinished && totalCount > FINISHED_COLLAPSED_COUNT) {
-          var toggleBtn = document.createElement('button');
-          toggleBtn.className = 'secondary column-more';
-          toggleBtn.textContent = showAllFinished ? 'Show fewer' : 'View all (' + totalCount + ')';
-          toggleBtn.onclick = function () { showAllFinished = !showAllFinished; render(); };
-          col.appendChild(toggleBtn);
-        }
-
-        board.appendChild(col);
-      });
-      renderIdeas();
-      renderArchived();
-    }
-
     function needsLabel(row) {
       return row.status === 'Recorded' && row.filename && row.title === row.filename;
     }
 
-    function renderIdeas() {
-      var ideas = state.rows.filter(function (r) { return r.status === 'Idea'; });
-      document.getElementById('ideasCount').textContent = '(' + ideas.length + ')';
-      var list = document.getElementById('ideasList');
-      list.innerHTML = '';
+    // A pipeline doc with no folder field is legacy data from before folders
+    // existed, or a file the local app's Drive scan found before it knew
+    // which category it belonged to - treated as living in whichever folder
+    // is currently Main (matches app/lib/driveSync.js's own convention, and
+    // is exactly what physically happens to the real Drive file too).
+    function rowsForFolder(folder) {
+      return state.rows.filter(function (r) {
+        return folder.isMain ? (!r.folder || r.folder === folder.id) : r.folder === folder.id;
+      });
+    }
+
+    // ---------- top-level render ----------
+
+    function renderFolders() {
+      var container = document.getElementById('foldersContainer');
+      container.innerHTML = '';
+
+      var folders = state.folders.slice().sort(function (a, b) {
+        if (a.isMain !== b.isMain) return a.isMain ? -1 : 1;
+        return (a.createdAtMs || 0) - (b.createdAtMs || 0);
+      });
+
+      var archivedCount = folders.filter(function (f) { return f.archived; }).length;
+      var toggleBtn = document.getElementById('toggleArchivedFoldersBtn');
+      toggleBtn.textContent = (showArchivedFolders ? 'Hide Archived Folders' : 'Show Archived Folders') + (archivedCount ? ' (' + archivedCount + ')' : '');
+      toggleBtn.disabled = archivedCount === 0 && !showArchivedFolders;
+
+      folders.forEach(function (folder) {
+        if (folder.archived && !showArchivedFolders) return;
+        container.appendChild(renderFolderSection(folder));
+      });
+
+      if (!folders.length) {
+        var empty = document.createElement('div');
+        empty.className = 'idea-row-empty';
+        empty.textContent = 'No folders yet - the streaming-PC app creates a default "Main" folder the first time it runs.';
+        container.appendChild(empty);
+      }
+    }
+
+    // ---------- folders ----------
+
+    function renderFolderSection(folder) {
+      var isMain = folder.isMain;
+      var expanded = isMain || expandedFolders[folder.id] === true;
+      var rows = rowsForFolder(folder);
+      var needsAttention = rows.some(needsLabel);
+
+      var section = document.createElement('div');
+      section.className = 'folder-section' + (isMain ? ' main' : '');
+
+      var header = document.createElement('div');
+      header.className = 'folder-header';
+
+      if (!isMain) {
+        var toggleBtn = document.createElement('button');
+        toggleBtn.className = 'folder-toggle';
+        toggleBtn.textContent = expanded ? '▾' : '▸';
+        toggleBtn.title = expanded ? 'Collapse' : 'Expand';
+        toggleBtn.onclick = function () { expandedFolders[folder.id] = !expanded; renderFolders(); };
+        header.appendChild(toggleBtn);
+      }
+
+      if (renamingFolder === folder.id) {
+        var nameInput = document.createElement('input');
+        nameInput.className = 'folder-name-input';
+        nameInput.value = folder.name;
+        nameInput.addEventListener('blur', function () {
+          renamingFolder = null;
+          var val = nameInput.value.trim();
+          if (val && val !== folder.name) updateDoc(doc(db, 'folders', folder.id), { name: val }).catch(onError);
+          else renderFolders();
+        });
+        header.appendChild(nameInput);
+      } else {
+        var nameEl = document.createElement('span');
+        nameEl.className = 'folder-name';
+        nameEl.textContent = folder.name;
+        nameEl.title = 'Click to rename';
+        nameEl.onclick = function () {
+          renamingFolder = folder.id;
+          renderFolders();
+          var el = document.querySelector('.folder-name-input');
+          if (el) { el.focus(); el.select(); }
+        };
+        header.appendChild(nameEl);
+      }
+
+      if (isMain) {
+        var badge = document.createElement('span');
+        badge.className = 'folder-badge';
+        badge.textContent = 'MAIN';
+        header.appendChild(badge);
+      }
+
+      if (!expanded && needsAttention) {
+        var dot = document.createElement('span');
+        dot.className = 'folder-dot';
+        dot.title = 'Something in here has been uploaded and still needs a title';
+        header.appendChild(dot);
+      }
+
+      var count = document.createElement('span');
+      count.className = 'folder-count';
+      count.textContent = '(' + rows.length + ')';
+      header.appendChild(count);
+
+      header.appendChild(Object.assign(document.createElement('div'), { className: 'spacer' }));
+
+      var actions = document.createElement('div');
+      actions.className = 'folder-actions';
+
+      if (!isMain && !folder.archived) {
+        var setMainBtn = document.createElement('button');
+        setMainBtn.className = 'secondary';
+        setMainBtn.textContent = 'Set as Main';
+        setMainBtn.onclick = function () { setMainFolder(folder.id).catch(onError); };
+        actions.appendChild(setMainBtn);
+      }
+
+      if (!isMain) {
+        var archiveBtn = document.createElement('button');
+        archiveBtn.className = 'secondary';
+        archiveBtn.textContent = folder.archived ? 'Unarchive' : 'Archive';
+        archiveBtn.onclick = function () {
+          if (!folder.archived && !confirm('Archive folder "' + folder.name + '"? It moves out of the main view - still fully there, nothing is deleted.')) return;
+          updateDoc(doc(db, 'folders', folder.id), { archived: !folder.archived }).catch(onError);
+        };
+        actions.appendChild(archiveBtn);
+      }
+
+      header.appendChild(actions);
+      section.appendChild(header);
+
+      if (expanded) section.appendChild(renderFolderBody(folder, rows));
+      return section;
+    }
+
+    async function setMainFolder(folderId) {
+      var current = state.folders.find(function (f) { return f.isMain; });
+      if (current && current.id !== folderId) await updateDoc(doc(db, 'folders', current.id), { isMain: false });
+      await updateDoc(doc(db, 'folders', folderId), { isMain: true });
+    }
+
+    function renderFolderBody(folder, rows) {
+      var wrap = document.createElement('div');
+      wrap.className = 'folder-body';
+
+      var board = document.createElement('div');
+      board.className = 'board';
+      COLUMNS.forEach(function (statusName) {
+        var colRows = rows.filter(function (r) { return r.status === statusName; }).slice().sort(function (a, b) {
+          if (a.doFast !== b.doFast) return a.doFast ? -1 : 1;
+          return (b.createdAtMs || 0) - (a.createdAtMs || 0);
+        });
+        var totalCount = colRows.length;
+        var isFinished = statusName === 'Finished';
+        var key = folder.id + ':' + statusName;
+        var showAll = showAllFinishedByFolder[key];
+        var displayRows = (isFinished && !showAll) ? colRows.slice(0, FINISHED_COLLAPSED_COUNT) : colRows;
+
+        var col = document.createElement('div');
+        col.className = 'column';
+        col.innerHTML = '<h2>' + statusName + ' <span class="count">(' + totalCount + ')</span></h2>';
+        displayRows.forEach(function (row) { col.appendChild(renderCard(row, rows)); });
+
+        if (isFinished && totalCount > FINISHED_COLLAPSED_COUNT) {
+          var toggleBtn = document.createElement('button');
+          toggleBtn.className = 'secondary column-more';
+          toggleBtn.textContent = showAll ? 'Show fewer' : 'View all (' + totalCount + ')';
+          toggleBtn.onclick = function () { showAllFinishedByFolder[key] = !showAll; renderFolders(); };
+          col.appendChild(toggleBtn);
+        }
+        board.appendChild(col);
+      });
+      wrap.appendChild(board);
+
+      wrap.appendChild(renderIdeasPanel(folder, rows));
+
+      var archivedRows = rows.filter(function (r) { return r.status === 'Archived'; });
+      var archOpen = showArchivedByFolder[folder.id] === true;
+      var archToggle = document.createElement('button');
+      archToggle.className = 'secondary';
+      archToggle.textContent = (archOpen ? 'Hide Archived' : 'Show Archived') + ' (' + archivedRows.length + ')';
+      archToggle.onclick = function () { showArchivedByFolder[folder.id] = !archOpen; renderFolders(); };
+      wrap.appendChild(archToggle);
+
+      if (archOpen) {
+        var archivedPanel = document.createElement('div');
+        archivedPanel.className = 'archived-panel';
+        archivedRows.forEach(function (row) {
+          var el = document.createElement('div');
+          el.className = 'archived-row';
+          el.innerHTML = '<span>' + escapeHtml(row.title) + '</span>';
+          var restoreBtn = document.createElement('button');
+          restoreBtn.className = 'secondary';
+          restoreBtn.textContent = 'Restore to Finished';
+          restoreBtn.onclick = function () { updateDoc(doc(db, 'pipeline', row.id), { status: 'Finished' }).catch(onError); };
+          el.appendChild(restoreBtn);
+          archivedPanel.appendChild(el);
+        });
+        wrap.appendChild(archivedPanel);
+      }
+
+      return wrap;
+    }
+
+    // ---------- ideas ----------
+
+    function renderIdeasPanel(folder, rows) {
+      var panel = document.createElement('div');
+      panel.className = 'ideas-panel';
+
+      var addBtn = document.createElement('button');
+      var formOpen = addFormOpenFolder === folder.id;
+      addBtn.textContent = formOpen ? 'Cancel' : '+ Add Video Idea';
+      addBtn.className = formOpen ? 'secondary' : '';
+      addBtn.onclick = function () { addFormOpenFolder = formOpen ? null : folder.id; renderFolders(); };
+      panel.appendChild(addBtn);
+
+      if (formOpen) panel.appendChild(renderAddIdeaForm(folder));
+
+      var ideas = rows.filter(function (r) { return r.status === 'Idea'; });
+      var header = document.createElement('h2');
+      header.innerHTML = 'Video Ideas <span class="count">(' + ideas.length + ')</span>';
+      panel.appendChild(header);
+
+      var list = document.createElement('div');
+      list.className = 'ideas-list';
       if (!ideas.length) {
         var empty = document.createElement('div');
         empty.className = 'idea-row-empty';
-        empty.textContent = 'No ideas yet — click "+ Add Idea" above.';
+        empty.textContent = 'No video ideas yet — click "+ Add Video Idea" above.';
         list.appendChild(empty);
-        return;
+      } else {
+        ideas.forEach(function (row) { list.appendChild(renderIdeaRow(row)); });
       }
-      ideas.forEach(function (row) {
-        var el = document.createElement('div');
-        el.className = 'idea-row';
+      panel.appendChild(list);
 
-        var top = document.createElement('div');
-        top.className = 'idea-row-top';
+      return panel;
+    }
 
-        var title = document.createElement('input');
-        title.className = 'idea-title';
-        title.placeholder = 'Idea title';
-        title.value = row.title;
-        title.addEventListener('focus', function () { editing[row.id + ':title'] = true; });
-        title.addEventListener('blur', function () {
-          delete editing[row.id + ':title'];
-          if (title.value.trim() && title.value.trim() !== row.title) updateDoc(doc(db, 'pipeline', row.id), { title: title.value.trim() }).catch(onError);
-        });
-        top.appendChild(title);
-        el.appendChild(top);
+    function renderAddIdeaForm(folder) {
+      var form = document.createElement('div');
+      form.className = 'add-form open';
 
-        el.appendChild(renderIdeaNotes(row));
+      var titleInput = document.createElement('input');
+      titleInput.placeholder = 'Video idea title';
+      var notesInput = document.createElement('input');
+      notesInput.placeholder = 'Notes (optional)';
 
-        var actions = document.createElement('div');
-        actions.className = 'idea-row-actions';
+      var addBtn = document.createElement('button');
+      addBtn.textContent = 'Add';
+      addBtn.onclick = function () {
+        var title = titleInput.value.trim();
+        if (!title) {
+          titleInput.style.outline = '2px solid var(--danger)';
+          titleInput.placeholder = 'Type a title first';
+          titleInput.focus();
+          setTimeout(function () { titleInput.style.outline = ''; }, 1500);
+          return;
+        }
+        addDoc(collection(db, 'pipeline'), {
+          title: title, status: 'Idea', doFast: false, notes: notesInput.value.trim(),
+          upload: '', filename: '', driveFileId: '', pendingDelete: false, folder: folder.id,
+          createdAt: serverTimestamp(),
+        }).then(function () {
+          addFormOpenFolder = null;
+          renderFolders();
+        }).catch(onError);
+      };
 
-        var flagBtn = document.createElement('button');
-        flagBtn.className = 'flag-btn' + (row.doFast ? ' active' : '');
-        flagBtn.textContent = row.doFast ? '★ Do Fast' : '☆ Do Fast';
-        flagBtn.onclick = function () { updateDoc(doc(db, 'pipeline', row.id), { doFast: !row.doFast }).catch(onError); };
-        actions.appendChild(flagBtn);
+      var cancelBtn = document.createElement('button');
+      cancelBtn.className = 'secondary';
+      cancelBtn.textContent = 'Cancel';
+      cancelBtn.onclick = function () { addFormOpenFolder = null; renderFolders(); };
 
-        var deleteBtn = document.createElement('button');
-        deleteBtn.className = 'danger';
-        deleteBtn.textContent = 'Delete';
-        deleteBtn.onclick = function () {
-          if (confirm('Delete idea "' + row.title + '"?')) deleteDoc(doc(db, 'pipeline', row.id)).catch(onError);
-        };
-        actions.appendChild(deleteBtn);
+      form.appendChild(titleInput);
+      form.appendChild(notesInput);
+      form.appendChild(addBtn);
+      form.appendChild(cancelBtn);
+      return form;
+    }
 
-        el.appendChild(actions);
-        list.appendChild(el);
+    function renderIdeaRow(row) {
+      var el = document.createElement('div');
+      el.className = 'idea-row';
+
+      var top = document.createElement('div');
+      top.className = 'idea-row-top';
+
+      var title = document.createElement('input');
+      title.className = 'idea-title';
+      title.placeholder = 'Video idea title';
+      title.value = row.title;
+      title.addEventListener('focus', function () { editing[row.id + ':title'] = true; });
+      title.addEventListener('blur', function () {
+        delete editing[row.id + ':title'];
+        if (title.value.trim() && title.value.trim() !== row.title) updateDoc(doc(db, 'pipeline', row.id), { title: title.value.trim() }).catch(onError);
       });
+      top.appendChild(title);
+      el.appendChild(top);
+
+      el.appendChild(renderIdeaNotes(row));
+
+      var actions = document.createElement('div');
+      actions.className = 'idea-row-actions';
+
+      var flagBtn = document.createElement('button');
+      flagBtn.className = 'flag-btn' + (row.doFast ? ' active' : '');
+      flagBtn.textContent = row.doFast ? '★ Do Fast' : '☆ Do Fast';
+      flagBtn.onclick = function () { updateDoc(doc(db, 'pipeline', row.id), { doFast: !row.doFast }).catch(onError); };
+      actions.appendChild(flagBtn);
+
+      var deleteBtn = document.createElement('button');
+      deleteBtn.className = 'danger';
+      deleteBtn.textContent = 'Delete';
+      deleteBtn.onclick = function () {
+        if (confirm('Delete video idea "' + row.title + '"?')) deleteDoc(doc(db, 'pipeline', row.id)).catch(onError);
+      };
+      actions.appendChild(deleteBtn);
+
+      el.appendChild(actions);
+      return el;
     }
 
     // Description/notes for an idea - a proper multi-line field, distinct
@@ -375,7 +626,7 @@
         textarea.addEventListener('blur', function () {
           delete editing[row.id + ':notes'];
           if (textarea.value !== row.notes) updateDoc(doc(db, 'pipeline', row.id), { notes: textarea.value }).catch(onError);
-          else render();
+          else renderFolders();
         });
         return textarea;
       }
@@ -392,14 +643,35 @@
       view.addEventListener('click', function (e) {
         if (e.target.tagName === 'A') return; // let real links through
         editing[row.id + ':notes'] = true;
-        render();
+        renderFolders();
         var el = document.querySelector('textarea[data-idea-notes-edit="' + row.id + '"]');
         if (el) { el.focus(); el.setSelectionRange(el.value.length, el.value.length); }
       });
       return view;
     }
 
-    function renderCard(row) {
+    // Idea adopts the video's row (title + appended notes), the idea row
+    // is deleted - the info now lives on the real video, keeping a
+    // duplicate note around would just be clutter. Sequential, not a
+    // batch/transaction: acceptable at this app's scale (two people,
+    // rarely if ever hitting this at the same instant).
+    async function linkIdeaToRecorded(recordedId, ideaId) {
+      var ideaSnap = await getDoc(doc(db, 'pipeline', ideaId));
+      if (!ideaSnap.exists() || ideaSnap.data().status !== 'Idea') {
+        throw new Error('That idea no longer exists (it may have already been linked or removed).');
+      }
+      var idea = ideaSnap.data();
+      var recordedSnap = await getDoc(doc(db, 'pipeline', recordedId));
+      var recorded = recordedSnap.data() || {};
+      var mergedNotes = idea.notes ? (recorded.notes ? recorded.notes + '\n' + idea.notes : idea.notes) : recorded.notes;
+
+      await updateDoc(doc(db, 'pipeline', recordedId), { title: idea.title, notes: mergedNotes || '' });
+      await deleteDoc(doc(db, 'pipeline', ideaId));
+    }
+
+    // ---------- cards ----------
+
+    function renderCard(row, folderRows) {
       var unlabeled = needsLabel(row);
       var card = document.createElement('div');
       card.className = 'card' + (row.doFast ? ' do-fast' : '') + (unlabeled ? ' needs-label' : '');
@@ -436,12 +708,12 @@
       card.appendChild(notes);
 
       if (unlabeled) {
-        var ideas = state.rows.filter(function (r) { return r.status === 'Idea'; });
+        var ideas = folderRows.filter(function (r) { return r.status === 'Idea'; });
         var select = document.createElement('select');
         select.className = 'link-idea-select';
         var placeholder = document.createElement('option');
         placeholder.value = '';
-        placeholder.textContent = ideas.length ? '— Link to an idea instead of typing a title —' : '(no ideas to link — just type a title above)';
+        placeholder.textContent = ideas.length ? '— Link to a video idea instead of typing a title —' : '(no video ideas to link — just type a title above)';
         select.appendChild(placeholder);
         ideas.forEach(function (idea) {
           var opt = document.createElement('option');
@@ -476,7 +748,7 @@
 
       // Left = editor-only tools (View/Download - Ghazzy never needs
       // these from the board). Right = Ghazzy's controls (Do Fast,
-      // advance/back status) plus the admin-only More/Archive/Delete -
+      // advance/back status) plus the admin-only More/Archive/Delete/Move -
       // kept deliberately separate so the two roles' controls don't mix.
       var left = document.createElement('div');
       left.className = 'actions-left';
@@ -522,9 +794,9 @@
         right.appendChild(fwd);
       }
 
-      // Archive/Delete are deliberately not one-click-visible - a "More
-      // actions" reveal, not a confirm dialog, so a stray click on the
-      // card can't land on either by accident.
+      // Archive/Delete/Move are deliberately not one-click-visible - a
+      // "More actions" reveal, not a confirm dialog, so a stray click on
+      // the card can't land on any of them by accident.
       if (expandedActions[row.id]) {
         var archiveBtn = document.createElement('button');
         archiveBtn.className = 'secondary';
@@ -537,7 +809,7 @@
         deleteBtn.textContent = 'Delete';
         deleteBtn.onclick = function () {
           var driveNote = row.driveFileId
-            ? ' The uploaded file will also be moved to Google Drive\'s trash (recoverable there for a while, not gone instantly - handled by the streaming-PC app within a few minutes, not instantly).'
+            ? ' The uploaded file will also be moved to Google Drive\'s trash (recoverable there for a while, not gone instantly - handled by the streaming-PC app within a minute or two, not instantly).'
             : '';
           if (confirm('Delete "' + row.title + '" permanently?' + driveNote + ' This cannot be undone from here (consider Archive instead).')) {
             // Soft delete - the local app is the one with Drive access, so
@@ -553,13 +825,35 @@
         closeBtn.className = 'secondary';
         closeBtn.textContent = '✕';
         closeBtn.title = 'Hide';
-        closeBtn.onclick = function () { delete expandedActions[row.id]; render(); };
+        closeBtn.onclick = function () { delete expandedActions[row.id]; renderFolders(); };
         right.appendChild(closeBtn);
+
+        var currentFolderId = row.folder || (state.folders.find(function (f) { return f.isMain; }) || {}).id;
+        var moveTargets = state.folders.filter(function (f) { return !f.archived && f.id !== currentFolderId; });
+        if (moveTargets.length) {
+          var moveSelect = document.createElement('select');
+          moveSelect.className = 'move-folder-select';
+          var moveDefault = document.createElement('option');
+          moveDefault.value = '';
+          moveDefault.textContent = 'Move to folder…';
+          moveSelect.appendChild(moveDefault);
+          moveTargets.forEach(function (f) {
+            var opt = document.createElement('option');
+            opt.value = f.id;
+            opt.textContent = f.name;
+            moveSelect.appendChild(opt);
+          });
+          moveSelect.onchange = function () {
+            if (!moveSelect.value) return;
+            updateDoc(doc(db, 'pipeline', row.id), { folder: moveSelect.value }).catch(onError);
+          };
+          right.appendChild(moveSelect);
+        }
       } else {
         var moreBtn = document.createElement('button');
         moreBtn.className = 'secondary';
         moreBtn.textContent = '⋯ More';
-        moreBtn.onclick = function () { expandedActions[row.id] = true; render(); };
+        moreBtn.onclick = function () { expandedActions[row.id] = true; renderFolders(); };
         right.appendChild(moreBtn);
       }
 
@@ -569,21 +863,7 @@
       return card;
     }
 
-    function renderArchived() {
-      var list = document.getElementById('archivedList');
-      list.innerHTML = '';
-      state.rows.filter(function (r) { return r.status === 'Archived'; }).forEach(function (row) {
-        var el = document.createElement('div');
-        el.className = 'archived-row';
-        el.innerHTML = '<span>' + escapeHtml(row.title) + '</span>';
-        var restoreBtn = document.createElement('button');
-        restoreBtn.className = 'secondary';
-        restoreBtn.textContent = 'Restore to Finished';
-        restoreBtn.onclick = function () { updateDoc(doc(db, 'pipeline', row.id), { status: 'Finished' }).catch(onError); };
-        el.appendChild(restoreBtn);
-        list.appendChild(el);
-      });
-    }
+    // ---------- misc helpers ----------
 
     function escapeHtml(s) {
       var div = document.createElement('div');
@@ -598,34 +878,37 @@
       });
     }
 
-    // Idea adopts the video's row (title + appended notes), the idea row
-    // is deleted - the info now lives on the real video, keeping a
-    // duplicate note around would just be clutter. Sequential, not a
-    // batch/transaction: acceptable at this app's scale (two people,
-    // rarely if ever hitting this at the same instant).
-    async function linkIdeaToRecorded(recordedId, ideaId) {
-      var ideaSnap = await getDoc(doc(db, 'pipeline', ideaId));
-      if (!ideaSnap.exists() || ideaSnap.data().status !== 'Idea') {
-        throw new Error('That idea no longer exists (it may have already been linked or removed).');
+    function toggleArchivedFolders() {
+      showArchivedFolders = !showArchivedFolders;
+      renderFolders();
+    }
+
+    function toggleCreateFolderForm() {
+      document.getElementById('createFolderForm').classList.toggle('open');
+    }
+
+    function submitCreateFolder() {
+      var input = document.getElementById('newFolderName');
+      var name = input.value.trim();
+      if (!name) {
+        input.style.outline = '2px solid var(--danger)';
+        input.placeholder = 'Type a name first';
+        input.focus();
+        setTimeout(function () { input.style.outline = ''; }, 1500);
+        return;
       }
-      var idea = ideaSnap.data();
-      var recordedSnap = await getDoc(doc(db, 'pipeline', recordedId));
-      var recorded = recordedSnap.data() || {};
-      var mergedNotes = idea.notes ? (recorded.notes ? recorded.notes + '\n' + idea.notes : idea.notes) : recorded.notes;
-
-      await updateDoc(doc(db, 'pipeline', recordedId), { title: idea.title, notes: mergedNotes || '' });
-      await deleteDoc(doc(db, 'pipeline', ideaId));
+      // driveFolderId starts null - the streaming-PC app's driveSync.js
+      // provisions the actual Drive subfolder on its next tick and writes
+      // the id back (the frontend has no Drive credentials of its own).
+      addDoc(collection(db, 'folders'), {
+        name: name, isMain: false, archived: false, driveFolderId: null, createdAt: serverTimestamp(),
+      }).then(function () {
+        input.value = '';
+        document.getElementById('createFolderForm').classList.remove('open');
+      }).catch(onError);
     }
 
-    function toggleArchived() {
-      showArchived = !showArchived;
-      document.getElementById('archivedPanel').classList.toggle('open', showArchived);
-      document.getElementById('toggleArchivedBtn').textContent = showArchived ? 'Hide Archived' : 'Show Archived';
-    }
-
-    function toggleAddForm() {
-      document.getElementById('addForm').classList.toggle('open');
-    }
+    // ---------- config panel ----------
 
     var configLoaded = false;
 
@@ -681,27 +964,7 @@
       });
     }
 
-    function submitIdea() {
-      var titleInput = document.getElementById('newTitle');
-      var title = titleInput.value.trim();
-      if (!title) {
-        titleInput.style.outline = '2px solid var(--danger)';
-        titleInput.placeholder = 'Type a title first';
-        titleInput.focus();
-        setTimeout(function () { titleInput.style.outline = ''; }, 1500);
-        return;
-      }
-      var notes = document.getElementById('newNotes').value.trim();
-      addDoc(collection(db, 'pipeline'), {
-        title: title, status: 'Idea', doFast: false, notes: notes,
-        upload: '', filename: '', driveFileId: '', pendingDelete: false,
-        createdAt: serverTimestamp(),
-      }).then(function () {
-        titleInput.value = '';
-        document.getElementById('newNotes').value = '';
-        toggleAddForm();
-      }).catch(onError);
-    }
+    // ---------- boot ----------
 
     function boot() {
       onSnapshot(collection(db, 'pipeline'), function (snapshot) {
@@ -718,7 +981,17 @@
         document.getElementById('status').textContent = 'Live — updates instantly, no refresh needed.';
         document.getElementById('status').style.color = '';
         document.getElementById('status').style.fontWeight = '';
-        render();
+        renderFolders();
+      }, onError);
+
+      onSnapshot(collection(db, 'folders'), function (snapshot) {
+        state.folders = snapshot.docs.map(function (d) {
+          var data = d.data();
+          return Object.assign({ id: d.id }, data, {
+            createdAtMs: data.createdAt && data.createdAt.toMillis ? data.createdAt.toMillis() : 0,
+          });
+        });
+        renderFolders();
       }, onError);
     }
 
@@ -726,9 +999,9 @@
     // HTML uses inline onclick="..." attributes for these - so they need
     // to be attached explicitly.
     window.toggleConfig = toggleConfig;
-    window.toggleArchived = toggleArchived;
-    window.toggleAddForm = toggleAddForm;
-    window.submitIdea = submitIdea;
+    window.toggleArchivedFolders = toggleArchivedFolders;
+    window.toggleCreateFolderForm = toggleCreateFolderForm;
+    window.submitCreateFolder = submitCreateFolder;
 
     signInAnonymously(auth).then(boot).catch(onError);
   </script>
