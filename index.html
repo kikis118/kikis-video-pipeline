@@ -63,7 +63,7 @@
   }
   .flag-btn:hover { border-color: var(--muted); }
 
-  #uploadLink.btn-upload { background: #1c4030; color: var(--good); border: 1px solid var(--good); }
+  a.btn-upload { background: #1c4030; color: var(--good); border: 1px solid var(--good); }
 
   #status { font-size: 11px; color: var(--muted); padding: 8px 20px 0; }
 
@@ -81,8 +81,8 @@
   .folder-badge { background: var(--accent); color: #10131c; font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 999px; letter-spacing: 0.03em; }
   .folder-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--danger); display: inline-block; flex-shrink: 0; }
   .folder-count { color: var(--muted); font-size: 12px; }
-  .folder-actions { display: flex; gap: 6px; }
-  .folder-actions button { padding: 4px 8px; font-size: 11px; }
+  .folder-actions { display: flex; gap: 6px; align-items: center; }
+  .folder-actions button, .folder-actions a { padding: 4px 8px; font-size: 11px; text-decoration: none; }
   .folder-body { padding: 0 14px 14px; }
 
   .board { display: flex; gap: 14px; align-items: flex-start; margin-bottom: 12px; }
@@ -203,9 +203,8 @@
 </head>
 <body>
   <header>
-    <a id="uploadLink" class="btn-upload" href="#" target="_blank" rel="noopener" style="text-decoration:none;">&#8613; Upload a Recording</a>
-    <button class="secondary" id="toggleArchivedFoldersBtn" onclick="toggleArchivedFolders()">Show Archived Folders</button>
     <button onclick="toggleCreateFolderForm()">+ Create Folder</button>
+    <button class="secondary" id="toggleArchivedFoldersBtn" onclick="toggleArchivedFolders()">Show Archived Folders</button>
     <div class="spacer"></div>
     <button class="secondary" onclick="toggleConfig()">&#9881; Config</button>
   </header>
@@ -217,6 +216,7 @@
 
   <div id="createFolderForm">
     <input id="newFolderName" placeholder="Folder name (e.g. PoE 2 0.5.5)" />
+    <input id="newFolderExisting" placeholder="Or paste an existing Drive folder link/ID (optional)" />
     <button onclick="submitCreateFolder()">Create</button>
     <button class="secondary" onclick="toggleCreateFolderForm()">Cancel</button>
   </div>
@@ -245,10 +245,6 @@
       messagingSenderId: '889310513985',
       appId: '1:889310513985:web:faac82e551a72345d86fc0',
     };
-    // Not secret either - Drive folder sharing permissions are the real
-    // gate on who can actually open/download files, same as before.
-    const DRIVE_FOLDER_URL = 'https://drive.google.com/drive/folders/10ch9Ji9dFXOqvyB172W_1_XDYaqgxwPY';
-
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
     const auth = getAuth(app);
@@ -267,8 +263,6 @@
     var showArchivedFolders = false;
     var addFormOpenFolder = null; // folder id whose "+ Add Idea" form is open, or null
     var renamingFolder = null; // folder id currently showing a rename input, or null
-
-    document.getElementById('uploadLink').href = DRIVE_FOLDER_URL;
 
     function onError(err) {
       var el = document.getElementById('status');
@@ -378,7 +372,7 @@
       if (isMain) {
         var badge = document.createElement('span');
         badge.className = 'folder-badge';
-        badge.textContent = 'MAIN';
+        badge.textContent = 'MAIN FOLDER';
         header.appendChild(badge);
       }
 
@@ -399,10 +393,25 @@
       var actions = document.createElement('div');
       actions.className = 'folder-actions';
 
+      if (folder.driveFolderId) {
+        var uploadLink = document.createElement('a');
+        uploadLink.className = 'btn-upload';
+        uploadLink.href = 'https://drive.google.com/drive/folders/' + encodeURIComponent(folder.driveFolderId);
+        uploadLink.target = '_blank';
+        uploadLink.rel = 'noopener';
+        uploadLink.textContent = '↥ For Ghazzy - Manually Upload Recording';
+        actions.appendChild(uploadLink);
+      } else {
+        var provisioning = document.createElement('span');
+        provisioning.className = 'folder-count';
+        provisioning.textContent = 'Setting up Drive folder…';
+        actions.appendChild(provisioning);
+      }
+
       if (!isMain && !folder.archived) {
         var setMainBtn = document.createElement('button');
         setMainBtn.className = 'secondary';
-        setMainBtn.textContent = 'Set as Main';
+        setMainBtn.textContent = 'Set as Main Folder';
         setMainBtn.onclick = function () { setMainFolder(folder.id).catch(onError); };
         actions.appendChild(setMainBtn);
       }
@@ -741,6 +750,16 @@
         fn.textContent = row.filename;
         meta.appendChild(fn);
       }
+      if (typeof row.durationMs === 'number') {
+        var dur = document.createElement('span');
+        dur.textContent = formatDuration(row.durationMs);
+        meta.appendChild(dur);
+      }
+      if (row.uploadedAtMs) {
+        var uploadedAt = document.createElement('span');
+        uploadedAt.textContent = 'Uploaded ' + formatLocalTime(row.uploadedAtMs);
+        meta.appendChild(uploadedAt);
+      }
       card.appendChild(meta);
 
       var actions = document.createElement('div');
@@ -871,6 +890,23 @@
       return div.innerHTML;
     }
 
+    // Always the viewer's own browser-local timezone (toLocaleString's
+    // default, no explicit timezone override) - deliberately not a fixed
+    // timezone, so it always reads as "local time on this PC" regardless
+    // of who's looking or where.
+    function formatLocalTime(ms) {
+      return new Date(ms).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' });
+    }
+
+    function formatDuration(ms) {
+      var totalSeconds = Math.round(ms / 1000);
+      var h = Math.floor(totalSeconds / 3600);
+      var m = Math.floor((totalSeconds % 3600) / 60);
+      var s = totalSeconds % 60;
+      var pad = function (n) { return String(n).padStart(2, '0'); };
+      return h > 0 ? (h + ':' + pad(m) + ':' + pad(s)) : (m + ':' + pad(s));
+    }
+
     function linkify(text) {
       var escaped = escapeHtml(text || '');
       return escaped.replace(/(https?:\/\/[^\s<]+)/g, function (url) {
@@ -887,8 +923,18 @@
       document.getElementById('createFolderForm').classList.toggle('open');
     }
 
+    // Accepts a full Drive folder URL (any of Drive's link formats that
+    // contain /folders/<id>) or a bare folder id pasted directly.
+    function extractDriveFolderId(input) {
+      var trimmed = input.trim();
+      var match = trimmed.match(/\/folders\/([a-zA-Z0-9_-]+)/);
+      if (match) return match[1];
+      return trimmed.replace(/[?#].*$/, '');
+    }
+
     function submitCreateFolder() {
       var input = document.getElementById('newFolderName');
+      var existingInput = document.getElementById('newFolderExisting');
       var name = input.value.trim();
       if (!name) {
         input.style.outline = '2px solid var(--danger)';
@@ -897,13 +943,19 @@
         setTimeout(function () { input.style.outline = ''; }, 1500);
         return;
       }
-      // driveFolderId starts null - the streaming-PC app's driveSync.js
-      // provisions the actual Drive subfolder on its next tick and writes
-      // the id back (the frontend has no Drive credentials of its own).
+      // driveFolderId starts null (unless linking an existing Drive folder
+      // below) - the streaming-PC app's driveSync.js provisions the actual
+      // Drive subfolder on its next tick and writes the id back (the
+      // frontend has no Drive credentials of its own). Linking an existing
+      // folder skips provisioning entirely - driveSync's next scan will
+      // pick up whatever .mp4 files are already sitting in it, same as any
+      // other folder.
+      var existingId = existingInput.value.trim() ? extractDriveFolderId(existingInput.value) : null;
       addDoc(collection(db, 'folders'), {
-        name: name, isMain: false, archived: false, driveFolderId: null, createdAt: serverTimestamp(),
+        name: name, isMain: false, archived: false, driveFolderId: existingId, createdAt: serverTimestamp(),
       }).then(function () {
         input.value = '';
+        existingInput.value = '';
         document.getElementById('createFolderForm').classList.remove('open');
       }).catch(onError);
     }
@@ -973,6 +1025,7 @@
             var data = d.data();
             return Object.assign({ id: d.id }, data, {
               createdAtMs: data.createdAt && data.createdAt.toMillis ? data.createdAt.toMillis() : 0,
+              uploadedAtMs: data.uploadedAt && data.uploadedAt.toMillis ? data.uploadedAt.toMillis() : 0,
             });
           })
           // Soft-deleted rows disappear immediately, even before the
