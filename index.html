@@ -182,10 +182,16 @@
   .ideas-list { display: flex; flex-direction: column; gap: 6px; }
   .idea-row {
     display: flex; flex-direction: column; gap: 4px;
-    padding: 8px 10px; border-radius: 6px;
+    padding: 8px 10px 8px 22px; border-radius: 6px; position: relative;
     background: transparent; border: 1px dashed var(--border);
   }
   .idea-row.do-fast { border: 1px solid var(--danger); }
+  .idea-row:hover { cursor: grab; }
+  .idea-row:not(.do-fast):hover { border-color: var(--muted); }
+  .idea-row:hover::before {
+    content: '⠿'; position: absolute; left: 6px; top: 50%; transform: translateY(-50%);
+    color: var(--muted); font-size: 14px; line-height: 1;
+  }
   .idea-row-top { display: flex; align-items: center; gap: 8px; }
   .idea-row input.idea-title {
     flex: 1; background: transparent; border: none; color: var(--text);
