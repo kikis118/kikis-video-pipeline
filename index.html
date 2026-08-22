@@ -1282,11 +1282,12 @@
       if (opening && !configLoaded) refreshConfig();
     }
 
-    var CONFIG_KEYS = ['DISK_CLEANUP_TRIGGER_GB', 'DISK_CLEANUP_TARGET_GB', 'DISK_CLEANUP_DRY_RUN', 'UPLOAD_THROTTLE_MBPS'];
-    var CONFIG_DEFAULTS = { DISK_CLEANUP_TRIGGER_GB: '150', DISK_CLEANUP_TARGET_GB: '130', DISK_CLEANUP_DRY_RUN: 'true', UPLOAD_THROTTLE_MBPS: '50' };
+    var CONFIG_KEYS = ['DISK_CLEANUP_TRIGGER_GB', 'DISK_CLEANUP_TARGET_GB', 'DISK_CLEANUP_MIN_AGE_HOURS', 'DISK_CLEANUP_DRY_RUN', 'UPLOAD_THROTTLE_MBPS'];
+    var CONFIG_DEFAULTS = { DISK_CLEANUP_TRIGGER_GB: '150', DISK_CLEANUP_TARGET_GB: '130', DISK_CLEANUP_MIN_AGE_HOURS: '24', DISK_CLEANUP_DRY_RUN: 'true', UPLOAD_THROTTLE_MBPS: '50' };
     var CONFIG_DESCRIPTIONS = {
       DISK_CLEANUP_TRIGGER_GB: 'Once the recordings folder on the streaming PC reaches this size (in GB), automatic cleanup kicks in and starts deleting the oldest already-uploaded clips.',
       DISK_CLEANUP_TARGET_GB: 'When cleanup runs, it keeps deleting the oldest clips until the folder drops back down to this size (in GB). Always lower than the trigger size above.',
+      DISK_CLEANUP_MIN_AGE_HOURS: 'A file has to be at least this many hours old before cleanup will ever consider deleting it, no matter how full the drive is. Lower this temporarily if testing same-day; keep it at a real value (24+) normally so nothing recent gets swept up before you\'ve had a chance to look at it.',
       DISK_CLEANUP_DRY_RUN: '"true" = cleanup only logs what it would delete, without deleting anything - safe to test with. Set to "false" once you\'ve checked the streaming PC\'s console and are confident it\'s picking the right files.',
       UPLOAD_THROTTLE_MBPS: 'Caps how fast clips upload to Google Drive, in megabits per second - keeps uploads from hogging all of the streaming PC\'s internet bandwidth while live.',
     };
