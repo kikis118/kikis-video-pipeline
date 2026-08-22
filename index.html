@@ -87,10 +87,13 @@
   .badge.uploading { background: #4a3d1a; color: var(--warn); }
   .badge.uploaded { background: #1c4030; color: var(--good); }
   .badge.failed { background: #4a1c1c; color: var(--danger); }
-  .card-actions { display: flex; gap: 6px; margin-top: 8px; flex-wrap: wrap; }
+  .card-actions { display: flex; justify-content: space-between; align-items: center; gap: 6px; margin-top: 8px; flex-wrap: wrap; }
   .card-actions button { padding: 4px 8px; font-size: 11px; }
+  .actions-left, .actions-right { display: flex; gap: 6px; flex-wrap: wrap; }
   .flag-btn { background: transparent; border: 1px solid var(--border); color: var(--muted); }
   .flag-btn.active { background: var(--warn); color: #2a1c00; border-color: var(--warn); }
+
+  .column-more { width: 100%; margin-top: 4px; }
 
   #addForm { display: none; gap: 8px; padding: 10px 20px; background: var(--panel); border-bottom: 1px solid var(--border); }
   #addForm.open { display: flex; }
@@ -186,12 +189,13 @@
 
   <div id="status">Loading&hellip;</div>
 
+  <div id="board"></div>
+
   <div id="ideasPanel">
     <h2>Ideas <span class="count" id="ideasCount"></span></h2>
     <div id="ideasList"></div>
   </div>
 
-  <div id="board"></div>
   <div id="archivedPanel">
     <h2>Archived</h2>
     <div id="archivedList"></div>
@@ -211,7 +215,10 @@
 
     var state = { rows: [] };
     var editing = {};
+    var expandedActions = {}; // rowIndex -> true while "More actions" (Archive/Delete) is revealed
     var showArchived = false;
+    var showAllFinished = false;
+    var FINISHED_COLLAPSED_COUNT = 3;
     var pollTimer = null;
     var TOKEN = null;
 
@@ -298,11 +305,29 @@
       var board = document.getElementById('board');
       board.innerHTML = '';
       COLUMNS.forEach(function (statusName) {
-        var rows = state.rows.filter(function (r) { return r.status === statusName; });
+        // Most-recently-added first within a column - rowIndex is the
+        // Sheet's insertion order, the closest thing to a "recency" signal
+        // available without a separate timestamp-per-status-change.
+        var rows = state.rows.filter(function (r) { return r.status === statusName; }).slice().reverse();
+        var totalCount = rows.length;
+        var isFinished = statusName === 'Finished';
+        var displayRows = (isFinished && !showAllFinished) ? rows.slice(0, FINISHED_COLLAPSED_COUNT) : rows;
+
         var col = document.createElement('div');
         col.className = 'column';
-        col.innerHTML = '<h2>' + statusName + ' <span class="count">(' + rows.length + ')</span></h2>';
-        rows.forEach(function (row) { col.appendChild(renderCard(row)); });
+        col.innerHTML = '<h2>' + statusName + ' <span class="count">(' + totalCount + ')</span></h2>';
+        displayRows.forEach(function (row) { col.appendChild(renderCard(row)); });
+
+        if (isFinished && totalCount > FINISHED_COLLAPSED_COUNT) {
+          var toggleBtn = document.createElement('button');
+          toggleBtn.className = 'secondary column-more';
+          toggleBtn.textContent = showAllFinished
+            ? 'Show fewer'
+            : 'View all (' + totalCount + ')';
+          toggleBtn.onclick = function () { showAllFinished = !showAllFinished; render(); };
+          col.appendChild(toggleBtn);
+        }
+
         board.appendChild(col);
       });
       renderIdeas();
@@ -440,42 +465,72 @@
       var actions = document.createElement('div');
       actions.className = 'card-actions';
 
+      var left = document.createElement('div');
+      left.className = 'actions-left';
+
       var flagBtn = document.createElement('button');
       flagBtn.className = 'flag-btn' + (row.doFast ? ' active' : '');
       flagBtn.textContent = row.doFast ? '★ Do Fast' : '☆ Do Fast';
       flagBtn.onclick = function () { call('toggleDoFast', { rowIndex: row.rowIndex, value: !row.doFast }); };
-      actions.appendChild(flagBtn);
+      left.appendChild(flagBtn);
 
       if (PREV_STATUS[row.status]) {
         var back = document.createElement('button');
         back.className = 'secondary';
         back.textContent = '← ' + PREV_STATUS[row.status];
         back.onclick = function () { call('updateStatus', { rowIndex: row.rowIndex, newStatus: PREV_STATUS[row.status] }); };
-        actions.appendChild(back);
+        left.appendChild(back);
       }
       if (NEXT_STATUS[row.status]) {
         var fwd = document.createElement('button');
         fwd.textContent = NEXT_STATUS[row.status] + ' →';
         fwd.onclick = function () { call('updateStatus', { rowIndex: row.rowIndex, newStatus: NEXT_STATUS[row.status] }); };
-        actions.appendChild(fwd);
+        left.appendChild(fwd);
       }
 
-      var archiveBtn = document.createElement('button');
-      archiveBtn.className = 'secondary';
-      archiveBtn.textContent = 'Archive';
-      archiveBtn.onclick = function () { call('archiveRow', { rowIndex: row.rowIndex }); };
-      actions.appendChild(archiveBtn);
+      var right = document.createElement('div');
+      right.className = 'actions-right';
 
-      var deleteBtn = document.createElement('button');
-      deleteBtn.className = 'danger';
-      deleteBtn.textContent = 'Delete';
-      deleteBtn.onclick = function () {
-        if (confirm('Delete "' + row.title + '" permanently? This cannot be undone (consider Archive instead).')) {
-          call('deleteRow', { rowIndex: row.rowIndex });
-        }
-      };
-      actions.appendChild(deleteBtn);
+      // Archive/Delete are deliberately not one-click-visible - see
+      // WORKFLOW.md "Delete is now Drive-aware" for why: this is a "More
+      // actions" reveal, not a confirm dialog, so a stray click on the card
+      // can't land on either by accident.
+      if (expandedActions[row.rowIndex]) {
+        var archiveBtn = document.createElement('button');
+        archiveBtn.className = 'secondary';
+        archiveBtn.textContent = 'Archive';
+        archiveBtn.onclick = function () { call('archiveRow', { rowIndex: row.rowIndex }); };
+        right.appendChild(archiveBtn);
 
+        var deleteBtn = document.createElement('button');
+        deleteBtn.className = 'danger';
+        deleteBtn.textContent = 'Delete';
+        deleteBtn.onclick = function () {
+          var driveNote = row.driveFileId
+            ? ' The uploaded file will also be moved to Google Drive\'s trash (recoverable there for a while, not gone instantly).'
+            : '';
+          if (confirm('Delete "' + row.title + '" permanently?' + driveNote + ' This cannot be undone from here (consider Archive instead).')) {
+            call('deleteRow', { rowIndex: row.rowIndex });
+          }
+        };
+        right.appendChild(deleteBtn);
+
+        var closeBtn = document.createElement('button');
+        closeBtn.className = 'secondary';
+        closeBtn.textContent = '✕';
+        closeBtn.title = 'Hide';
+        closeBtn.onclick = function () { delete expandedActions[row.rowIndex]; render(); };
+        right.appendChild(closeBtn);
+      } else {
+        var moreBtn = document.createElement('button');
+        moreBtn.className = 'secondary';
+        moreBtn.textContent = '⋯ More';
+        moreBtn.onclick = function () { expandedActions[row.rowIndex] = true; render(); };
+        right.appendChild(moreBtn);
+      }
+
+      actions.appendChild(left);
+      actions.appendChild(right);
       card.appendChild(actions);
       return card;
     }
