@@ -95,6 +95,16 @@
 
   .column-more { width: 100%; margin-top: 4px; }
 
+  .card-primary-actions { display: flex; gap: 8px; margin-top: 8px; }
+  .card-primary-actions a {
+    flex: 1; text-align: center; padding: 9px 10px; border-radius: 6px;
+    font-size: 12px; font-weight: 700; text-decoration: none;
+  }
+  .btn-view { background: var(--accent); color: #10131c; }
+  .btn-download { background: var(--good); color: #06261a; }
+
+  #uploadLink.btn-upload { background: var(--good); color: #06261a; border: none; }
+
   #addForm { display: none; gap: 8px; padding: 10px 20px; background: var(--panel); border-bottom: 1px solid var(--border); }
   #addForm.open { display: flex; }
   #addForm input { flex: 1; background: var(--card); border: 1px solid var(--border); color: var(--text); border-radius: 6px; padding: 7px 10px; }
@@ -169,7 +179,7 @@
   <header>
     <h1>Ghazzy's YT Video Pipeline</h1>
     <button class="secondary" onclick="toggleConfig()">&#9881; Config</button>
-    <a id="uploadLink" class="secondary" href="#" target="_blank" rel="noopener" style="text-decoration:none;">&#8613; Upload</a>
+    <a id="uploadLink" class="btn-upload" href="#" target="_blank" rel="noopener" style="text-decoration:none;">&#8613; Upload a Recording</a>
     <button class="secondary" onclick="syncDrive()">&#128260; Sync Google Drive</button>
     <button class="secondary" id="toggleArchivedBtn" onclick="toggleArchived()">Show Archived</button>
     <button onclick="toggleAddForm()">+ Add Idea</button>
@@ -462,6 +472,31 @@
       }
       card.appendChild(meta);
 
+      // Big, emphasized - the two things you actually want to do with a
+      // finished file most often. Only meaningful once a Drive file exists.
+      if (row.driveFileId) {
+        var primary = document.createElement('div');
+        primary.className = 'card-primary-actions';
+
+        var viewLink = document.createElement('a');
+        viewLink.className = 'btn-view';
+        viewLink.href = 'https://drive.google.com/file/d/' + encodeURIComponent(row.driveFileId) + '/view';
+        viewLink.target = '_blank';
+        viewLink.rel = 'noopener';
+        viewLink.textContent = '▶ View';
+        primary.appendChild(viewLink);
+
+        var downloadLink = document.createElement('a');
+        downloadLink.className = 'btn-download';
+        downloadLink.href = 'https://drive.google.com/uc?export=download&id=' + encodeURIComponent(row.driveFileId);
+        downloadLink.target = '_blank';
+        downloadLink.rel = 'noopener';
+        downloadLink.textContent = '⬇ Download';
+        primary.appendChild(downloadLink);
+
+        card.appendChild(primary);
+      }
+
       var actions = document.createElement('div');
       actions.className = 'card-actions';
 
@@ -474,22 +509,22 @@
       flagBtn.onclick = function () { call('toggleDoFast', { rowIndex: row.rowIndex, value: !row.doFast }); };
       left.appendChild(flagBtn);
 
+      var right = document.createElement('div');
+      right.className = 'actions-right';
+
       if (PREV_STATUS[row.status]) {
         var back = document.createElement('button');
         back.className = 'secondary';
         back.textContent = '← ' + PREV_STATUS[row.status];
         back.onclick = function () { call('updateStatus', { rowIndex: row.rowIndex, newStatus: PREV_STATUS[row.status] }); };
-        left.appendChild(back);
+        right.appendChild(back);
       }
       if (NEXT_STATUS[row.status]) {
         var fwd = document.createElement('button');
         fwd.textContent = NEXT_STATUS[row.status] + ' →';
         fwd.onclick = function () { call('updateStatus', { rowIndex: row.rowIndex, newStatus: NEXT_STATUS[row.status] }); };
-        left.appendChild(fwd);
+        right.appendChild(fwd);
       }
-
-      var right = document.createElement('div');
-      right.className = 'actions-right';
 
       // Archive/Delete are deliberately not one-click-visible - see
       // WORKFLOW.md "Delete is now Drive-aware" for why: this is a "More
