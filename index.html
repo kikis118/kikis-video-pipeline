@@ -31,8 +31,9 @@
     border-bottom: 1px solid var(--border);
     background: var(--panel);
   }
-  header h1 { font-size: 16px; margin: 0; flex: 1; }
-  button, a.secondary {
+  header h1 { font-size: 16px; margin: 0 8px 0 0; }
+  header button, header a { white-space: nowrap; }
+  button, a.secondary, a.btn-upload {
     background: var(--accent);
     color: #10131c;
     border: none;
@@ -42,10 +43,24 @@
     font-weight: 600;
     cursor: pointer;
     box-sizing: border-box;
+    display: inline-block;
   }
   button.secondary, a.secondary { background: var(--card); color: var(--text); border: 1px solid var(--border); }
   button.danger { background: var(--danger); color: #2a0a0a; }
   button:disabled { opacity: 0.5; cursor: default; }
+
+  button, a.secondary, a.btn-view, a.btn-download, a.btn-upload {
+    transition: filter 0.1s ease, transform 0.05s ease;
+  }
+  button:not(:disabled):hover, a.secondary:hover, a.btn-view:hover, a.btn-download:hover, a.btn-upload:hover {
+    filter: brightness(1.15);
+    cursor: pointer;
+  }
+  button:not(:disabled):active, a.secondary:active, a.btn-view:active, a.btn-download:active, a.btn-upload:active {
+    filter: brightness(0.92);
+    transform: scale(0.98);
+  }
+  .flag-btn:hover { border-color: var(--muted); }
 
   #board { display: flex; gap: 14px; padding: 16px; align-items: flex-start; }
   .column { flex: 1; min-width: 240px; background: var(--panel); border-radius: 10px; padding: 10px; }
@@ -59,7 +74,7 @@
     padding: 10px;
     margin-bottom: 8px;
   }
-  .card.do-fast { border-left: 3px solid var(--warn); }
+  .card.do-fast { border-left: 3px solid var(--danger); }
   .card-title {
     font-size: 14px;
     font-weight: 600;
@@ -91,19 +106,18 @@
   .card-actions button { padding: 4px 8px; font-size: 11px; }
   .actions-left, .actions-right { display: flex; gap: 6px; flex-wrap: wrap; }
   .flag-btn { background: transparent; border: 1px solid var(--border); color: var(--muted); }
-  .flag-btn.active { background: var(--warn); color: #2a1c00; border-color: var(--warn); }
+  .flag-btn.active { background: var(--danger); color: #2a0a0a; border-color: var(--danger); }
 
   .column-more { width: 100%; margin-top: 4px; }
 
-  .card-primary-actions { display: flex; gap: 8px; margin-top: 8px; }
-  .card-primary-actions a {
-    flex: 1; text-align: center; padding: 9px 10px; border-radius: 6px;
-    font-size: 12px; font-weight: 700; text-decoration: none;
+  .card-actions a {
+    padding: 4px 8px; font-size: 11px; font-weight: 600; border-radius: 6px;
+    text-decoration: none; display: inline-block;
   }
   .btn-view { background: var(--accent); color: #10131c; }
   .btn-download { background: var(--good); color: #06261a; }
 
-  #uploadLink.btn-upload { background: var(--good); color: #06261a; border: none; }
+  #uploadLink.btn-upload { background: #1c4030; color: var(--good); border: 1px solid var(--good); }
 
   #addForm { display: none; gap: 8px; padding: 10px 20px; background: var(--panel); border-bottom: 1px solid var(--border); }
   #addForm.open { display: flex; }
@@ -472,19 +486,24 @@
       }
       card.appendChild(meta);
 
-      // Big, emphasized - the two things you actually want to do with a
-      // finished file most often. Only meaningful once a Drive file exists.
-      if (row.driveFileId) {
-        var primary = document.createElement('div');
-        primary.className = 'card-primary-actions';
+      var actions = document.createElement('div');
+      actions.className = 'card-actions';
 
+      // Left = editor-only tools (View/Download - Ghazzy never needs
+      // these from the board). Right = Ghazzy's controls (Do Fast,
+      // advance/back status) plus the admin-only More/Archive/Delete -
+      // kept deliberately separate so the two roles' controls don't mix.
+      var left = document.createElement('div');
+      left.className = 'actions-left';
+
+      if (row.driveFileId) {
         var viewLink = document.createElement('a');
         viewLink.className = 'btn-view';
         viewLink.href = 'https://drive.google.com/file/d/' + encodeURIComponent(row.driveFileId) + '/view';
         viewLink.target = '_blank';
         viewLink.rel = 'noopener';
         viewLink.textContent = '▶ View';
-        primary.appendChild(viewLink);
+        left.appendChild(viewLink);
 
         var downloadLink = document.createElement('a');
         downloadLink.className = 'btn-download';
@@ -492,25 +511,17 @@
         downloadLink.target = '_blank';
         downloadLink.rel = 'noopener';
         downloadLink.textContent = '⬇ Download';
-        primary.appendChild(downloadLink);
-
-        card.appendChild(primary);
+        left.appendChild(downloadLink);
       }
 
-      var actions = document.createElement('div');
-      actions.className = 'card-actions';
-
-      var left = document.createElement('div');
-      left.className = 'actions-left';
+      var right = document.createElement('div');
+      right.className = 'actions-right';
 
       var flagBtn = document.createElement('button');
       flagBtn.className = 'flag-btn' + (row.doFast ? ' active' : '');
       flagBtn.textContent = row.doFast ? '★ Do Fast' : '☆ Do Fast';
       flagBtn.onclick = function () { call('toggleDoFast', { rowIndex: row.rowIndex, value: !row.doFast }); };
-      left.appendChild(flagBtn);
-
-      var right = document.createElement('div');
-      right.className = 'actions-right';
+      right.appendChild(flagBtn);
 
       if (PREV_STATUS[row.status]) {
         var back = document.createElement('button');
