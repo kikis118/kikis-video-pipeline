@@ -278,7 +278,9 @@
     }
 
     function needsLabel(row) {
-      return row.status === 'Recorded' && row.filename && row.title === row.filename;
+      if (row.status !== 'Recorded') return false;
+      if (!row.title || !row.title.trim()) return true; // title got cleared entirely - still needs one
+      return row.filename && row.title === row.filename;
     }
 
     // A pipeline doc with no folder field is legacy data from before folders
@@ -401,6 +403,14 @@
         uploadLink.rel = 'noopener';
         uploadLink.textContent = '↥ For Ghazzy - Manually Upload Recording';
         actions.appendChild(uploadLink);
+
+        var openFolderLink = document.createElement('a');
+        openFolderLink.className = 'secondary';
+        openFolderLink.href = 'https://drive.google.com/drive/folders/' + encodeURIComponent(folder.driveFolderId);
+        openFolderLink.target = '_blank';
+        openFolderLink.rel = 'noopener';
+        openFolderLink.textContent = 'Open Folder in Google Drive';
+        actions.appendChild(openFolderLink);
       } else {
         var provisioning = document.createElement('span');
         provisioning.className = 'folder-count';
@@ -694,13 +704,20 @@
 
       var title = document.createElement('input');
       title.className = 'card-title';
-      title.value = row.title;
-      if (!isEditing(row.id, 'title')) title.value = row.title;
+      title.placeholder = 'Missing title';
+      title.value = row.title || '';
+      if (!isEditing(row.id, 'title')) title.value = row.title || '';
       title.addEventListener('focus', function () { editing[row.id + ':title'] = true; });
       title.addEventListener('blur', function () {
         delete editing[row.id + ':title'];
         if (title.value.trim() && title.value.trim() !== row.title) {
           updateDoc(doc(db, 'pipeline', row.id), { title: title.value.trim() }).catch(onError);
+        } else {
+          // Cleared to empty (not a real save - see addEventListener above)
+          // or unchanged either way - re-render so the input reflects the
+          // real stored value instead of sitting on whatever's left in the
+          // field, which nothing else would otherwise trigger a refresh of.
+          renderFolders();
         }
       });
       card.appendChild(title);
