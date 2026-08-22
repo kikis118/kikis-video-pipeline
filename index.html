@@ -252,13 +252,39 @@
     width: 100%; margin-top: 6px; background: var(--card); color: var(--text);
     border: 1px solid var(--border); border-radius: 6px; padding: 5px; font-size: 12px;
   }
+
+  #authGate {
+    display: none; min-height: 100vh; align-items: center; justify-content: center;
+    flex-direction: column; gap: 14px; text-align: center; padding: 20px;
+  }
+  #authGate.show { display: flex; }
+  .auth-gate-title { font-size: 20px; font-weight: 700; }
+  .auth-gate-message { font-size: 13px; color: var(--muted); max-width: 340px; line-height: 1.5; }
+  .auth-gate-message.error { color: var(--danger); }
+  .google-signin-btn {
+    display: inline-flex; align-items: center; gap: 10px;
+    background: #fff; color: #1f1f1f; border: 1px solid var(--border);
+    border-radius: 6px; padding: 10px 18px; font-size: 14px; font-weight: 600;
+  }
+  #appRoot { display: none; }
+  #appRoot.show { display: block; }
+  .signed-in-as { font-size: 11px; color: var(--muted); }
 </style>
 </head>
 <body>
+  <div id="authGate">
+    <div class="auth-gate-title">Ghazzy's Video Pipeline</div>
+    <button class="google-signin-btn" id="googleSignInBtn">Sign in with Google</button>
+    <div class="auth-gate-message" id="authGateMessage"></div>
+  </div>
+
+  <div id="appRoot">
   <header>
     <button onclick="toggleCreateFolderForm()">+ Create Folder</button>
     <button class="secondary" id="toggleArchivedFoldersBtn" onclick="toggleArchivedFolders()">Show Archived Folders</button>
     <div class="spacer"></div>
+    <span class="signed-in-as" id="signedInAs"></span>
+    <button class="secondary" id="signOutBtn">Sign out</button>
     <button class="secondary" onclick="toggleConfig()">&#9881; Config</button>
   </header>
 
@@ -294,6 +320,7 @@
   <div id="driveSyncNote">This board updates instantly - actual Google Drive files (moves, renames, new uploads) catch up separately, about every 1 minute (occasionally a bit longer if a sync is already running).</div>
 
   <div id="foldersContainer"></div>
+  </div>
 
   <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
   <script type="module">
@@ -302,7 +329,9 @@
       getFirestore, collection, doc, addDoc, updateDoc, deleteDoc, getDoc, setDoc,
       onSnapshot, serverTimestamp,
     } from 'https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore.js';
-    import { getAuth, signInAnonymously } from 'https://www.gstatic.com/firebasejs/10.13.2/firebase-auth.js';
+    import {
+      getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged,
+    } from 'https://www.gstatic.com/firebasejs/10.13.2/firebase-auth.js';
 
     // Not a secret - Firebase web config is meant to be public; the real
     // gate is Firestore Security Rules (require signed-in, even
@@ -336,12 +365,42 @@
     var renamingFolder = null; // folder id currently showing a rename input, or null
 
     function onError(err) {
-      var el = document.getElementById('status');
       var message = (err && err.message) ? err.message : String(err);
+      // A signed-in Google account that isn't on the allowlist gets exactly
+      // this Firestore error on its first read/write - caught here instead
+      // of showing a cryptic error banner behind a board that'll never load.
+      if (message.indexOf('Missing or insufficient permissions') !== -1) {
+        showNotApproved();
+        return;
+      }
+      console.error('[error]', err);
+      // #status lives inside #appRoot, invisible while the auth gate is up -
+      // route pre-sign-in errors (e.g. a closed sign-in popup) to the gate's
+      // own message area instead of a banner nobody can see.
+      if (!document.getElementById('appRoot').classList.contains('show')) {
+        var gateMsg = document.getElementById('authGateMessage');
+        gateMsg.textContent = '⚠ ' + message;
+        gateMsg.classList.add('error');
+        return;
+      }
+      var el = document.getElementById('status');
       el.textContent = '⚠ Error: ' + message;
       el.style.color = 'var(--danger)';
       el.style.fontWeight = '600';
-      console.error('[error]', err);
+    }
+
+    function showAuthGate(show) {
+      document.getElementById('authGate').classList.toggle('show', show);
+      document.getElementById('appRoot').classList.toggle('show', !show);
+    }
+
+    function showNotApproved() {
+      showAuthGate(true);
+      var email = auth.currentUser ? auth.currentUser.email : 'this account';
+      var msg = document.getElementById('authGateMessage');
+      msg.textContent = 'Signed in as ' + email + ' - this Google account isn\'t approved for this board yet. Ask the editor to add it.';
+      msg.classList.add('error');
+      document.getElementById('googleSignInBtn').textContent = 'Try a different account';
     }
 
     function isEditing(id, field) {
@@ -1320,7 +1379,32 @@
     window.toggleCreateFolderForm = toggleCreateFolderForm;
     window.submitCreateFolder = submitCreateFolder;
 
-    signInAnonymously(auth).then(boot).catch(onError);
+    var booted = false;
+
+    document.getElementById('googleSignInBtn').addEventListener('click', function () {
+      signInWithPopup(auth, new GoogleAuthProvider()).catch(onError);
+    });
+
+    document.getElementById('signOutBtn').addEventListener('click', function () {
+      // Full reload rather than just clearing local state - guarantees a
+      // clean slate (no stale onSnapshot listeners left running from the
+      // previous account) the next time someone signs in on this device.
+      signOut(auth).then(function () { location.reload(); }).catch(onError);
+    });
+
+    onAuthStateChanged(auth, function (user) {
+      if (user) {
+        document.getElementById('signedInAs').textContent = user.email;
+        showAuthGate(false);
+        if (!booted) { booted = true; boot(); }
+      } else {
+        showAuthGate(true);
+        var msg = document.getElementById('authGateMessage');
+        msg.textContent = '';
+        msg.classList.remove('error');
+        document.getElementById('googleSignInBtn').textContent = 'Sign in with Google';
+      }
+    });
   </script>
 </body>
 </html>
