@@ -340,6 +340,13 @@
       var container = document.getElementById('foldersContainer');
       container.innerHTML = '';
 
+      // Every idea-list Sortable instance from the previous render is now
+      // attached to DOM nodes that just got thrown away above - destroy
+      // them explicitly rather than leaking, fresh ones get created below
+      // as each folder's ideas panel is built.
+      ideaSortables.forEach(function (s) { s.destroy(); });
+      ideaSortables = [];
+
       var mainFolder = state.folders.find(function (f) { return f.isMain; });
       var otherFolders = state.folders
         .filter(function (f) { return !f.isMain && (!f.archived || showArchivedFolders); })
@@ -615,19 +622,58 @@
       header.innerHTML = 'Video Ideas <span class="count">(' + ideas.length + ')</span>';
       panel.appendChild(header);
 
-      var list = document.createElement('div');
-      list.className = 'ideas-list';
       if (!ideas.length) {
         var empty = document.createElement('div');
         empty.className = 'idea-row-empty';
         empty.textContent = 'No video ideas yet — click "+ Add Video Idea" above.';
-        list.appendChild(empty);
-      } else {
-        ideas.forEach(function (row) { list.appendChild(renderIdeaRow(row)); });
+        panel.appendChild(empty);
+        return panel;
       }
-      panel.appendChild(list);
+
+      function byOrder(a, b) {
+        var ao = a.order !== undefined ? a.order : a.createdAtMs || 0;
+        var bo = b.order !== undefined ? b.order : b.createdAtMs || 0;
+        return ao - bo;
+      }
+
+      // Two separate sortable zones, not one - Do Fast ideas always stay
+      // above the rest (can't drag between the two groups, only reorder
+      // within each), same "pinned group + freely sortable" pattern as
+      // Main vs. other folders.
+      var doFastIdeas = ideas.filter(function (r) { return r.doFast; }).sort(byOrder);
+      var otherIdeas = ideas.filter(function (r) { return !r.doFast; }).sort(byOrder);
+
+      if (doFastIdeas.length) panel.appendChild(renderIdeaSortableList(doFastIdeas));
+      if (otherIdeas.length) panel.appendChild(renderIdeaSortableList(otherIdeas));
 
       return panel;
+    }
+
+    var ideaSortables = [];
+
+    function renderIdeaSortableList(ideaRows) {
+      var list = document.createElement('div');
+      list.className = 'ideas-list';
+      ideaRows.forEach(function (row) { list.appendChild(renderIdeaRow(row)); });
+
+      if (ideaRows.length > 1 && window.Sortable) {
+        var sortable = Sortable.create(list, {
+          delay: 250,
+          delayOnTouchOnly: true,
+          animation: 150,
+          filter: 'button, input, a, select, textarea',
+          preventOnFilter: false,
+          onEnd: function () {
+            Array.from(list.children).forEach(function (el, i) {
+              var id = el.dataset.ideaId;
+              if (id) updateDoc(doc(db, 'pipeline', id), { order: i }).catch(onError);
+            });
+          },
+        });
+        ideaSortables.push(sortable);
+      }
+
+      return list;
     }
 
     function renderAddIdeaForm(folder) {
@@ -675,6 +721,7 @@
     function renderIdeaRow(row) {
       var el = document.createElement('div');
       el.className = 'idea-row' + (row.doFast ? ' do-fast' : '');
+      el.dataset.ideaId = row.id;
 
       var top = document.createElement('div');
       top.className = 'idea-row-top';
