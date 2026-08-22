@@ -66,6 +66,7 @@
   a.btn-upload { background: #1c4030; color: var(--good); border: 1px solid var(--good); }
 
   #status { display: flex; align-items: center; gap: 7px; font-size: 11px; color: var(--muted); padding: 8px 20px 0; }
+  #driveSyncNote { font-size: 10px; color: var(--muted); opacity: 0.7; padding: 2px 20px 0; }
   .live-dot {
     width: 9px; height: 9px; border-radius: 50%; background: var(--good);
     box-shadow: 0 0 0 0 rgba(95, 208, 138, 0.7);
@@ -290,6 +291,7 @@
   </div>
 
   <div id="status">Connecting&hellip;</div>
+  <div id="driveSyncNote">This board updates instantly - actual Google Drive files (moves, renames, new uploads) catch up separately, about every 1 minute (occasionally a bit longer if a sync is already running).</div>
 
   <div id="foldersContainer"></div>
 
