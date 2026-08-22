@@ -1,0 +1,617 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Ghazzy's YT Video Pipeline</title>
+<style>
+  :root {
+    --bg: #1c1d21;
+    --panel: #26272c;
+    --card: #303136;
+    --border: #3d3e44;
+    --text: #e8e8ea;
+    --muted: #9a9ba3;
+    --accent: #7c9eff;
+    --danger: #ff6b6b;
+    --warn: #f5b942;
+    --good: #5fd08a;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: -apple-system, Segoe UI, Roboto, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+  }
+  header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 20px;
+    border-bottom: 1px solid var(--border);
+    background: var(--panel);
+  }
+  header h1 { font-size: 16px; margin: 0; flex: 1; }
+  button, a.secondary {
+    background: var(--accent);
+    color: #10131c;
+    border: none;
+    border-radius: 6px;
+    padding: 7px 12px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    box-sizing: border-box;
+  }
+  button.secondary, a.secondary { background: var(--card); color: var(--text); border: 1px solid var(--border); }
+  button.danger { background: var(--danger); color: #2a0a0a; }
+  button:disabled { opacity: 0.5; cursor: default; }
+
+  #board { display: flex; gap: 14px; padding: 16px; align-items: flex-start; }
+  .column { flex: 1; min-width: 240px; background: var(--panel); border-radius: 10px; padding: 10px; }
+  .column h2 { font-size: 13px; text-transform: uppercase; letter-spacing: 0.04em; color: var(--muted); margin: 4px 6px 10px; }
+  .column .count { color: var(--muted); font-weight: 400; }
+
+  .card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 10px;
+    margin-bottom: 8px;
+  }
+  .card.do-fast { border-left: 3px solid var(--warn); }
+  .card-title {
+    font-size: 14px;
+    font-weight: 600;
+    border: none;
+    background: transparent;
+    color: var(--text);
+    width: 100%;
+    padding: 2px 0;
+  }
+  .card-title:focus { outline: 1px solid var(--accent); border-radius: 3px; }
+  .card-notes {
+    width: 100%;
+    background: transparent;
+    border: none;
+    color: var(--muted);
+    font-size: 12px;
+    resize: vertical;
+    min-height: 32px;
+    padding: 2px 0;
+    font-family: inherit;
+  }
+  .card-notes:focus { outline: 1px solid var(--accent); border-radius: 3px; }
+  .card-meta { display: flex; align-items: center; gap: 8px; margin-top: 6px; font-size: 11px; color: var(--muted); }
+  .badge { padding: 1px 6px; border-radius: 999px; font-size: 10px; font-weight: 600; }
+  .badge.uploading { background: #4a3d1a; color: var(--warn); }
+  .badge.uploaded { background: #1c4030; color: var(--good); }
+  .badge.failed { background: #4a1c1c; color: var(--danger); }
+  .card-actions { display: flex; gap: 6px; margin-top: 8px; flex-wrap: wrap; }
+  .card-actions button { padding: 4px 8px; font-size: 11px; }
+  .flag-btn { background: transparent; border: 1px solid var(--border); color: var(--muted); }
+  .flag-btn.active { background: var(--warn); color: #2a1c00; border-color: var(--warn); }
+
+  #addForm { display: none; gap: 8px; padding: 10px 20px; background: var(--panel); border-bottom: 1px solid var(--border); }
+  #addForm.open { display: flex; }
+  #addForm input { flex: 1; background: var(--card); border: 1px solid var(--border); color: var(--text); border-radius: 6px; padding: 7px 10px; }
+
+  #archivedPanel { display: none; padding: 0 20px 20px; }
+  #archivedPanel.open { display: block; }
+  #archivedPanel h2 { font-size: 13px; color: var(--muted); }
+  .archived-row { display: flex; justify-content: space-between; align-items: center; padding: 6px 10px; background: var(--panel); border-radius: 6px; margin-bottom: 4px; font-size: 13px; }
+
+  #configPanel { display: none; padding: 12px 20px; background: var(--panel); border-bottom: 1px solid var(--border); }
+  #configPanel.open { display: block; }
+  #configPanel h2 { font-size: 13px; color: var(--muted); margin: 0 0 10px; font-weight: 600; }
+  .config-row { display: flex; align-items: center; gap: 10px; padding: 6px 0; }
+  .config-row .config-key { flex: 0 0 240px; font-size: 13px; font-family: monospace; color: var(--text); }
+  .config-row input.config-value { flex: 0 0 160px; background: var(--card); border: 1px solid var(--border); color: var(--text); border-radius: 6px; padding: 5px 8px; font-size: 13px; }
+
+  #status { font-size: 11px; color: var(--muted); padding: 0 20px; }
+
+  #ideasPanel { padding: 12px 20px; }
+  #ideasPanel h2 {
+    font-size: 12px; text-transform: uppercase; letter-spacing: 0.04em;
+    color: var(--muted); margin: 0 0 8px;
+  }
+  #ideasList { display: flex; flex-direction: column; gap: 4px; }
+  .idea-row {
+    display: flex; align-items: center; gap: 10px;
+    padding: 6px 10px; border-radius: 6px;
+    background: transparent; border: 1px dashed var(--border);
+  }
+  .idea-row input.idea-title {
+    flex: 1; background: transparent; border: none; color: var(--text);
+    font-size: 13px; padding: 2px 0;
+  }
+  .idea-row input.idea-title:focus { outline: 1px solid var(--accent); border-radius: 3px; }
+  .idea-row .idea-notes { color: var(--muted); font-size: 11px; }
+  .idea-row-empty { color: var(--muted); font-size: 12px; font-style: italic; padding: 4px 10px; }
+
+  .card.needs-label { border-color: var(--warn); }
+  .needs-label-badge {
+    display: inline-block; background: #4a3d1a; color: var(--warn);
+    font-size: 10px; font-weight: 600; padding: 2px 6px; border-radius: 999px;
+    margin-bottom: 6px;
+  }
+  .link-idea-select {
+    width: 100%; margin-top: 6px; background: var(--card); color: var(--text);
+    border: 1px solid var(--border); border-radius: 6px; padding: 5px; font-size: 12px;
+  }
+
+  #tokenGate {
+    position: fixed; inset: 0; background: var(--bg); display: flex;
+    align-items: center; justify-content: center; z-index: 100;
+  }
+  #tokenGate .box { background: var(--panel); border: 1px solid var(--border); border-radius: 10px; padding: 24px; width: 320px; }
+  #tokenGate h2 { margin: 0 0 6px; font-size: 15px; }
+  #tokenGate p { margin: 0 0 14px; font-size: 12px; color: var(--muted); }
+  #tokenGate input { width: 100%; background: var(--card); border: 1px solid var(--border); color: var(--text); border-radius: 6px; padding: 8px 10px; font-size: 13px; margin-bottom: 10px; }
+  #tokenGate button { width: 100%; }
+  #tokenGate .err { color: var(--danger); font-size: 12px; margin-top: 8px; min-height: 14px; }
+</style>
+</head>
+<body>
+  <div id="tokenGate" style="display:none;">
+    <div class="box">
+      <h2>Access token required</h2>
+      <p>Paste the access link/token you were given (ask the editor if you don't have one).</p>
+      <input id="tokenInput" placeholder="Access token" autocomplete="off" />
+      <button onclick="submitToken()">Continue</button>
+      <div class="err" id="tokenErr"></div>
+    </div>
+  </div>
+
+  <header>
+    <h1>Ghazzy's YT Video Pipeline</h1>
+    <button class="secondary" onclick="toggleConfig()">&#9881; Config</button>
+    <a id="uploadLink" class="secondary" href="#" target="_blank" rel="noopener" style="text-decoration:none;">&#8613; Upload</a>
+    <button class="secondary" onclick="syncDrive()">&#128260; Sync Google Drive</button>
+    <button class="secondary" id="toggleArchivedBtn" onclick="toggleArchived()">Show Archived</button>
+    <button onclick="toggleAddForm()">+ Add Idea</button>
+  </header>
+
+  <div id="configPanel">
+    <h2>Bot Config <span class="idea-notes">(changes apply within a few minutes - the streaming-PC app re-checks periodically)</span></h2>
+    <div id="configList"></div>
+  </div>
+
+  <div id="addForm">
+    <input id="newTitle" placeholder="Video idea title" />
+    <input id="newNotes" placeholder="Notes (optional)" />
+    <button onclick="submitIdea()">Add</button>
+    <button class="secondary" onclick="toggleAddForm()">Cancel</button>
+  </div>
+
+  <div id="status">Loading&hellip;</div>
+
+  <div id="ideasPanel">
+    <h2>Ideas <span class="count" id="ideasCount"></span></h2>
+    <div id="ideasList"></div>
+  </div>
+
+  <div id="board"></div>
+  <div id="archivedPanel">
+    <h2>Archived</h2>
+    <div id="archivedList"></div>
+  </div>
+
+  <script>
+    // Points at the Apps Script JSON API (see webapp/Code.gs). This is a
+    // plain fetch() over normal HTTPS - no iframe, no google.script.run -
+    // which is the whole reason this page is a separate static site instead
+    // of being served by Apps Script's HtmlService directly (see
+    // WORKFLOW.md "Frontend architecture" for why).
+    var API_URL = 'https://script.google.com/macros/s/AKfycbyrK-bNBBl1PxYmP5LJT3VGgKp3Z9xC-gfKcoLyZhdk5_UAiE2gXjLMA1_tcpZFNLQP/exec';
+
+    var COLUMNS = ['Recorded', 'Finished'];
+    var NEXT_STATUS = { Recorded: 'Finished', Finished: null };
+    var PREV_STATUS = { Finished: 'Recorded' };
+
+    var state = { rows: [] };
+    var editing = {};
+    var showArchived = false;
+    var pollTimer = null;
+    var TOKEN = null;
+
+    // --- Access token: never stored in this (public) repo's source - it's
+    // handed out separately and saved to this browser's localStorage only,
+    // either by pasting it once or via a one-time "?token=..." link that
+    // gets stripped from the URL bar immediately after saving. ---
+    function initToken() {
+      var params = new URLSearchParams(location.search);
+      var fromUrl = params.get('token');
+      if (fromUrl) {
+        localStorage.setItem('ghazzy_token', fromUrl);
+        history.replaceState({}, '', location.pathname);
+      }
+      TOKEN = localStorage.getItem('ghazzy_token');
+      if (!TOKEN) {
+        document.getElementById('tokenGate').style.display = 'flex';
+        return false;
+      }
+      return true;
+    }
+
+    function submitToken() {
+      var val = document.getElementById('tokenInput').value.trim();
+      if (!val) return;
+      localStorage.setItem('ghazzy_token', val);
+      TOKEN = val;
+      document.getElementById('tokenGate').style.display = 'none';
+      boot();
+    }
+
+    // --- API helpers ---
+    function apiGet(action) {
+      return fetch(API_URL + '?action=' + encodeURIComponent(action) + '&token=' + encodeURIComponent(TOKEN))
+        .then(function (r) { return r.json(); });
+    }
+
+    // Deliberately no explicit Content-Type header - leaving it as the
+    // fetch default (text/plain) keeps this a CORS "simple request" so the
+    // browser skips the preflight OPTIONS call, which Apps Script web apps
+    // can't answer. The body is still valid JSON; Code.gs parses it with
+    // JSON.parse regardless of the declared content type.
+    function apiPost(action, params) {
+      var body = Object.assign({ action: action, token: TOKEN }, params || {});
+      return fetch(API_URL, { method: 'POST', body: JSON.stringify(body) })
+        .then(function (r) { return r.json(); });
+    }
+
+    function refresh() {
+      apiGet('rows').then(onRowsLoaded).catch(onError);
+    }
+
+    function onRowsLoaded(result) {
+      var el = document.getElementById('status');
+      if (result && result.error) return onError(result.error);
+      if (!Array.isArray(result)) {
+        console.error('[DEBUG] onRowsLoaded received a non-array value:', result);
+        el.textContent = '⚠ Error: server returned unexpected data (see browser console) - previous view kept.';
+        el.style.color = 'var(--danger)';
+        el.style.fontWeight = '600';
+        return;
+      }
+      state.rows = result;
+      el.textContent = 'Updated ' + new Date().toLocaleTimeString() + ' — refreshes automatically every few seconds.';
+      el.style.color = '';
+      el.style.fontWeight = '';
+      render();
+    }
+
+    function onError(err) {
+      var el = document.getElementById('status');
+      var message = (err && err.message) ? err.message : String(err);
+      el.textContent = '⚠ Error: ' + message;
+      el.style.color = 'var(--danger)';
+      el.style.fontWeight = '600';
+      console.error('[error]', err);
+    }
+
+    function isEditing(rowIndex, field) {
+      return editing[rowIndex + ':' + field] === true;
+    }
+
+    function render() {
+      var board = document.getElementById('board');
+      board.innerHTML = '';
+      COLUMNS.forEach(function (statusName) {
+        var rows = state.rows.filter(function (r) { return r.status === statusName; });
+        var col = document.createElement('div');
+        col.className = 'column';
+        col.innerHTML = '<h2>' + statusName + ' <span class="count">(' + rows.length + ')</span></h2>';
+        rows.forEach(function (row) { col.appendChild(renderCard(row)); });
+        board.appendChild(col);
+      });
+      renderIdeas();
+      renderArchived();
+    }
+
+    function needsLabel(row) {
+      return row.status === 'Recorded' && row.filename && row.title === row.filename;
+    }
+
+    function renderIdeas() {
+      var ideas = state.rows.filter(function (r) { return r.status === 'Idea'; });
+      document.getElementById('ideasCount').textContent = '(' + ideas.length + ')';
+      var list = document.getElementById('ideasList');
+      list.innerHTML = '';
+      if (!ideas.length) {
+        var empty = document.createElement('div');
+        empty.className = 'idea-row-empty';
+        empty.textContent = 'No ideas yet — click "+ Add Idea" above.';
+        list.appendChild(empty);
+        return;
+      }
+      ideas.forEach(function (row) {
+        var el = document.createElement('div');
+        el.className = 'idea-row';
+
+        var title = document.createElement('input');
+        title.className = 'idea-title';
+        title.value = row.title;
+        title.addEventListener('focus', function () { editing[row.rowIndex + ':title'] = true; });
+        title.addEventListener('blur', function () {
+          delete editing[row.rowIndex + ':title'];
+          if (title.value.trim() && title.value.trim() !== row.title) call('updateTitle', { rowIndex: row.rowIndex, newTitle: title.value.trim() });
+        });
+        el.appendChild(title);
+
+        if (row.notes) {
+          var notes = document.createElement('span');
+          notes.className = 'idea-notes';
+          notes.textContent = row.notes;
+          el.appendChild(notes);
+        }
+
+        var flagBtn = document.createElement('button');
+        flagBtn.className = 'flag-btn' + (row.doFast ? ' active' : '');
+        flagBtn.textContent = row.doFast ? '★' : '☆';
+        flagBtn.title = 'Do Fast';
+        flagBtn.onclick = function () { call('toggleDoFast', { rowIndex: row.rowIndex, value: !row.doFast }); };
+        el.appendChild(flagBtn);
+
+        var deleteBtn = document.createElement('button');
+        deleteBtn.className = 'danger';
+        deleteBtn.textContent = 'Delete';
+        deleteBtn.onclick = function () {
+          if (confirm('Delete idea "' + row.title + '"?')) call('deleteRow', { rowIndex: row.rowIndex });
+        };
+        el.appendChild(deleteBtn);
+
+        list.appendChild(el);
+      });
+    }
+
+    function renderCard(row) {
+      var unlabeled = needsLabel(row);
+      var card = document.createElement('div');
+      card.className = 'card' + (row.doFast ? ' do-fast' : '') + (unlabeled ? ' needs-label' : '');
+
+      if (unlabeled) {
+        var badge = document.createElement('div');
+        badge.className = 'needs-label-badge';
+        badge.textContent = '⚠ Needs a title';
+        card.appendChild(badge);
+      }
+
+      var title = document.createElement('input');
+      title.className = 'card-title';
+      title.value = row.title;
+      if (!isEditing(row.rowIndex, 'title')) title.value = row.title;
+      title.addEventListener('focus', function () { editing[row.rowIndex + ':title'] = true; });
+      title.addEventListener('blur', function () {
+        delete editing[row.rowIndex + ':title'];
+        if (title.value.trim() && title.value.trim() !== row.title) {
+          call('updateTitle', { rowIndex: row.rowIndex, newTitle: title.value.trim() });
+        }
+      });
+      card.appendChild(title);
+
+      var notes = document.createElement('textarea');
+      notes.className = 'card-notes';
+      notes.placeholder = 'Notes…';
+      notes.value = row.notes || '';
+      notes.addEventListener('focus', function () { editing[row.rowIndex + ':notes'] = true; });
+      notes.addEventListener('blur', function () {
+        delete editing[row.rowIndex + ':notes'];
+        if (notes.value !== row.notes) call('updateNotes', { rowIndex: row.rowIndex, newNotes: notes.value });
+      });
+      card.appendChild(notes);
+
+      if (unlabeled) {
+        var ideas = state.rows.filter(function (r) { return r.status === 'Idea'; });
+        var select = document.createElement('select');
+        select.className = 'link-idea-select';
+        var placeholder = document.createElement('option');
+        placeholder.value = '';
+        placeholder.textContent = ideas.length ? '— Link to an idea instead of typing a title —' : '(no ideas to link — just type a title above)';
+        select.appendChild(placeholder);
+        ideas.forEach(function (idea) {
+          var opt = document.createElement('option');
+          opt.value = idea.rowIndex;
+          opt.textContent = idea.title;
+          select.appendChild(opt);
+        });
+        select.onchange = function () {
+          if (!select.value) return;
+          call('linkIdeaToRecorded', { recordedRowIndex: row.rowIndex, ideaRowIndex: Number(select.value) });
+        };
+        card.appendChild(select);
+      }
+
+      var meta = document.createElement('div');
+      meta.className = 'card-meta';
+      if (row.status === 'Recorded' && row.upload) {
+        var uploadBadge = document.createElement('span');
+        uploadBadge.className = 'badge ' + row.upload.toLowerCase();
+        uploadBadge.textContent = row.upload;
+        meta.appendChild(uploadBadge);
+      }
+      if (row.filename) {
+        var fn = document.createElement('span');
+        fn.textContent = row.filename;
+        meta.appendChild(fn);
+      }
+      card.appendChild(meta);
+
+      var actions = document.createElement('div');
+      actions.className = 'card-actions';
+
+      var flagBtn = document.createElement('button');
+      flagBtn.className = 'flag-btn' + (row.doFast ? ' active' : '');
+      flagBtn.textContent = row.doFast ? '★ Do Fast' : '☆ Do Fast';
+      flagBtn.onclick = function () { call('toggleDoFast', { rowIndex: row.rowIndex, value: !row.doFast }); };
+      actions.appendChild(flagBtn);
+
+      if (PREV_STATUS[row.status]) {
+        var back = document.createElement('button');
+        back.className = 'secondary';
+        back.textContent = '← ' + PREV_STATUS[row.status];
+        back.onclick = function () { call('updateStatus', { rowIndex: row.rowIndex, newStatus: PREV_STATUS[row.status] }); };
+        actions.appendChild(back);
+      }
+      if (NEXT_STATUS[row.status]) {
+        var fwd = document.createElement('button');
+        fwd.textContent = NEXT_STATUS[row.status] + ' →';
+        fwd.onclick = function () { call('updateStatus', { rowIndex: row.rowIndex, newStatus: NEXT_STATUS[row.status] }); };
+        actions.appendChild(fwd);
+      }
+
+      var archiveBtn = document.createElement('button');
+      archiveBtn.className = 'secondary';
+      archiveBtn.textContent = 'Archive';
+      archiveBtn.onclick = function () { call('archiveRow', { rowIndex: row.rowIndex }); };
+      actions.appendChild(archiveBtn);
+
+      var deleteBtn = document.createElement('button');
+      deleteBtn.className = 'danger';
+      deleteBtn.textContent = 'Delete';
+      deleteBtn.onclick = function () {
+        if (confirm('Delete "' + row.title + '" permanently? This cannot be undone (consider Archive instead).')) {
+          call('deleteRow', { rowIndex: row.rowIndex });
+        }
+      };
+      actions.appendChild(deleteBtn);
+
+      card.appendChild(actions);
+      return card;
+    }
+
+    function renderArchived() {
+      var list = document.getElementById('archivedList');
+      list.innerHTML = '';
+      state.rows.filter(function (r) { return r.status === 'Archived'; }).forEach(function (row) {
+        var el = document.createElement('div');
+        el.className = 'archived-row';
+        el.innerHTML = '<span>' + escapeHtml(row.title) + '</span>';
+        var restoreBtn = document.createElement('button');
+        restoreBtn.className = 'secondary';
+        restoreBtn.textContent = 'Restore to Finished';
+        restoreBtn.onclick = function () { call('updateStatus', { rowIndex: row.rowIndex, newStatus: 'Finished' }); };
+        el.appendChild(restoreBtn);
+        list.appendChild(el);
+      });
+    }
+
+    function escapeHtml(s) {
+      var div = document.createElement('div');
+      div.textContent = s;
+      return div.innerHTML;
+    }
+
+    function call(action, params) {
+      apiPost(action, params).then(onRowsLoaded).catch(onError);
+    }
+
+    function toggleArchived() {
+      showArchived = !showArchived;
+      document.getElementById('archivedPanel').classList.toggle('open', showArchived);
+      document.getElementById('toggleArchivedBtn').textContent = showArchived ? 'Hide Archived' : 'Show Archived';
+    }
+
+    function toggleAddForm() {
+      document.getElementById('addForm').classList.toggle('open');
+    }
+
+    var configLoaded = false;
+
+    function toggleConfig() {
+      var panel = document.getElementById('configPanel');
+      var opening = !panel.classList.contains('open');
+      panel.classList.toggle('open', opening);
+      if (opening && !configLoaded) refreshConfig();
+    }
+
+    function refreshConfig() {
+      apiGet('config').then(renderConfig).catch(onError);
+    }
+
+    function renderConfig(rows) {
+      if (rows && rows.error) return onError(rows.error);
+      configLoaded = true;
+      var list = document.getElementById('configList');
+      list.innerHTML = '';
+      rows.forEach(function (row) {
+        var el = document.createElement('div');
+        el.className = 'config-row';
+
+        var key = document.createElement('span');
+        key.className = 'config-key';
+        key.textContent = row.key;
+        el.appendChild(key);
+
+        var value = document.createElement('input');
+        value.className = 'config-value';
+        value.value = row.value;
+        value.addEventListener('blur', function () {
+          if (value.value !== String(row.value)) {
+            apiPost('updateConfigValue', { rowIndex: row.rowIndex, newValue: value.value }).then(renderConfig).catch(onError);
+          }
+        });
+        el.appendChild(value);
+
+        list.appendChild(el);
+      });
+    }
+
+    function syncDrive() {
+      document.getElementById('status').textContent = 'Syncing with Google Drive…';
+      apiPost('syncDriveFolder', {}).then(function (result) {
+        if (result && result.error) return onError(result.error);
+        onRowsLoaded(result.rows);
+        document.getElementById('status').textContent =
+          (result.added > 0 ? 'Found ' + result.added + ' new file(s) in Google Drive. ' : 'No new files in Google Drive. ') +
+          'Updated ' + new Date().toLocaleTimeString() + ' — refreshes automatically every few seconds.';
+      }).catch(onError);
+    }
+
+    function autoSyncDrive() {
+      apiPost('syncDriveFolder', {}).then(function (result) {
+        if (result && result.error) { console.error('[auto-sync] failed:', result.error); return; }
+        onRowsLoaded(result.rows);
+        if (result.added > 0) {
+          document.getElementById('status').textContent =
+            'Found ' + result.added + ' new file(s) in Google Drive. Updated ' + new Date().toLocaleTimeString() + '.';
+        }
+      }).catch(function (err) { console.error('[auto-sync] failed:', err); });
+    }
+
+    function submitIdea() {
+      var titleInput = document.getElementById('newTitle');
+      var title = titleInput.value.trim();
+      if (!title) {
+        titleInput.style.outline = '2px solid var(--danger)';
+        titleInput.placeholder = 'Type a title first';
+        titleInput.focus();
+        setTimeout(function () { titleInput.style.outline = ''; }, 1500);
+        return;
+      }
+      var notes = document.getElementById('newNotes').value.trim();
+      document.getElementById('status').textContent = 'Adding idea…';
+      apiPost('addIdea', { title: title, notes: notes }).then(function (result) {
+        if (result && result.error) return onError(result.error);
+        onRowsLoaded(result);
+        titleInput.value = '';
+        document.getElementById('newNotes').value = '';
+        toggleAddForm();
+      }).catch(onError);
+    }
+
+    function boot() {
+      apiGet('driveFolderUrl').then(function (result) {
+        if (result && result.url) document.getElementById('uploadLink').href = result.url;
+      }).catch(function (err) { console.error('[upload-link]', err); });
+
+      refresh();
+      if (pollTimer) clearInterval(pollTimer);
+      pollTimer = setInterval(refresh, 4000);
+      setInterval(autoSyncDrive, 60000);
+    }
+
+    if (initToken()) boot();
+  </script>
+</body>
+</html>
