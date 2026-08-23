@@ -137,9 +137,9 @@
   /* Two stages while dragging one card over another: card-drop-hover alone
      means "still holding, not armed yet" (needs DROP_DWELL_MS held on this
      exact card); card-drop-armed (added on top after that delay) means
-     "release now to attach". The delay is short - just enough to stop it
-     arming on a pass-through card while aiming - since starting the drag at
-     all already requires deliberately grabbing the dedicated handle. */
+     "release now to attach". DROP_DWELL_MS is practically 0 - starting the
+     drag at all already requires deliberately grabbing the dedicated
+     handle, so there's nothing left worth guarding against. */
   .card.card-drop-hover {
     outline: 2px dashed var(--muted);
     outline-offset: 2px;
@@ -334,7 +334,14 @@
   .ideas-panel { margin-bottom: 12px; }
   .ideas-panel h2 {
     font-size: 12px; text-transform: uppercase; letter-spacing: 0.04em;
-    color: var(--muted); margin: 8px 0 8px;
+    color: var(--muted); margin: 0;
+  }
+  .ideas-panel-header { display: flex; align-items: center; gap: 6px; cursor: pointer; padding: 4px 0; margin-bottom: 4px; }
+  .ideas-panel-toggle { background: transparent; border: none; color: var(--muted); font-size: 13px; padding: 2px 4px; cursor: pointer; }
+  .ideas-collapsed-pinned { display: flex; flex-direction: column; gap: 3px; margin: 2px 0 8px; }
+  .ideas-collapsed-pinned-row {
+    font-size: 11px; color: var(--danger); padding: 2px 8px 2px 20px;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
   }
   .add-form { display: none; gap: 8px; margin: 8px 0; }
   .add-form.open { display: flex; }
@@ -501,6 +508,7 @@
     var expandedChildren = {}; // parent pipeline doc id -> true while its sub-videos list is shown
     var expandedIdeaDescriptions = {}; // idea id -> true while its description is shown (collapsed by default)
     var expandedFolders = {}; // folder id -> true while expanded (Main is always expanded, not stored here)
+    var expandedIdeasByFolder = {}; // folder id -> true while its Video Ideas panel is expanded (collapsed by default so it stays out of the way)
     var showArchivedByFolder = {}; // folder id -> true while its per-clip Archived list is shown
     var showAllFinishedByFolder = {}; // "folderId:Finished" -> true while fully expanded
     var showArchivedFolders = false;
@@ -579,7 +587,7 @@
     var dragHoverTarget = null; // the .card currently highlighted as a potential sub-video parent mid-drag, if any
     var dragHoverArmed = false; // true once dragHoverTarget has been held over long enough to actually accept a drop
     var dragHoverTimer = null;
-    var DROP_DWELL_MS = 350; // how long to hold over a card before it'll accept becoming a sub-video parent - only needs to be long enough to avoid arming on a pass-through, since starting this drag at all already takes a deliberate grab of the dedicated handle
+    var DROP_DWELL_MS = 40; // how long to hold over a card before it'll accept becoming a sub-video parent - practically instant now; starting this drag at all already takes a deliberate grab of the dedicated handle, so there's nothing left to guard against
 
     function renderFolders() {
       var container = document.getElementById('foldersContainer');
@@ -823,20 +831,32 @@
       var board = document.createElement('div');
       board.className = 'board';
       COLUMNS.forEach(function (statusName) {
+        // Cards with an explicit order (i.e. touched by a manual reorder at
+        // least once) sort by it; everything else falls back to newest-first,
+        // same as before reordering existed. Do Fast always wins regardless -
+        // it's a separate primary sort key, not something a drag can override.
         var colRows = rows.filter(function (r) { return r.status === statusName; }).slice().sort(function (a, b) {
           if (a.doFast !== b.doFast) return a.doFast ? -1 : 1;
+          var ao = a.order !== undefined ? a.order : Infinity;
+          var bo = b.order !== undefined ? b.order : Infinity;
+          if (ao !== bo) return ao - bo;
           return (b.createdAtMs || 0) - (a.createdAtMs || 0);
         });
         var totalCount = colRows.length;
         var isFinished = statusName === 'Finished';
         var key = folder.id + ':' + statusName;
         var showAll = showAllFinishedByFolder[key];
-        var displayRows = (isFinished && !showAll) ? colRows.slice(0, FINISHED_COLLAPSED_COUNT) : colRows;
+        var fullList = !isFinished || showAll;
+        var displayRows = fullList ? colRows : colRows.slice(0, FINISHED_COLLAPSED_COUNT);
 
         var col = document.createElement('div');
         col.className = 'column';
         col.dataset.folderId = folder.id;
         col.dataset.status = statusName;
+        // Reordering only persists when every card in the column is
+        // actually on screen - a collapsed "Finished" peek only renders the
+        // first few, so there's nothing to compare the hidden rest against.
+        col.dataset.fullList = String(fullList);
         col.innerHTML = '<h2>' + statusName + ' <span class="count">(' + totalCount + ')</span></h2>';
         displayRows.forEach(function (row) { col.appendChild(renderCard(row, rows)); });
 
@@ -877,11 +897,27 @@
               var toFolderId = evt.to.dataset.folderId;
               if (toFolderId && toFolderId !== fromFolderId) {
                 updateDoc(doc(db, 'pipeline', cardId), { folder: toFolderId }).catch(onError);
+              }
+              if (evt.to.dataset.fullList === 'true') {
+                // Persist the on-screen order, but split into two separate
+                // counters (do-fast vs. everything else) so a card dropped
+                // "above" a do-fast one doesn't unpin it - it just records
+                // its position within its own group; the do-fast group
+                // still renders first, always, per the sort above.
+                var fastIdx = 0, restIdx = 0;
+                Array.from(evt.to.children).forEach(function (el) {
+                  if (!el.classList || !el.classList.contains('card')) return;
+                  var id = el.dataset.cardId;
+                  if (!id) return;
+                  var ord = el.classList.contains('do-fast') ? fastIdx++ : restIdx++;
+                  updateDoc(doc(db, 'pipeline', id), { order: ord }).catch(onError);
+                });
               } else {
-                // Dropped back in the same column - nothing persisted (card
-                // order isn't a stored field, just doFast+recency), so snap
-                // back to the real canonical order instead of leaving a
-                // reorder on screen that won't survive the next update.
+                // Collapsed "Finished" peek - nothing persisted (only a
+                // handful of the real list was even on screen to reorder),
+                // so snap back to the real canonical order instead of
+                // leaving a partial reorder on screen that won't survive
+                // the next update.
                 renderFolders();
               }
             },
@@ -927,27 +963,32 @@
       var panel = document.createElement('div');
       panel.className = 'ideas-panel';
 
-      var addBtn = document.createElement('button');
-      var formOpen = addFormOpenFolder === folder.id;
-      addBtn.textContent = formOpen ? 'Cancel' : '+ Add Video Idea';
-      addBtn.className = formOpen ? 'secondary' : '';
-      addBtn.onclick = function () { addFormOpenFolder = formOpen ? null : folder.id; renderFolders(); };
-      panel.appendChild(addBtn);
-
-      if (formOpen) panel.appendChild(renderAddIdeaForm(folder));
-
       var ideas = rows.filter(function (r) { return r.status === 'Idea'; });
-      var header = document.createElement('h2');
-      header.innerHTML = 'Video Ideas <span class="count">(' + ideas.length + ')</span>';
-      panel.appendChild(header);
+      var expanded = expandedIdeasByFolder[folder.id] === true;
 
-      if (!ideas.length) {
-        var empty = document.createElement('div');
-        empty.className = 'idea-row-empty';
-        empty.textContent = 'No video ideas yet — click "+ Add Video Idea" above.';
-        panel.appendChild(empty);
-        return panel;
-      }
+      // Click anywhere on the header to expand/collapse, same convention
+      // as folder tabs - collapsed by default so this panel isn't
+      // competing for space with the actual clips above it.
+      var header = document.createElement('div');
+      header.className = 'ideas-panel-header';
+      header.addEventListener('click', function (e) {
+        if (e.target.closest('button')) return;
+        expandedIdeasByFolder[folder.id] = !expanded;
+        renderFolders();
+      });
+
+      var toggleBtn = document.createElement('button');
+      toggleBtn.className = 'ideas-panel-toggle';
+      toggleBtn.textContent = expanded ? '▾' : '▸';
+      toggleBtn.title = expanded ? 'Collapse' : 'Expand';
+      toggleBtn.onclick = function () { expandedIdeasByFolder[folder.id] = !expanded; renderFolders(); };
+      header.appendChild(toggleBtn);
+
+      var titleEl = document.createElement('h2');
+      titleEl.innerHTML = 'Video Ideas <span class="count">(' + ideas.length + ')</span>';
+      header.appendChild(titleEl);
+
+      panel.appendChild(header);
 
       function byOrder(a, b) {
         var ao = a.order !== undefined ? a.order : a.createdAtMs || 0;
@@ -961,6 +1002,40 @@
       // Main vs. other folders.
       var doFastIdeas = ideas.filter(function (r) { return r.doFast; }).sort(byOrder);
       var otherIdeas = ideas.filter(function (r) { return !r.doFast; }).sort(byOrder);
+
+      if (!expanded) {
+        // Collapsed: everything else stays hidden, but Do Fast ideas are
+        // important enough to still surface - just their titles, small.
+        if (doFastIdeas.length) {
+          var pinnedList = document.createElement('div');
+          pinnedList.className = 'ideas-collapsed-pinned';
+          doFastIdeas.forEach(function (row) {
+            var chip = document.createElement('div');
+            chip.className = 'ideas-collapsed-pinned-row';
+            chip.textContent = '⚡ ' + (row.title || 'Untitled idea');
+            pinnedList.appendChild(chip);
+          });
+          panel.appendChild(pinnedList);
+        }
+        return panel;
+      }
+
+      var addBtn = document.createElement('button');
+      var formOpen = addFormOpenFolder === folder.id;
+      addBtn.textContent = formOpen ? 'Cancel' : '+ Add Video Idea';
+      addBtn.className = formOpen ? 'secondary' : '';
+      addBtn.onclick = function () { addFormOpenFolder = formOpen ? null : folder.id; renderFolders(); };
+      panel.appendChild(addBtn);
+
+      if (formOpen) panel.appendChild(renderAddIdeaForm(folder));
+
+      if (!ideas.length) {
+        var empty = document.createElement('div');
+        empty.className = 'idea-row-empty';
+        empty.textContent = 'No video ideas yet — click "+ Add Video Idea" above.';
+        panel.appendChild(empty);
+        return panel;
+      }
 
       if (doFastIdeas.length) panel.appendChild(renderIdeaSortableList(doFastIdeas));
       if (otherIdeas.length) panel.appendChild(renderIdeaSortableList(otherIdeas));
