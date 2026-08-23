@@ -137,9 +137,9 @@
   /* Two stages while dragging one card over another: card-drop-hover alone
      means "still holding, not armed yet" (needs DROP_DWELL_MS held on this
      exact card); card-drop-armed (added on top after that delay) means
-     "release now to attach". Every other drag in this app stays instant -
-     this is the one deliberately slow one, so it needs a delay by design,
-     see DROP_DWELL_MS. */
+     "release now to attach". The delay is short - just enough to stop it
+     arming on a pass-through card while aiming - since starting the drag at
+     all already requires deliberately grabbing the dedicated handle. */
   .card.card-drop-hover {
     outline: 2px dashed var(--muted);
     outline-offset: 2px;
@@ -151,7 +151,7 @@
     transform: scale(1.03);
   }
   .card.card-drop-hover.card-drop-armed::after {
-    content: '📎 Release to attach as a sub-video';
+    content: '↳ Release to attach as a sub-video';
     background: rgba(124, 158, 255, 0.2);
     color: var(--accent); font-weight: 700; font-size: 13px;
     animation: armed-pulse 0.8s ease-in-out infinite;
@@ -163,9 +163,9 @@
      card) is entirely separate and unaffected. */
   .card-attach-handle {
     position: absolute; top: 8px; right: 8px; z-index: 2;
-    width: 22px; height: 22px; display: flex; align-items: center; justify-content: center;
-    border-radius: 5px; background: var(--card); border: 1px solid var(--border);
-    color: var(--muted); font-size: 12px; cursor: grab; touch-action: none;
+    width: 30px; height: 30px; display: flex; align-items: center; justify-content: center;
+    border-radius: 6px; background: var(--card); border: 1px solid var(--border);
+    color: var(--muted); font-size: 17px; cursor: grab; touch-action: none;
   }
   .card-attach-handle:hover { color: var(--accent); border-color: var(--accent); background: rgba(124, 158, 255, 0.12); }
   .card-attach-handle:active { cursor: grabbing; }
@@ -579,7 +579,7 @@
     var dragHoverTarget = null; // the .card currently highlighted as a potential sub-video parent mid-drag, if any
     var dragHoverArmed = false; // true once dragHoverTarget has been held over long enough to actually accept a drop
     var dragHoverTimer = null;
-    var DROP_DWELL_MS = 2000; // how long to hold over a card before it'll accept becoming a sub-video parent - deliberately slower than every other drag in this app, which all stay instant
+    var DROP_DWELL_MS = 350; // how long to hold over a card before it'll accept becoming a sub-video parent - only needs to be long enough to avoid arming on a pass-through, since starting this drag at all already takes a deliberate grab of the dedicated handle
 
     function renderFolders() {
       var container = document.getElementById('foldersContainer');
@@ -1197,7 +1197,7 @@
     // ---------- cards ----------
 
     // Sub-video attach, fully separate from SortableJS - a native pointer
-    // drag started only from the card's small paperclip handle. Deliberately
+    // drag started only from the card's small nest-under handle. Deliberately
     // NOT part of the same drag-and-drop system as folder-moving, since
     // layering it onto SortableJS (a second nested Sortable per card, then
     // onMove/onEnd tricks) repeatedly turned out unreliable and disrupted
@@ -1211,7 +1211,7 @@
 
         var ghost = document.createElement('div');
         ghost.className = 'sub-video-drag-ghost';
-        ghost.textContent = '📎 ' + (row.title || 'Untitled clip');
+        ghost.textContent = '↳ ' + (row.title || 'Untitled clip');
         document.body.appendChild(ghost);
         card.classList.add('sub-video-drag-source');
 
@@ -1284,7 +1284,7 @@
       var attachHandle = document.createElement('span');
       attachHandle.className = 'card-attach-handle';
       attachHandle.title = 'Drag onto another clip to attach as a sub-video';
-      attachHandle.textContent = '📎';
+      attachHandle.textContent = '↳';
       setupSubVideoDrag(attachHandle, card, row);
       card.appendChild(attachHandle);
 
