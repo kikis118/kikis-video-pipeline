@@ -78,6 +78,12 @@
     70% { box-shadow: 0 0 0 8px rgba(95, 208, 138, 0); }
     100% { box-shadow: 0 0 0 0 rgba(95, 208, 138, 0); }
   }
+  .live-dot-orange { background: #ff8c1a; animation: live-pulse-orange 1.6s infinite; }
+  @keyframes live-pulse-orange {
+    0% { box-shadow: 0 0 0 0 rgba(255, 140, 26, 0.7); }
+    70% { box-shadow: 0 0 0 8px rgba(255, 140, 26, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(255, 140, 26, 0); }
+  }
 
   #createFolderForm { display: none; gap: 8px; padding: 10px 20px 0; }
   #createFolderForm.open { display: flex; }
@@ -128,6 +134,29 @@
      instead of silently depending on which rule happens to be declared
      last in the stylesheet. */
   .flag-btn.working-on-it-btn.active { background: #ff8c1a; color: #2a1602; border-color: #ff8c1a; }
+
+  .card-children-toggle {
+    display: flex; align-items: center; gap: 4px; cursor: pointer;
+    font-size: 11px; color: var(--accent); font-weight: 600;
+    margin: 2px 0 4px; user-select: none;
+  }
+  .card-children-toggle:hover { text-decoration: underline; }
+  .card-children-toggle .chevron { font-size: 10px; }
+  .card-children-list {
+    display: flex; flex-direction: column; gap: 4px;
+    margin: 0 0 8px; padding: 6px 8px; background: rgba(0, 0, 0, 0.18);
+    border-radius: 6px; border: 1px dashed var(--border);
+  }
+  .card-child-row {
+    display: flex; align-items: center; gap: 6px; font-size: 11px;
+  }
+  .card-child-title {
+    flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    color: var(--text);
+  }
+  .card-child-links { display: flex; align-items: center; gap: 4px; flex-shrink: 0; }
+  .card-child-links a { padding: 2px 6px; font-size: 10px; }
+  .card-child-detach { padding: 2px 6px; font-size: 10px; background: transparent; color: var(--muted); border: 1px solid var(--border); }
   .card-title {
     font-size: 14px;
     font-weight: 600;
@@ -399,6 +428,7 @@
     var editing = {};
     var expandedActions = {}; // pipeline doc id -> true while "More actions" (Archive/Delete/Move) is revealed
     var expandedFolderActions = {}; // folder id -> true while "More actions" (Set as Main/Archive) is revealed
+    var expandedChildren = {}; // parent pipeline doc id -> true while its sub-videos list is shown
     var expandedFolders = {}; // folder id -> true while expanded (Main is always expanded, not stored here)
     var showArchivedByFolder = {}; // folder id -> true while its per-clip Archived list is shown
     var showAllFinishedByFolder = {}; // "folderId:Finished" -> true while fully expanded
@@ -462,8 +492,13 @@
     // is exactly what physically happens to the real Drive file too).
     function rowsForFolder(folder) {
       return state.rows.filter(function (r) {
+        if (r.parentId) return false; // sub-video - rendered nested under its parent, never as its own top-level card
         return folder.isMain ? (!r.folder || r.folder === folder.id) : r.folder === folder.id;
       });
+    }
+
+    function childrenOf(rowId) {
+      return state.rows.filter(function (r) { return r.parentId === rowId; });
     }
 
     // ---------- top-level render ----------
@@ -1052,6 +1087,25 @@
       });
       card.appendChild(title);
 
+      // Sub-videos (addendums/gameplay attached under this "parent" video -
+      // see WORKFLOW.md "Sub-videos"). Only shown at all once at least one
+      // exists - an empty card looks exactly like before.
+      var children = childrenOf(row.id);
+      if (children.length) {
+        var childrenToggle = document.createElement('div');
+        childrenToggle.className = 'card-children-toggle';
+        childrenToggle.innerHTML = '<span class="chevron">' + (expandedChildren[row.id] ? '▾' : '▸') + '</span> 🗂️ ' + children.length + ' sub-video' + (children.length > 1 ? 's' : '');
+        childrenToggle.onclick = function () { expandedChildren[row.id] = !expandedChildren[row.id]; renderFolders(); };
+        card.appendChild(childrenToggle);
+
+        if (expandedChildren[row.id]) {
+          var childrenList = document.createElement('div');
+          childrenList.className = 'card-children-list';
+          children.forEach(function (child) { childrenList.appendChild(renderChildRow(child)); });
+          card.appendChild(childrenList);
+        }
+      }
+
       var notes = document.createElement('textarea');
       notes.className = 'card-notes';
       notes.placeholder = 'Notes…';
@@ -1244,7 +1298,102 @@
       actions.appendChild(left);
       actions.appendChild(right);
       card.appendChild(actions);
+
+      // Drop target for turning another card into a sub-video of this one -
+      // same put-only pattern as the collapsed-folder-tab drop, just
+      // targeting the whole card instead of a folder header. Deliberately
+      // NOT a quick drag - a confirm() gate on drop, since this is rarer
+      // and more consequential (hides the dropped card from the board
+      // entirely) than an ordinary folder move, and needs to be something
+      // done on purpose, not something that can happen by a stray drop.
+      if (window.Sortable) {
+        card.dataset.cardId = row.id; // already set above, kept here as the field this Sortable instance reads
+        var cardDrop = Sortable.create(card, {
+          group: { name: 'card-attach-' + row.id, pull: false, put: ['cards-Recorded', 'cards-Finished'] },
+          sort: false,
+          draggable: '.card',
+          onAdd: function (evt) {
+            var childId = evt.item.dataset.cardId;
+            if (evt.item.parentNode) evt.item.parentNode.removeChild(evt.item);
+            if (!childId || childId === row.id) { renderFolders(); return; }
+            if (childrenOf(childId).length) {
+              alert('That video already has its own sub-videos - it can\'t also become a sub-video itself (kept to one level deep).');
+              renderFolders();
+              return;
+            }
+            var childRow = state.rows.find(function (r) { return r.id === childId; });
+            var childTitle = (childRow && childRow.title) || 'this clip';
+            if (!confirm('Attach "' + childTitle + '" as a sub-video under "' + (row.title || 'this video') + '"?\n\nIt will be hidden from the board and only shown nested here (still viewable/downloadable).')) {
+              renderFolders();
+              return;
+            }
+            updateDoc(doc(db, 'pipeline', childId), { parentId: row.id }).catch(onError);
+            renderFolders();
+          },
+        });
+        cardSortables.push(cardDrop);
+      }
+
       return card;
+    }
+
+    // Compact, read-only-ish row for a sub-video - View/Download only, no
+    // Do Fast/status/folder controls, since those only ever apply to the
+    // parent video (see the "Working on it" / Do Fast discussion this
+    // covers the same "left = editor, right = Ghazzy" split doesn't apply
+    // here - a sub-video has no Ghazzy-facing controls at all).
+    function renderChildRow(child) {
+      var row = document.createElement('div');
+      row.className = 'card-child-row';
+
+      var titleEl = document.createElement('span');
+      titleEl.className = 'card-child-title';
+      titleEl.textContent = child.title || child.filename || 'Untitled';
+      titleEl.title = child.title || '';
+      row.appendChild(titleEl);
+
+      if (child.upload) {
+        var badge = document.createElement('span');
+        badge.className = 'badge ' + child.upload.toLowerCase();
+        badge.textContent = child.upload;
+        row.appendChild(badge);
+      }
+
+      var linksWrap = document.createElement('span');
+      linksWrap.className = 'card-child-links';
+      if (child.driveFileId) {
+        var viewLink = document.createElement('a');
+        viewLink.className = 'btn-view';
+        viewLink.href = 'https://drive.google.com/file/d/' + encodeURIComponent(child.driveFileId) + '/view';
+        viewLink.target = '_blank';
+        viewLink.rel = 'noopener';
+        viewLink.textContent = '▶';
+        viewLink.title = 'View';
+        linksWrap.appendChild(viewLink);
+
+        var downloadLink = document.createElement('a');
+        downloadLink.className = 'btn-download';
+        downloadLink.href = 'https://drive.google.com/uc?export=download&id=' + encodeURIComponent(child.driveFileId);
+        downloadLink.target = '_blank';
+        downloadLink.rel = 'noopener';
+        downloadLink.textContent = '⬇';
+        downloadLink.title = 'Download';
+        linksWrap.appendChild(downloadLink);
+      }
+
+      var detachBtn = document.createElement('button');
+      detachBtn.className = 'secondary card-child-detach';
+      detachBtn.textContent = '✕';
+      detachBtn.title = 'Detach - moves it back onto the board as its own card';
+      detachBtn.onclick = function () {
+        if (confirm('Detach "' + (child.title || 'this clip') + '"? It goes back to being its own card on the board.')) {
+          updateDoc(doc(db, 'pipeline', child.id), { parentId: null }).catch(onError);
+        }
+      };
+      linksWrap.appendChild(detachBtn);
+
+      row.appendChild(linksWrap);
+      return row;
     }
 
     // ---------- misc helpers ----------
@@ -1391,7 +1540,10 @@
       el.innerHTML = '';
 
       var heading = document.createElement('h3');
-      heading.textContent = 'Disk Cleanup (streaming PC)';
+      heading.innerHTML = '<span class="live-dot live-dot-orange"></span> Disk Cleanup (streaming PC)';
+      heading.style.display = 'flex';
+      heading.style.alignItems = 'center';
+      heading.style.gap = '7px';
       el.appendChild(heading);
 
       if (!status) {
