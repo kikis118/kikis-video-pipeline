@@ -117,6 +117,13 @@
   .card:active { cursor: grabbing; }
   .card:not(.do-fast):hover { border-color: var(--accent); }
   .card.do-fast:hover { box-shadow: inset 0 0 0 1px var(--accent); }
+  .card.working-on-it { animation: working-pulse 2s infinite; }
+  @keyframes working-pulse {
+    0% { box-shadow: 0 0 0 0 rgba(245, 185, 66, 0.55); }
+    70% { box-shadow: 0 0 0 6px rgba(245, 185, 66, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(245, 185, 66, 0); }
+  }
+  .working-on-it-btn.active { background: var(--warn); color: #2a1d02; border-color: var(--warn); }
   .card-title {
     font-size: 14px;
     font-weight: 600;
@@ -1011,7 +1018,7 @@
     function renderCard(row, folderRows) {
       var unlabeled = needsLabel(row);
       var card = document.createElement('div');
-      card.className = 'card' + (row.doFast ? ' do-fast' : '') + (unlabeled ? ' needs-label' : '');
+      card.className = 'card' + (row.doFast ? ' do-fast' : '') + (unlabeled ? ' needs-label' : '') + (row.workingOnIt ? ' working-on-it' : '');
       card.dataset.cardId = row.id;
 
       if (unlabeled) {
@@ -1125,6 +1132,16 @@
         downloadLink.textContent = '⬇ Download';
         left.appendChild(downloadLink);
       }
+
+      // Editor-only, like View/Download - a pure visual signal to Ghazzy
+      // ("she's seen it, working on it") that never touches status. Toggled
+      // off the same way it's toggled on, no separate confirm needed since
+      // nothing it does is destructive or hard to undo.
+      var workingBtn = document.createElement('button');
+      workingBtn.className = 'flag-btn working-on-it-btn' + (row.workingOnIt ? ' active' : '');
+      workingBtn.textContent = row.workingOnIt ? '🔧 Working on it' : '🔧 Mark as working on it';
+      workingBtn.onclick = function () { updateDoc(doc(db, 'pipeline', row.id), { workingOnIt: !row.workingOnIt }).catch(onError); };
+      left.appendChild(workingBtn);
 
       var right = document.createElement('div');
       right.className = 'actions-right';
