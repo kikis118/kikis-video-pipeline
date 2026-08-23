@@ -1449,7 +1449,13 @@
       var browse = document.createElement('details');
       browse.className = 'disk-cleanup-browse';
       var browseSummary = document.createElement('summary');
-      browseSummary.textContent = 'Browse recordings folder (' + (status.currentFilesTotalCount || 0) + ' file(s))';
+      // totalAfterBytes, not totalBeforeBytes - reflects the folder's real
+      // size right now, after whatever this same check pass already did
+      // (matches currentFiles, which is listed post-cleanup too).
+      var sizeVsTrigger = (typeof status.totalAfterBytes === 'number' && typeof status.triggerBytes === 'number')
+        ? ', ' + bytesToGB(status.totalAfterBytes) + 'GB / ' + bytesToGB(status.triggerBytes) + 'GB trigger'
+        : '';
+      browseSummary.textContent = 'Browse recordings folder (' + (status.currentFilesTotalCount || 0) + ' file(s)' + sizeVsTrigger + ')';
       browse.appendChild(browseSummary);
 
       if (status.currentFilesTruncated) {
