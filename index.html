@@ -101,9 +101,14 @@
   }
   .sortable-chosen .folder-header { background: var(--card); }
   .folder-toggle { background: transparent; border: none; color: var(--muted); font-size: 13px; padding: 2px 4px; cursor: pointer; }
-  .idea-desc-toggle { color: var(--border); font-size: 12px; cursor: pointer; flex-shrink: 0; padding: 2px; }
-  .idea-desc-toggle.has-content { color: var(--muted); }
-  .idea-desc-toggle:hover { color: var(--accent); }
+  .idea-desc-toggle {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 18px; height: 18px; border-radius: 5px; flex-shrink: 0;
+    background: var(--card); border: 1px solid var(--border);
+    color: var(--muted); font-size: 11px; font-weight: 700; cursor: pointer;
+  }
+  .idea-desc-toggle.has-content { color: var(--accent); border-color: var(--accent); background: rgba(124, 158, 255, 0.14); }
+  .idea-desc-toggle:hover { background: var(--accent); color: #10131c; border-color: var(--accent); }
   .folder-name { font-size: 14px; font-weight: 700; cursor: text; }
   .folder-name-input { font-size: 14px; font-weight: 700; background: var(--card); border: 1px solid var(--border); border-radius: 4px; color: var(--text); padding: 2px 6px; }
   .folder-badge { background: var(--accent); color: #10131c; font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 999px; letter-spacing: 0.03em; }
@@ -325,8 +330,8 @@
   .add-form input { flex: 1; background: var(--card); border: 1px solid var(--border); color: var(--text); border-radius: 6px; padding: 7px 10px; }
   .ideas-list { display: flex; flex-direction: column; gap: 6px; }
   .idea-row {
-    display: flex; flex-direction: column; gap: 4px;
-    padding: 8px 10px 8px 22px; border-radius: 6px; position: relative;
+    display: flex; flex-direction: column; gap: 3px;
+    padding: 6px 8px 6px 20px; border-radius: 6px; position: relative;
     background: transparent; border: 1px dashed var(--border);
   }
   .idea-row.do-fast { border: 1px solid var(--danger); }
@@ -350,11 +355,12 @@
   .idea-notes-view.empty { font-style: italic; opacity: 0.7; }
   .idea-notes-edit {
     width: 100%; background: transparent; border: none; color: var(--text);
-    font-size: 12px; resize: vertical; min-height: 40px; padding: 2px 0;
+    font-size: 12px; resize: vertical; min-height: 26px; padding: 2px 0;
     font-family: inherit;
   }
   .idea-notes-edit:focus { outline: 1px solid var(--accent); border-radius: 3px; }
-  .idea-row-actions { display: flex; gap: 6px; justify-content: flex-end; }
+  .idea-row-actions { display: flex; gap: 4px; justify-content: flex-end; }
+  .idea-row-actions button { padding: 3px 8px; font-size: 11px; }
   .idea-row-empty { color: var(--muted); font-size: 12px; font-style: italic; padding: 4px 10px; }
 
   .archived-panel { margin-top: 8px; }
@@ -1457,25 +1463,25 @@
       if (window.Sortable) {
         card.dataset.cardId = row.id; // already set above, kept here as the field this Sortable instance reads
         var cardDrop = Sortable.create(card, {
-          group: {
-            name: 'card-attach-' + row.id,
-            pull: false,
-            // Function instead of a plain group-name list - only actually
-            // accepts the drop once this exact card has been the tracked
-            // dwell target (see the column's onMove above) for
-            // DROP_DWELL_MS. A too-early release is a real rejection, not
-            // just something the confirm() dialog catches after the fact.
-            put: function (to, from) {
-              var fromGroupName = from && from.options && from.options.group && from.options.group.name;
-              var fromAllowed = fromGroupName === 'cards-Recorded' || fromGroupName === 'cards-Finished';
-              return fromAllowed && dragHoverTarget === card && dragHoverArmed;
-            },
-          },
+          // Plain group-name list, same reliable form the column/folder
+          // drop zones already use - a dynamic put() function here turned
+          // out to not get re-evaluated the way needed as dragHoverArmed
+          // flipped true mid-hover, which silently broke the whole feature.
+          // The dwell requirement is enforced in onAdd below instead, at
+          // the one moment (actual drop) that's reliably called.
+          group: { name: 'card-attach-' + row.id, pull: false, put: ['cards-Recorded', 'cards-Finished'] },
           sort: false,
           draggable: '.card',
           onAdd: function (evt) {
             var childId = evt.item.dataset.cardId;
             if (evt.item.parentNode) evt.item.parentNode.removeChild(evt.item);
+            if (!dragHoverArmed || dragHoverTarget !== card) {
+              // Released before holding long enough to arm - silently
+              // reject, same as any other too-early drop elsewhere in the
+              // app. No alert needed; the card just never left its column.
+              renderFolders();
+              return;
+            }
             if (!childId || childId === row.id) { renderFolders(); return; }
             if (childrenOf(childId).length) {
               alert('That video already has its own sub-videos - it can\'t also become a sub-video itself (kept to one level deep).');
