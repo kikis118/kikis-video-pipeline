@@ -151,7 +151,7 @@
     transform: scale(1.03);
   }
   .card.card-drop-hover.card-drop-armed::after {
-    content: '↳ Release to attach as a sub-video';
+    content: '↑ Release to attach as a sub-video';
     background: rgba(124, 158, 255, 0.2);
     color: var(--accent); font-weight: 700; font-size: 13px;
     animation: armed-pulse 0.8s ease-in-out infinite;
@@ -275,6 +275,24 @@
   #configPanel { display: none; padding: 12px 20px; background: var(--panel); border-bottom: 1px solid var(--border); }
   #configPanel.open { display: block; }
   #configPanel h2 { font-size: 13px; color: var(--muted); margin: 0 0 10px; font-weight: 600; }
+
+  #todoPanel { display: none; padding: 12px 20px; background: var(--panel); border-bottom: 1px solid var(--border); }
+  #todoPanel.open { display: block; }
+  #todoPanel h2 { font-size: 13px; color: var(--muted); margin: 0 0 10px; font-weight: 600; }
+  .todo-nav-btn { position: relative; }
+  .todo-nav-dot {
+    position: absolute; top: -3px; right: -3px;
+    width: 9px; height: 9px; border-radius: 50%; background: var(--danger);
+  }
+  .todo-nav-dot.urgent {
+    box-shadow: 0 0 0 0 rgba(255, 107, 107, 0.7);
+    animation: live-pulse-red 1.6s infinite;
+  }
+  @keyframes live-pulse-red {
+    0% { box-shadow: 0 0 0 0 rgba(255, 107, 107, 0.7); }
+    70% { box-shadow: 0 0 0 8px rgba(255, 107, 107, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(255, 107, 107, 0); }
+  }
   .config-row { display: flex; align-items: center; gap: 10px; padding: 6px 0; }
   .config-row .config-key { flex: 0 0 240px; font-size: 13px; font-family: monospace; color: var(--text); display: flex; align-items: center; gap: 6px; }
   .info-tag {
@@ -331,18 +349,6 @@
   .advanced-config-body { padding: 10px 0 0; }
   .advanced-config-warning { font-size: 12px; color: var(--muted); margin: 0 0 10px; max-width: 520px; line-height: 1.5; }
 
-  .ideas-panel { margin-bottom: 12px; }
-  .ideas-panel h2 {
-    font-size: 12px; text-transform: uppercase; letter-spacing: 0.04em;
-    color: var(--muted); margin: 0;
-  }
-  .ideas-panel-header { display: flex; align-items: center; gap: 6px; cursor: pointer; padding: 4px 0; margin-bottom: 4px; }
-  .ideas-panel-toggle { background: transparent; border: none; color: var(--muted); font-size: 13px; padding: 2px 4px; cursor: pointer; }
-  .ideas-collapsed-pinned { display: flex; flex-direction: column; gap: 3px; margin: 2px 0 8px; }
-  .ideas-collapsed-pinned-row {
-    font-size: 11px; color: var(--danger); padding: 2px 8px 2px 20px;
-    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-  }
   .add-form { display: none; gap: 8px; margin: 8px 0; }
   .add-form.open { display: flex; }
   .add-form input { flex: 1; background: var(--card); border: 1px solid var(--border); color: var(--text); border-radius: 6px; padding: 7px 10px; }
@@ -427,8 +433,14 @@
     <div class="spacer"></div>
     <span class="signed-in-as" id="signedInAs"></span>
     <button class="secondary" id="signOutBtn">Sign out</button>
+    <button class="secondary todo-nav-btn" onclick="toggleTodoPanel()">&#128203; To-Do Videos<span class="todo-nav-dot" id="todoNavDot" style="display: none;"></span></button>
     <button class="secondary" onclick="toggleConfig()">&#9881; Config</button>
   </header>
+
+  <div id="todoPanel">
+    <h2>To-Do Videos <span class="idea-notes">(one global list - not tied to any folder)</span></h2>
+    <div id="todoPanelBody"></div>
+  </div>
 
   <div id="configPanel">
     <h2>Bot Config <span class="idea-notes">(changes apply within a few minutes - the streaming-PC app re-checks periodically)</span></h2>
@@ -508,12 +520,23 @@
     var expandedChildren = {}; // parent pipeline doc id -> true while its sub-videos list is shown
     var expandedIdeaDescriptions = {}; // idea id -> true while its description is shown (collapsed by default)
     var expandedFolders = {}; // folder id -> true while expanded (Main is always expanded, not stored here)
-    var expandedIdeasByFolder = {}; // folder id -> true while its Video Ideas panel is expanded (collapsed by default so it stays out of the way)
     var showArchivedByFolder = {}; // folder id -> true while its per-clip Archived list is shown
     var showAllFinishedByFolder = {}; // "folderId:Finished" -> true while fully expanded
     var showArchivedFolders = false;
-    var addFormOpenFolder = null; // folder id whose "+ Add Idea" form is open, or null
+    var todoAddFormOpen = false; // true while the global "+ Add To-Do Video" form is open
     var renamingFolder = null; // folder id currently showing a rename input, or null
+
+    // Which to-do videos this browser has already seen, so the nav button's
+    // notification dot only lights up for genuinely new ones. Local to this
+    // browser on purpose - it's just a "you haven't looked at this yet" cue,
+    // not shared state, so no Firestore doc for it.
+    var SEEN_TODOS_KEY = 'ghazzy_seen_todo_ids_v1';
+    var seenTodoIds = {};
+    try { seenTodoIds = JSON.parse(localStorage.getItem(SEEN_TODOS_KEY) || '{}'); } catch (e) { seenTodoIds = {}; }
+    function markTodosSeen(todoRows) {
+      todoRows.forEach(function (r) { seenTodoIds[r.id] = true; });
+      try { localStorage.setItem(SEEN_TODOS_KEY, JSON.stringify(seenTodoIds)); } catch (e) {}
+    }
 
     function onError(err) {
       var message = (err && err.message) ? err.message : String(err);
@@ -572,6 +595,7 @@
     function rowsForFolder(folder) {
       return state.rows.filter(function (r) {
         if (r.parentId) return false; // sub-video - rendered nested under its parent, never as its own top-level card
+        if (r.status === 'Idea') return false; // to-do videos are a single global list, not scoped to any folder - see renderTodoPanel
         return folder.isMain ? (!r.folder || r.folder === folder.id) : r.folder === folder.id;
       });
     }
@@ -595,8 +619,8 @@
 
       // Every idea-list Sortable instance from the previous render is now
       // attached to DOM nodes that just got thrown away above - destroy
-      // them explicitly rather than leaking, fresh ones get created below
-      // as each folder's ideas panel is built.
+      // them explicitly rather than leaking, a fresh one gets created below
+      // when the To-Do Videos panel is rebuilt.
       ideaSortables.forEach(function (s) { s.destroy(); });
       ideaSortables = [];
       cardSortables.forEach(function (s) { s.destroy(); });
@@ -653,6 +677,9 @@
         empty.textContent = 'No folders yet - the streaming-PC app creates a default "Main" folder the first time it runs.';
         container.appendChild(empty);
       }
+
+      renderTodoNavDot();
+      renderTodoPanel();
     }
 
     // ---------- folders ----------
@@ -927,8 +954,6 @@
       });
       wrap.appendChild(board);
 
-      wrap.appendChild(renderIdeasPanel(folder, rows));
-
       var archivedRows = rows.filter(function (r) { return r.status === 'Archived'; });
       var archOpen = showArchivedByFolder[folder.id] === true;
       var archToggle = document.createElement('button');
@@ -957,38 +982,59 @@
       return wrap;
     }
 
-    // ---------- ideas ----------
+    // ---------- to-do videos (global, not folder-scoped) ----------
 
-    function renderIdeasPanel(folder, rows) {
-      var panel = document.createElement('div');
-      panel.className = 'ideas-panel';
+    function toggleTodoPanel() {
+      var panel = document.getElementById('todoPanel');
+      var opening = !panel.classList.contains('open');
+      panel.classList.toggle('open', opening);
+      if (opening) {
+        markTodosSeen(state.rows.filter(function (r) { return r.status === 'Idea'; }));
+        renderTodoNavDot();
+      }
+      renderTodoPanel();
+    }
 
-      var ideas = rows.filter(function (r) { return r.status === 'Idea'; });
-      var expanded = expandedIdeasByFolder[folder.id] === true;
+    // Just the notification dot on the nav button - cheap enough to
+    // recompute on every render, and needs to react the moment new
+    // Firestore data comes in even if the panel itself is closed.
+    function renderTodoNavDot() {
+      var dot = document.getElementById('todoNavDot');
+      if (!dot) return;
+      var unseen = state.rows.filter(function (r) { return r.status === 'Idea' && !seenTodoIds[r.id]; });
+      if (!unseen.length) {
+        dot.style.display = 'none';
+        return;
+      }
+      dot.style.display = '';
+      // Do Fast to-dos are urgent enough to pulse; a plain new entry just
+      // gets a static dot, same "pulsing = urgent, static = fyi" split
+      // used everywhere else in this app (disk cleanup's live dot, etc).
+      dot.classList.toggle('urgent', unseen.some(function (r) { return r.doFast; }));
+    }
 
-      // Click anywhere on the header to expand/collapse, same convention
-      // as folder tabs - collapsed by default so this panel isn't
-      // competing for space with the actual clips above it.
-      var header = document.createElement('div');
-      header.className = 'ideas-panel-header';
-      header.addEventListener('click', function (e) {
-        if (e.target.closest('button')) return;
-        expandedIdeasByFolder[folder.id] = !expanded;
-        renderFolders();
-      });
+    function renderTodoPanel() {
+      var body = document.getElementById('todoPanelBody');
+      if (!body) return;
+      body.innerHTML = '';
 
-      var toggleBtn = document.createElement('button');
-      toggleBtn.className = 'ideas-panel-toggle';
-      toggleBtn.textContent = expanded ? '▾' : '▸';
-      toggleBtn.title = expanded ? 'Collapse' : 'Expand';
-      toggleBtn.onclick = function () { expandedIdeasByFolder[folder.id] = !expanded; renderFolders(); };
-      header.appendChild(toggleBtn);
+      var todos = state.rows.filter(function (r) { return r.status === 'Idea'; });
 
-      var titleEl = document.createElement('h2');
-      titleEl.innerHTML = 'Video Ideas <span class="count">(' + ideas.length + ')</span>';
-      header.appendChild(titleEl);
+      var addBtn = document.createElement('button');
+      addBtn.textContent = todoAddFormOpen ? 'Cancel' : '+ Add To-Do Video';
+      addBtn.className = todoAddFormOpen ? 'secondary' : '';
+      addBtn.onclick = function () { todoAddFormOpen = !todoAddFormOpen; renderTodoPanel(); };
+      body.appendChild(addBtn);
 
-      panel.appendChild(header);
+      if (todoAddFormOpen) body.appendChild(renderAddIdeaForm());
+
+      if (!todos.length) {
+        var empty = document.createElement('div');
+        empty.className = 'idea-row-empty';
+        empty.textContent = 'No to-do videos yet — click "+ Add To-Do Video" above.';
+        body.appendChild(empty);
+        return;
+      }
 
       function byOrder(a, b) {
         var ao = a.order !== undefined ? a.order : a.createdAtMs || 0;
@@ -996,51 +1042,15 @@
         return ao - bo;
       }
 
-      // Two separate sortable zones, not one - Do Fast ideas always stay
+      // Two separate sortable zones, not one - Do Fast to-dos always stay
       // above the rest (can't drag between the two groups, only reorder
-      // within each), same "pinned group + freely sortable" pattern as
-      // Main vs. other folders.
-      var doFastIdeas = ideas.filter(function (r) { return r.doFast; }).sort(byOrder);
-      var otherIdeas = ideas.filter(function (r) { return !r.doFast; }).sort(byOrder);
+      // within each), same "pinned group + freely sortable" pattern used
+      // for cards on the board.
+      var doFastTodos = todos.filter(function (r) { return r.doFast; }).sort(byOrder);
+      var otherTodos = todos.filter(function (r) { return !r.doFast; }).sort(byOrder);
 
-      if (!expanded) {
-        // Collapsed: everything else stays hidden, but Do Fast ideas are
-        // important enough to still surface - just their titles, small.
-        if (doFastIdeas.length) {
-          var pinnedList = document.createElement('div');
-          pinnedList.className = 'ideas-collapsed-pinned';
-          doFastIdeas.forEach(function (row) {
-            var chip = document.createElement('div');
-            chip.className = 'ideas-collapsed-pinned-row';
-            chip.textContent = '⚡ ' + (row.title || 'Untitled idea');
-            pinnedList.appendChild(chip);
-          });
-          panel.appendChild(pinnedList);
-        }
-        return panel;
-      }
-
-      var addBtn = document.createElement('button');
-      var formOpen = addFormOpenFolder === folder.id;
-      addBtn.textContent = formOpen ? 'Cancel' : '+ Add Video Idea';
-      addBtn.className = formOpen ? 'secondary' : '';
-      addBtn.onclick = function () { addFormOpenFolder = formOpen ? null : folder.id; renderFolders(); };
-      panel.appendChild(addBtn);
-
-      if (formOpen) panel.appendChild(renderAddIdeaForm(folder));
-
-      if (!ideas.length) {
-        var empty = document.createElement('div');
-        empty.className = 'idea-row-empty';
-        empty.textContent = 'No video ideas yet — click "+ Add Video Idea" above.';
-        panel.appendChild(empty);
-        return panel;
-      }
-
-      if (doFastIdeas.length) panel.appendChild(renderIdeaSortableList(doFastIdeas));
-      if (otherIdeas.length) panel.appendChild(renderIdeaSortableList(otherIdeas));
-
-      return panel;
+      if (doFastTodos.length) body.appendChild(renderIdeaSortableList(doFastTodos));
+      if (otherTodos.length) body.appendChild(renderIdeaSortableList(otherTodos));
     }
 
     var ideaSortables = [];
@@ -1070,12 +1080,12 @@
       return list;
     }
 
-    function renderAddIdeaForm(folder) {
+    function renderAddIdeaForm() {
       var form = document.createElement('div');
       form.className = 'add-form open';
 
       var titleInput = document.createElement('input');
-      titleInput.placeholder = 'Video idea title';
+      titleInput.placeholder = 'To-do video title';
       var notesInput = document.createElement('input');
       notesInput.placeholder = 'Notes (optional)';
 
@@ -1092,18 +1102,18 @@
         }
         addDoc(collection(db, 'pipeline'), {
           title: title, status: 'Idea', doFast: false, notes: notesInput.value.trim(),
-          upload: '', filename: '', driveFileId: '', pendingDelete: false, folder: folder.id,
+          upload: '', filename: '', driveFileId: '', pendingDelete: false,
           createdAt: serverTimestamp(),
         }).then(function () {
-          addFormOpenFolder = null;
-          renderFolders();
+          todoAddFormOpen = false;
+          renderTodoPanel();
         }).catch(onError);
       };
 
       var cancelBtn = document.createElement('button');
       cancelBtn.className = 'secondary';
       cancelBtn.textContent = 'Cancel';
-      cancelBtn.onclick = function () { addFormOpenFolder = null; renderFolders(); };
+      cancelBtn.onclick = function () { todoAddFormOpen = false; renderTodoPanel(); };
 
       form.appendChild(titleInput);
       form.appendChild(notesInput);
@@ -1133,7 +1143,7 @@
 
       var title = document.createElement('input');
       title.className = 'idea-title';
-      title.placeholder = 'Video idea title';
+      title.placeholder = 'To-do video title';
       title.value = row.title;
       title.addEventListener('focus', function () { editing[row.id + ':title'] = true; });
       title.addEventListener('blur', function () {
@@ -1158,7 +1168,7 @@
       deleteBtn.className = 'danger';
       deleteBtn.textContent = 'Delete';
       deleteBtn.onclick = function () {
-        if (confirm('Delete video idea "' + row.title + '"?')) deleteDoc(doc(db, 'pipeline', row.id)).catch(onError);
+        if (confirm('Delete to-do video "' + row.title + '"?')) deleteDoc(doc(db, 'pipeline', row.id)).catch(onError);
       };
       actions.appendChild(deleteBtn);
 
@@ -1286,7 +1296,7 @@
 
         var ghost = document.createElement('div');
         ghost.className = 'sub-video-drag-ghost';
-        ghost.textContent = '↳ ' + (row.title || 'Untitled clip');
+        ghost.textContent = '↑ ' + (row.title || 'Untitled clip');
         document.body.appendChild(ghost);
         card.classList.add('sub-video-drag-source');
 
@@ -1359,7 +1369,7 @@
       var attachHandle = document.createElement('span');
       attachHandle.className = 'card-attach-handle';
       attachHandle.title = 'Drag onto another clip to attach as a sub-video';
-      attachHandle.textContent = '↳';
+      attachHandle.textContent = '↑';
       setupSubVideoDrag(attachHandle, card, row);
       card.appendChild(attachHandle);
 
@@ -1412,12 +1422,12 @@
       card.appendChild(renderCardNotes(row));
 
       if (unlabeled) {
-        var ideas = folderRows.filter(function (r) { return r.status === 'Idea'; });
+        var ideas = state.rows.filter(function (r) { return r.status === 'Idea'; });
         var select = document.createElement('select');
         select.className = 'link-idea-select';
         var placeholder = document.createElement('option');
         placeholder.value = '';
-        placeholder.textContent = ideas.length ? '— Link to a video idea instead of typing a title —' : '(no video ideas to link — just type a title above)';
+        placeholder.textContent = ideas.length ? '— Link to a to-do video instead of typing a title —' : '(no to-do videos to link — just type a title above)';
         select.appendChild(placeholder);
         ideas.forEach(function (idea) {
           var opt = document.createElement('option');
@@ -2077,6 +2087,7 @@
     // HTML uses inline onclick="..." attributes for these - so they need
     // to be attached explicitly.
     window.toggleConfig = toggleConfig;
+    window.toggleTodoPanel = toggleTodoPanel;
     window.toggleArchivedFolders = toggleArchivedFolders;
     window.toggleCreateFolderForm = toggleCreateFolderForm;
     window.submitCreateFolder = submitCreateFolder;
