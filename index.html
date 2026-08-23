@@ -210,6 +210,11 @@
     border-radius: 6px; padding: 8px 10px; margin-bottom: 8px; font-size: 12px; line-height: 1.5;
   }
   .disk-cleanup-blocked strong { color: var(--danger); }
+  .disk-cleanup-browse { margin-top: 10px; }
+  .disk-cleanup-browse summary { cursor: pointer; font-size: 12px; color: var(--text); font-weight: 600; }
+  .disk-cleanup-browse summary:hover { color: var(--accent); }
+  .disk-cleanup-browse-note { font-size: 11px; color: var(--muted); margin: 6px 0; }
+  .disk-cleanup-browse .disk-cleanup-file-list { max-height: 220px; }
 
   .advanced-config { margin-top: 14px; border-top: 1px solid var(--border); padding-top: 10px; }
   .advanced-config summary { cursor: pointer; font-size: 12px; color: var(--warn); font-weight: 600; }
@@ -1406,6 +1411,56 @@
         });
         el.appendChild(list);
       }
+
+      var currentFiles = status.currentFiles || [];
+      var browse = document.createElement('details');
+      browse.className = 'disk-cleanup-browse';
+      var browseSummary = document.createElement('summary');
+      browseSummary.textContent = 'Browse recordings folder (' + (status.currentFilesTotalCount || 0) + ' file(s))';
+      browse.appendChild(browseSummary);
+
+      if (status.currentFilesTruncated) {
+        var truncNote = document.createElement('div');
+        truncNote.className = 'disk-cleanup-browse-note';
+        truncNote.textContent = 'Showing the ' + currentFiles.length + ' most recent of ' + status.currentFilesTotalCount + ' - filenames, sizes and dates only, nothing is played or downloaded from here.';
+        browse.appendChild(truncNote);
+      } else if (currentFiles.length) {
+        var note = document.createElement('div');
+        note.className = 'disk-cleanup-browse-note';
+        note.textContent = 'Filenames, sizes and dates only - nothing is played or downloaded from here.';
+        browse.appendChild(note);
+      }
+
+      if (currentFiles.length) {
+        var browseList = document.createElement('div');
+        browseList.className = 'disk-cleanup-file-list';
+        currentFiles.forEach(function (f) {
+          var row = document.createElement('div');
+          row.className = 'disk-cleanup-file-row';
+          var nameEl = document.createElement('span');
+          nameEl.className = 'path';
+          nameEl.textContent = f.name;
+          nameEl.title = f.name;
+          var metaEl = document.createElement('span');
+          metaEl.textContent = formatFileSize(f.sizeBytes) + ' - ' + formatLocalTime(f.mtimeMs);
+          row.appendChild(nameEl);
+          row.appendChild(metaEl);
+          browseList.appendChild(row);
+        });
+        browse.appendChild(browseList);
+      } else {
+        var empty = document.createElement('div');
+        empty.className = 'disk-cleanup-browse-note';
+        empty.textContent = 'Nothing in the recordings folder right now.';
+        browse.appendChild(empty);
+      }
+
+      el.appendChild(browse);
+    }
+
+    function formatFileSize(bytes) {
+      if (bytes >= 1024 ** 3) return (bytes / 1024 ** 3).toFixed(2) + 'GB';
+      return (bytes / 1024 ** 2).toFixed(0) + 'MB';
     }
 
     // Static input (not rebuilt on every render like the rest of the
