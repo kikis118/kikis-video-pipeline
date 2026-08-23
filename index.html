@@ -279,6 +279,9 @@
   #todoPanel { display: none; padding: 12px 20px; background: var(--panel); border-bottom: 1px solid var(--border); }
   #todoPanel.open { display: block; }
   #todoPanel h2 { font-size: 13px; color: var(--muted); margin: 0 0 10px; font-weight: 600; }
+  #todoPanelBody > button:first-child { margin-bottom: 14px; }
+  #todoPanelBody .add-form.open { margin-bottom: 14px; }
+  #todoPanelBody .ideas-list + .ideas-list { margin-top: 12px; }
   .todo-nav-btn {
     position: relative;
   }
@@ -443,7 +446,7 @@
   </header>
 
   <div id="todoPanel">
-    <h2>To-Do Videos <span class="idea-notes">(one global list - not tied to any folder)</span></h2>
+    <h2>To-Do Videos</h2>
     <div id="todoPanelBody"></div>
   </div>
 
