@@ -146,15 +146,14 @@
     transform: scale(1.01);
     z-index: 5;
   }
-  .card.card-drop-hover::after {
-    content: 'Hold to attach as sub-video…';
-    position: absolute; inset: 0;
+  .card-drag-handle {
     display: flex; align-items: center; justify-content: center;
-    background: rgba(255, 255, 255, 0.05);
-    color: var(--muted); font-weight: 600; font-size: 12px;
-    border-radius: 8px; text-align: center; padding: 10px;
-    pointer-events: none;
+    margin: -6px auto 6px; width: 44px; height: 14px;
+    color: var(--border); font-size: 13px; line-height: 1;
+    cursor: grab; border-radius: 0 0 6px 6px;
   }
+  .card-drag-handle:hover { color: var(--accent); background: rgba(124, 158, 255, 0.1); }
+  .card:active .card-drag-handle { cursor: grabbing; }
   .card.card-drop-hover.card-drop-armed {
     outline: 2px dashed var(--accent);
     transform: scale(1.03);
@@ -888,14 +887,44 @@
               return true;
             },
             onEnd: function (evt) {
+              var wasArmed = dragHoverArmed;
+              var armedTarget = dragHoverTarget;
               if (dragHoverTarget) dragHoverTarget.classList.remove('card-drop-hover', 'card-drop-armed');
               if (dragHoverTimer) { clearTimeout(dragHoverTimer); dragHoverTimer = null; }
               dragHoverTarget = null;
               dragHoverArmed = false;
+
               var cardId = evt.item.dataset.cardId;
+              if (!cardId) return;
+
+              // Sub-video attach - held long enough over another card. This
+              // is handled entirely through the dwell state tracked above,
+              // not a second nested Sortable on every card (that competed
+              // with this same column for the same hover/drop, which is
+              // what broke ordinary reordering - one Sortable per column,
+              // same as before, is what actually works reliably).
+              if (wasArmed && armedTarget && armedTarget !== evt.item) {
+                var parentId = armedTarget.dataset.cardId;
+                if (parentId && parentId !== cardId) {
+                  if (childrenOf(cardId).length) {
+                    alert('That video already has its own sub-videos - it can\'t also become a sub-video itself (kept to one level deep).');
+                    renderFolders();
+                    return;
+                  }
+                  var childRow = state.rows.find(function (r) { return r.id === cardId; });
+                  var parentRow = state.rows.find(function (r) { return r.id === parentId; });
+                  var childTitle = (childRow && childRow.title) || 'this clip';
+                  var parentTitle = (parentRow && parentRow.title) || 'this video';
+                  if (confirm('Attach "' + childTitle + '" as a sub-video under "' + parentTitle + '"?\n\nIt will be hidden from the board and only shown nested here (still viewable/downloadable).')) {
+                    updateDoc(doc(db, 'pipeline', cardId), { parentId: parentId }).catch(onError);
+                  }
+                }
+                renderFolders();
+                return;
+              }
+
               var fromFolderId = evt.from.dataset.folderId;
               var toFolderId = evt.to.dataset.folderId;
-              if (!cardId) return;
               if (toFolderId && toFolderId !== fromFolderId) {
                 updateDoc(doc(db, 'pipeline', cardId), { folder: toFolderId }).catch(onError);
               } else {
@@ -1223,6 +1252,15 @@
       card.className = 'card' + (row.doFast ? ' do-fast' : '') + (unlabeled ? ' needs-label' : '') + (row.workingOnIt ? ' working-on-it' : '');
       card.dataset.cardId = row.id;
 
+      // Small always-visible grab handle - the whole card is still
+      // draggable from any blank area, this just gives an unmistakable
+      // dedicated spot for it, same idea as a drag handle on a window.
+      var dragHandle = document.createElement('div');
+      dragHandle.className = 'card-drag-handle';
+      dragHandle.title = 'Drag from here';
+      dragHandle.textContent = '⠿';
+      card.appendChild(dragHandle);
+
       if (unlabeled) {
         var badge = document.createElement('div');
         badge.className = 'needs-label-badge';
@@ -1452,54 +1490,6 @@
       actions.appendChild(left);
       actions.appendChild(right);
       card.appendChild(actions);
-
-      // Drop target for turning another card into a sub-video of this one -
-      // same put-only pattern as the collapsed-folder-tab drop, just
-      // targeting the whole card instead of a folder header. Deliberately
-      // NOT a quick drag - a confirm() gate on drop, since this is rarer
-      // and more consequential (hides the dropped card from the board
-      // entirely) than an ordinary folder move, and needs to be something
-      // done on purpose, not something that can happen by a stray drop.
-      if (window.Sortable) {
-        card.dataset.cardId = row.id; // already set above, kept here as the field this Sortable instance reads
-        var cardDrop = Sortable.create(card, {
-          // Plain group-name list, same reliable form the column/folder
-          // drop zones already use - a dynamic put() function here turned
-          // out to not get re-evaluated the way needed as dragHoverArmed
-          // flipped true mid-hover, which silently broke the whole feature.
-          // The dwell requirement is enforced in onAdd below instead, at
-          // the one moment (actual drop) that's reliably called.
-          group: { name: 'card-attach-' + row.id, pull: false, put: ['cards-Recorded', 'cards-Finished'] },
-          sort: false,
-          draggable: '.card',
-          onAdd: function (evt) {
-            var childId = evt.item.dataset.cardId;
-            if (evt.item.parentNode) evt.item.parentNode.removeChild(evt.item);
-            if (!dragHoverArmed || dragHoverTarget !== card) {
-              // Released before holding long enough to arm - silently
-              // reject, same as any other too-early drop elsewhere in the
-              // app. No alert needed; the card just never left its column.
-              renderFolders();
-              return;
-            }
-            if (!childId || childId === row.id) { renderFolders(); return; }
-            if (childrenOf(childId).length) {
-              alert('That video already has its own sub-videos - it can\'t also become a sub-video itself (kept to one level deep).');
-              renderFolders();
-              return;
-            }
-            var childRow = state.rows.find(function (r) { return r.id === childId; });
-            var childTitle = (childRow && childRow.title) || 'this clip';
-            if (!confirm('Attach "' + childTitle + '" as a sub-video under "' + (row.title || 'this video') + '"?\n\nIt will be hidden from the board and only shown nested here (still viewable/downloadable).')) {
-              renderFolders();
-              return;
-            }
-            updateDoc(doc(db, 'pipeline', childId), { parentId: row.id }).catch(onError);
-            renderFolders();
-          },
-        });
-        cardSortables.push(cardDrop);
-      }
 
       return card;
     }
