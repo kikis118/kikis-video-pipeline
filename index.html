@@ -568,7 +568,7 @@
     var dragHoverTarget = null; // the .card currently highlighted as a potential sub-video parent mid-drag, if any
     var dragHoverArmed = false; // true once dragHoverTarget has been held over long enough to actually accept a drop
     var dragHoverTimer = null;
-    var DROP_DWELL_MS = 600; // how long to hold over a card before it'll accept becoming a sub-video parent - deliberately slower than every other drag in this app, which all stay instant
+    var DROP_DWELL_MS = 2000; // how long to hold over a card before it'll accept becoming a sub-video parent - deliberately slower than every other drag in this app, which all stay instant
 
     function renderFolders() {
       var container = document.getElementById('foldersContainer');
