@@ -79,6 +79,7 @@
     100% { box-shadow: 0 0 0 0 rgba(95, 208, 138, 0); }
   }
   .live-dot-orange { background: #ff8c1a; animation: live-pulse-orange 1.6s infinite; }
+  .live-dot-off { width: 9px; height: 9px; border-radius: 50%; background: var(--danger); flex-shrink: 0; }
   @keyframes live-pulse-orange {
     0% { box-shadow: 0 0 0 0 rgba(255, 140, 26, 0.7); }
     70% { box-shadow: 0 0 0 8px rgba(255, 140, 26, 0); }
@@ -179,6 +180,12 @@
     font-family: inherit;
   }
   .card-notes:focus { outline: 1px solid var(--accent); border-radius: 3px; }
+  .card-notes-view {
+    color: var(--muted); font-size: 12px; padding: 2px 0; cursor: text;
+    white-space: pre-wrap; word-break: break-word; min-height: 16px;
+  }
+  .card-notes-view a { color: var(--accent); }
+  .card-notes-view.empty { font-style: italic; opacity: 0.7; }
   .card-meta { display: flex; align-items: center; gap: 8px; margin-top: 6px; font-size: 11px; color: var(--muted); }
   .badge { padding: 1px 6px; border-radius: 999px; font-size: 10px; font-weight: 600; }
   .badge.uploading { background: #4a3d1a; color: var(--warn); }
@@ -1052,6 +1059,42 @@
       await deleteDoc(doc(db, 'pipeline', ideaId));
     }
 
+    // Same click-to-edit / linkified-view pattern as renderIdeaNotes -
+    // plain URLs in a clip's notes become real clickable links once saved.
+    function renderCardNotes(row) {
+      if (isEditing(row.id, 'notes')) {
+        var textarea = document.createElement('textarea');
+        textarea.className = 'card-notes';
+        textarea.placeholder = 'Notes…';
+        textarea.value = row.notes || '';
+        textarea.dataset.cardNotesEdit = row.id;
+        textarea.addEventListener('blur', function () {
+          delete editing[row.id + ':notes'];
+          if (textarea.value !== row.notes) updateDoc(doc(db, 'pipeline', row.id), { notes: textarea.value }).catch(onError);
+          else renderFolders();
+        });
+        return textarea;
+      }
+
+      var view = document.createElement('div');
+      view.tabIndex = 0;
+      if (row.notes) {
+        view.className = 'card-notes-view';
+        view.innerHTML = linkify(row.notes);
+      } else {
+        view.className = 'card-notes-view empty';
+        view.textContent = 'Notes…';
+      }
+      view.addEventListener('click', function (e) {
+        if (e.target.tagName === 'A') return; // let real links through
+        editing[row.id + ':notes'] = true;
+        renderFolders();
+        var el = document.querySelector('textarea[data-card-notes-edit="' + row.id + '"]');
+        if (el) { el.focus(); el.setSelectionRange(el.value.length, el.value.length); }
+      });
+      return view;
+    }
+
     // ---------- cards ----------
 
     function renderCard(row, folderRows) {
@@ -1106,16 +1149,7 @@
         }
       }
 
-      var notes = document.createElement('textarea');
-      notes.className = 'card-notes';
-      notes.placeholder = 'Notes…';
-      notes.value = row.notes || '';
-      notes.addEventListener('focus', function () { editing[row.id + ':notes'] = true; });
-      notes.addEventListener('blur', function () {
-        delete editing[row.id + ':notes'];
-        if (notes.value !== row.notes) updateDoc(doc(db, 'pipeline', row.id), { notes: notes.value }).catch(onError);
-      });
-      card.appendChild(notes);
+      card.appendChild(renderCardNotes(row));
 
       if (unlabeled) {
         var ideas = folderRows.filter(function (r) { return r.status === 'Idea'; });
@@ -1490,12 +1524,13 @@
     // alongside the Drive-root migration in Advanced Config, not the basic
     // panel, so it can't get flipped by accident while adjusting the
     // ordinary knobs above it.
-    var ADVANCED_CONFIG_KEYS = ['DISK_CLEANUP_DRY_RUN'];
-    var CONFIG_DEFAULTS = { DISK_CLEANUP_TRIGGER_GB: '150', DISK_CLEANUP_TARGET_GB: '130', DISK_CLEANUP_MIN_AGE_HOURS: '24', DISK_CLEANUP_DRY_RUN: 'true', UPLOAD_THROTTLE_MBPS: '50' };
+    var ADVANCED_CONFIG_KEYS = ['DISK_CLEANUP_ENABLED', 'DISK_CLEANUP_DRY_RUN'];
+    var CONFIG_DEFAULTS = { DISK_CLEANUP_TRIGGER_GB: '150', DISK_CLEANUP_TARGET_GB: '130', DISK_CLEANUP_MIN_AGE_HOURS: '24', DISK_CLEANUP_ENABLED: 'true', DISK_CLEANUP_DRY_RUN: 'true', UPLOAD_THROTTLE_MBPS: '50' };
     var CONFIG_DESCRIPTIONS = {
       DISK_CLEANUP_TRIGGER_GB: 'Once the recordings folder on the streaming PC reaches this size (in GB), automatic cleanup kicks in and starts deleting the oldest already-uploaded clips.',
       DISK_CLEANUP_TARGET_GB: 'When cleanup runs, it keeps deleting the oldest clips until the folder drops back down to this size (in GB). Always lower than the trigger size above.',
       DISK_CLEANUP_MIN_AGE_HOURS: 'A file has to be at least this many hours old before cleanup will ever consider deleting it, no matter how full the drive is. Lower this temporarily if testing same-day; keep it at a real value (24+) normally so nothing recent gets swept up before you\'ve had a chance to look at it.',
+      DISK_CLEANUP_ENABLED: '"true" = the streaming PC actually checks the recordings folder on its normal schedule. "false" = a full stop - it skips the check entirely, not even looking at the folder, regardless of the dry-run setting below. Turning this off for a long time risks the recording drive silently filling up, since nothing is watching it.',
       DISK_CLEANUP_DRY_RUN: '"true" = cleanup only logs what it would delete, without deleting anything - safe to test with. Set to "false" once you\'ve checked the streaming PC\'s console and are confident it\'s picking the right files.',
       UPLOAD_THROTTLE_MBPS: 'Caps how fast clips upload to Google Drive, in megabits per second - keeps uploads from hogging all of the streaming PC\'s internet bandwidth while live.',
     };
@@ -1539,8 +1574,12 @@
       var el = document.getElementById('diskCleanupStatus');
       el.innerHTML = '';
 
+      // Missing/undefined "enabled" (old status docs from before this field
+      // existed) defaults to true - only an explicit false means off.
+      var isEnabled = !status || status.enabled !== false;
       var heading = document.createElement('h3');
-      heading.innerHTML = '<span class="live-dot live-dot-orange"></span> Disk Cleanup (streaming PC)';
+      heading.innerHTML = (isEnabled ? '<span class="live-dot live-dot-orange"></span>' : '<span class="live-dot-off"></span>')
+        + ' Disk Cleanup (streaming PC)' + (isEnabled ? '' : ' <span class="badge alert">OFF</span>');
       heading.style.display = 'flex';
       heading.style.alignItems = 'center';
       heading.style.gap = '7px';
@@ -1551,6 +1590,15 @@
         none.textContent = 'No cleanup pass reported yet - the streaming-PC app writes this after its first check.';
         el.appendChild(none);
         return;
+      }
+
+      if (!isEnabled) {
+        var offNote = document.createElement('div');
+        offNote.className = 'disk-cleanup-blocked';
+        var offMs = status.lastCheckAttemptAt && status.lastCheckAttemptAt.toMillis ? status.lastCheckAttemptAt.toMillis() : null;
+        offNote.innerHTML = '<strong>Turned off</strong>' + (offMs ? ' since ' + formatLocalTime(offMs) : '') + ' - the streaming PC isn\'t checking the recordings folder at all right now. Turn it back on in Advanced Config when ready.';
+        el.appendChild(offNote);
+        return; // whatever numbers were last recorded are stale while off - not shown, to avoid looking current
       }
 
       if (status.blocked) {
@@ -1735,11 +1783,16 @@
           // warning since it's the one setting that starts permanently
           // deleting real files; everything else gets a plain confirm.
           var turningDryRunOff = row.key === 'DISK_CLEANUP_DRY_RUN' && String(value.value).toLowerCase() === 'false';
+          var turningCleanupOff = row.key === 'DISK_CLEANUP_ENABLED' && String(value.value).toLowerCase() === 'false';
           var confirmMessage = turningDryRunOff
             ? 'Turn OFF dry-run mode?\n\nThe streaming PC will start PERMANENTLY DELETING real recording files ' +
               'from RECORDING_ROOT on its next check (oldest files first, once past the trigger size) - not just ' +
               'logging what it would delete anymore.\n\nOnly do this after you\'ve checked the Disk Cleanup status ' +
               'box above and confirmed it\'s picking the right files.'
+            : turningCleanupOff
+            ? 'Turn disk cleanup OFF entirely?\n\nThe streaming PC will stop checking the recordings folder at all ' +
+              'until you turn this back on. If nobody\'s watching disk space some other way, the recording drive ' +
+              'can quietly fill up and stop OBS from recording.'
             : 'Save ' + row.key + ' = "' + value.value + '"? This applies on the streaming PC within a few minutes.';
           if (!confirm(confirmMessage)) return;
           var patch = {};
