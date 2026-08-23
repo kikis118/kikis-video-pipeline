@@ -95,7 +95,10 @@
   .folder-section.main { border: 1px solid var(--accent); box-shadow: 0 2px 12px rgba(124, 158, 255, 0.15); }
   .folder-header { display: flex; align-items: center; gap: 8px; padding: 10px 14px; flex-wrap: wrap; }
   .folder-section:not(.main) .folder-header:active { cursor: grabbing; }
-  .sortable-ghost { opacity: 0.4; }
+  .sortable-ghost {
+    opacity: 0.5; background: rgba(124, 158, 255, 0.12) !important;
+    border: 1px dashed var(--accent) !important; box-shadow: none !important;
+  }
   .sortable-chosen .folder-header { background: var(--card); }
   .folder-toggle { background: transparent; border: none; color: var(--muted); font-size: 13px; padding: 2px 4px; cursor: pointer; }
   .folder-name { font-size: 14px; font-weight: 700; cursor: text; }
@@ -123,20 +126,40 @@
   }
   .card:hover { transform: translateY(-2px); filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.35)); }
   .card.do-fast { border-left: 3px solid var(--danger); }
+  /* Two stages while dragging one card over another: card-drop-hover alone
+     means "still holding, not armed yet" (needs DROP_DWELL_MS held on this
+     exact card); card-drop-armed (added on top after that delay) means
+     "release now to attach". Every other drag in this app stays instant -
+     this is the one deliberately slow one, so it needs a delay by design,
+     see DROP_DWELL_MS. */
   .card.card-drop-hover {
-    outline: 2px dashed var(--accent);
+    outline: 2px dashed var(--muted);
     outline-offset: 2px;
-    transform: scale(1.02);
+    transform: scale(1.01);
     z-index: 5;
   }
   .card.card-drop-hover::after {
-    content: '📎 Drop to attach as a sub-video';
+    content: 'Hold to attach as sub-video…';
     position: absolute; inset: 0;
     display: flex; align-items: center; justify-content: center;
-    background: rgba(124, 158, 255, 0.18);
-    color: var(--accent); font-weight: 700; font-size: 13px;
+    background: rgba(255, 255, 255, 0.05);
+    color: var(--muted); font-weight: 600; font-size: 12px;
     border-radius: 8px; text-align: center; padding: 10px;
     pointer-events: none;
+  }
+  .card.card-drop-hover.card-drop-armed {
+    outline: 2px dashed var(--accent);
+    transform: scale(1.03);
+  }
+  .card.card-drop-hover.card-drop-armed::after {
+    content: '📎 Release to attach as a sub-video';
+    background: rgba(124, 158, 255, 0.2);
+    color: var(--accent); font-weight: 700; font-size: 13px;
+    animation: armed-pulse 0.8s ease-in-out infinite;
+  }
+  @keyframes armed-pulse {
+    0%, 100% { background: rgba(124, 158, 255, 0.16); }
+    50% { background: rgba(124, 158, 255, 0.32); }
   }
   .card:hover { cursor: grab; }
   .card:active { cursor: grabbing; }
@@ -531,6 +554,9 @@
     var folderSortable = null;
     var cardSortables = []; // one per rendered column + one per collapsed folder's drop zone - see renderFolderBody/renderFolderSection
     var dragHoverTarget = null; // the .card currently highlighted as a potential sub-video parent mid-drag, if any
+    var dragHoverArmed = false; // true once dragHoverTarget has been held over long enough to actually accept a drop
+    var dragHoverTimer = null;
+    var DROP_DWELL_MS = 600; // how long to hold over a card before it'll accept becoming a sub-video parent - deliberately slower than every other drag in this app, which all stay instant
 
     function renderFolders() {
       var container = document.getElementById('foldersContainer');
@@ -820,14 +846,31 @@
             // only happens through that card's own onAdd + confirm() gate.
             onMove: function (evt) {
               var candidate = evt.to && evt.to.classList && evt.to.classList.contains('card') && evt.to !== evt.dragged ? evt.to : null;
-              if (candidate === dragHoverTarget) return true;
-              if (dragHoverTarget) dragHoverTarget.classList.remove('card-drop-hover');
+              if (candidate === dragHoverTarget) return true; // still the same target - timer (if any) keeps running undisturbed
+              // Target changed (or cleared) - reset the dwell timer entirely,
+              // so briefly passing over a card on the way to another one
+              // never counts toward arming it.
+              if (dragHoverTarget) dragHoverTarget.classList.remove('card-drop-hover', 'card-drop-armed');
+              if (dragHoverTimer) { clearTimeout(dragHoverTimer); dragHoverTimer = null; }
+              dragHoverArmed = false;
               dragHoverTarget = candidate;
-              if (dragHoverTarget) dragHoverTarget.classList.add('card-drop-hover');
+              if (dragHoverTarget) {
+                dragHoverTarget.classList.add('card-drop-hover');
+                var targetEl = dragHoverTarget;
+                dragHoverTimer = setTimeout(function () {
+                  if (dragHoverTarget === targetEl) {
+                    dragHoverArmed = true;
+                    targetEl.classList.add('card-drop-armed');
+                  }
+                }, DROP_DWELL_MS);
+              }
               return true;
             },
             onEnd: function (evt) {
-              if (dragHoverTarget) { dragHoverTarget.classList.remove('card-drop-hover'); dragHoverTarget = null; }
+              if (dragHoverTarget) dragHoverTarget.classList.remove('card-drop-hover', 'card-drop-armed');
+              if (dragHoverTimer) { clearTimeout(dragHoverTimer); dragHoverTimer = null; }
+              dragHoverTarget = null;
+              dragHoverArmed = false;
               var cardId = evt.item.dataset.cardId;
               var fromFolderId = evt.from.dataset.folderId;
               var toFolderId = evt.to.dataset.folderId;
@@ -1377,7 +1420,20 @@
       if (window.Sortable) {
         card.dataset.cardId = row.id; // already set above, kept here as the field this Sortable instance reads
         var cardDrop = Sortable.create(card, {
-          group: { name: 'card-attach-' + row.id, pull: false, put: ['cards-Recorded', 'cards-Finished'] },
+          group: {
+            name: 'card-attach-' + row.id,
+            pull: false,
+            // Function instead of a plain group-name list - only actually
+            // accepts the drop once this exact card has been the tracked
+            // dwell target (see the column's onMove above) for
+            // DROP_DWELL_MS. A too-early release is a real rejection, not
+            // just something the confirm() dialog catches after the fact.
+            put: function (to, from) {
+              var fromGroupName = from && from.options && from.options.group && from.options.group.name;
+              var fromAllowed = fromGroupName === 'cards-Recorded' || fromGroupName === 'cards-Finished';
+              return fromAllowed && dragHoverTarget === card && dragHoverArmed;
+            },
+          },
           sort: false,
           draggable: '.card',
           onAdd: function (evt) {
