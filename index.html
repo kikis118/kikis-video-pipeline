@@ -101,6 +101,9 @@
   }
   .sortable-chosen .folder-header { background: var(--card); }
   .folder-toggle { background: transparent; border: none; color: var(--muted); font-size: 13px; padding: 2px 4px; cursor: pointer; }
+  .idea-desc-toggle { color: var(--border); font-size: 12px; cursor: pointer; flex-shrink: 0; padding: 2px; }
+  .idea-desc-toggle.has-content { color: var(--muted); }
+  .idea-desc-toggle:hover { color: var(--accent); }
   .folder-name { font-size: 14px; font-weight: 700; cursor: text; }
   .folder-name-input { font-size: 14px; font-weight: 700; background: var(--card); border: 1px solid var(--border); border-radius: 4px; color: var(--text); padding: 2px 6px; }
   .folder-badge { background: var(--accent); color: #10131c; font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 999px; letter-spacing: 0.03em; }
@@ -479,6 +482,7 @@
     var expandedActions = {}; // pipeline doc id -> true while "More actions" (Archive/Delete/Move) is revealed
     var expandedFolderActions = {}; // folder id -> true while "More actions" (Set as Main/Archive) is revealed
     var expandedChildren = {}; // parent pipeline doc id -> true while its sub-videos list is shown
+    var expandedIdeaDescriptions = {}; // idea id -> true while its description is shown (collapsed by default)
     var expandedFolders = {}; // folder id -> true while expanded (Main is always expanded, not stored here)
     var showArchivedByFolder = {}; // folder id -> true while its per-clip Archived list is shown
     var showAllFinishedByFolder = {}; // "folderId:Finished" -> true while fully expanded
@@ -1056,6 +1060,17 @@
       var top = document.createElement('div');
       top.className = 'idea-row-top';
 
+      // Collapsed by default - only the title shows until you click the
+      // toggle (or the row is mid-edit, which always keeps it visible so
+      // you never lose sight of what you're typing).
+      var descExpanded = expandedIdeaDescriptions[row.id] || isEditing(row.id, 'notes');
+      var descToggle = document.createElement('span');
+      descToggle.className = 'idea-desc-toggle' + (row.notes ? ' has-content' : '');
+      descToggle.textContent = descExpanded ? '▾' : '▸';
+      descToggle.title = descExpanded ? 'Hide description' : (row.notes ? 'Show description' : 'Add a description');
+      descToggle.onclick = function () { expandedIdeaDescriptions[row.id] = !descExpanded; renderFolders(); };
+      top.appendChild(descToggle);
+
       var title = document.createElement('input');
       title.className = 'idea-title';
       title.placeholder = 'Video idea title';
@@ -1068,7 +1083,7 @@
       top.appendChild(title);
       el.appendChild(top);
 
-      el.appendChild(renderIdeaNotes(row));
+      if (descExpanded) el.appendChild(renderIdeaNotes(row));
 
       var actions = document.createElement('div');
       actions.className = 'idea-row-actions';
