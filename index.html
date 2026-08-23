@@ -1136,21 +1136,29 @@
       // Editor-only, like View/Download - a pure visual signal to Ghazzy
       // ("she's seen it, working on it") that never touches status. Toggled
       // off the same way it's toggled on, no separate confirm needed since
-      // nothing it does is destructive or hard to undo.
-      var workingBtn = document.createElement('button');
-      workingBtn.className = 'flag-btn working-on-it-btn' + (row.workingOnIt ? ' active' : '');
-      workingBtn.textContent = row.workingOnIt ? '🔧 Working on it' : '🔧 Mark as working on it';
-      workingBtn.onclick = function () { updateDoc(doc(db, 'pipeline', row.id), { workingOnIt: !row.workingOnIt }).catch(onError); };
-      left.appendChild(workingBtn);
+      // nothing it does is destructive or hard to undo. Same as Do Fast,
+      // doesn't make sense once a clip is already Finished - hidden there.
+      if (row.status !== 'Finished') {
+        var workingBtn = document.createElement('button');
+        workingBtn.className = 'flag-btn working-on-it-btn' + (row.workingOnIt ? ' active' : '');
+        workingBtn.textContent = row.workingOnIt ? '🔧 Working on it' : '🔧 Mark as working on it';
+        workingBtn.onclick = function () { updateDoc(doc(db, 'pipeline', row.id), { workingOnIt: !row.workingOnIt }).catch(onError); };
+        left.appendChild(workingBtn);
+      }
 
       var right = document.createElement('div');
       right.className = 'actions-right';
 
-      var flagBtn = document.createElement('button');
-      flagBtn.className = 'flag-btn' + (row.doFast ? ' active' : '');
-      flagBtn.textContent = row.doFast ? '★ Do Fast' : '☆ Do Fast';
-      flagBtn.onclick = function () { updateDoc(doc(db, 'pipeline', row.id), { doFast: !row.doFast }).catch(onError); };
-      right.appendChild(flagBtn);
+      // Doesn't make sense to prioritize or flag as in-progress something
+      // that's already done - both hidden entirely once Finished, not just
+      // disabled, so there's nothing there to accidentally click.
+      if (row.status !== 'Finished') {
+        var flagBtn = document.createElement('button');
+        flagBtn.className = 'flag-btn' + (row.doFast ? ' active' : '');
+        flagBtn.textContent = row.doFast ? '★ Do Fast' : '☆ Do Fast';
+        flagBtn.onclick = function () { updateDoc(doc(db, 'pipeline', row.id), { doFast: !row.doFast }).catch(onError); };
+        right.appendChild(flagBtn);
+      }
 
       if (PREV_STATUS[row.status]) {
         var back = document.createElement('button');
