@@ -215,7 +215,8 @@
     border: none;
     color: var(--muted);
     font-size: 12px;
-    resize: vertical;
+    resize: none;
+    overflow-y: hidden;
     min-height: 32px;
     padding: 2px 0;
     font-family: inherit;
@@ -227,6 +228,7 @@
   }
   .card-notes-view a { color: var(--accent); }
   .card-notes-view.empty { font-style: italic; opacity: 0.7; }
+  .card-notes-view:hover { background: rgba(255, 255, 255, 0.05); border-radius: 4px; }
   .card-meta { display: flex; align-items: center; gap: 8px; margin-top: 6px; font-size: 11px; color: var(--muted); }
   .badge { padding: 1px 6px; border-radius: 999px; font-size: 10px; font-weight: 600; }
   .badge.uploading { background: #4a3d1a; color: var(--warn); }
@@ -838,6 +840,15 @@
             delayOnTouchOnly: true,
             animation: 150,
             draggable: '.card',
+            // Without this, clicking into the title/notes and moving the
+            // mouse even a pixel (completely normal with real human input)
+            // gets picked up as "start dragging the whole card" instead of
+            // a click - the notes losing focus mid-edit was this, not
+            // anything about the notes field itself. Every other Sortable
+            // in this app already has an equivalent filter; this one just
+            // never got one when cards started being draggable.
+            filter: 'input, textarea, button, a, select, .card-notes-view, .card-children-toggle',
+            preventOnFilter: false,
             // Live visual feedback for the sub-video drop target - each
             // eligible card has its own put-only Sortable instance (see
             // renderCard), so evt.to becomes that card element the instant
@@ -1138,6 +1149,11 @@
 
     // Same click-to-edit / linkified-view pattern as renderIdeaNotes -
     // plain URLs in a clip's notes become real clickable links once saved.
+    function autoGrowTextarea(el) {
+      el.style.height = 'auto';
+      el.style.height = (el.scrollHeight + 2) + 'px';
+    }
+
     function renderCardNotes(row) {
       if (isEditing(row.id, 'notes')) {
         var textarea = document.createElement('textarea');
@@ -1145,11 +1161,17 @@
         textarea.placeholder = 'Notes…';
         textarea.value = row.notes || '';
         textarea.dataset.cardNotesEdit = row.id;
+        textarea.addEventListener('input', function () { autoGrowTextarea(textarea); });
         textarea.addEventListener('blur', function () {
           delete editing[row.id + ':notes'];
           if (textarea.value !== row.notes) updateDoc(doc(db, 'pipeline', row.id), { notes: textarea.value }).catch(onError);
           else renderFolders();
         });
+        // scrollHeight only reads correctly once actually laid out in the
+        // DOM - one frame after this returns and the caller appends it.
+        // Without this, switching from view to edit briefly shrinks back
+        // down to the CSS min-height before the next keystroke fixes it.
+        requestAnimationFrame(function () { autoGrowTextarea(textarea); });
         return textarea;
       }
 
