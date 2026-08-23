@@ -146,14 +146,6 @@
     transform: scale(1.01);
     z-index: 5;
   }
-  .card-drag-handle {
-    display: flex; align-items: center; justify-content: center;
-    margin: -6px auto 6px; width: 44px; height: 14px;
-    color: var(--border); font-size: 13px; line-height: 1;
-    cursor: grab; border-radius: 0 0 6px 6px;
-  }
-  .card-drag-handle:hover { color: var(--accent); background: rgba(124, 158, 255, 0.1); }
-  .card:active .card-drag-handle { cursor: grabbing; }
   .card.card-drop-hover.card-drop-armed {
     outline: 2px dashed var(--accent);
     transform: scale(1.03);
@@ -865,7 +857,15 @@
             // move via the implicit true return) - the actual attach still
             // only happens through that card's own onAdd + confirm() gate.
             onMove: function (evt) {
-              var candidate = evt.to && evt.to.classList && evt.to.classList.contains('card') && evt.to !== evt.dragged ? evt.to : null;
+              // evt.to is the LIST container (the column) - always the same
+              // element for a within-column hover, never a specific card.
+              // evt.related is the actual sibling element being hovered
+              // near, which is what identifies which card. (Previously
+              // checked evt.to here, which meant this never once actually
+              // detected a card - the whole sub-video dwell/arm mechanism
+              // was silently dead on arrival.)
+              var relatedCard = evt.related && evt.related.closest ? evt.related.closest('.card') : null;
+              var candidate = relatedCard && relatedCard !== evt.dragged ? relatedCard : null;
               if (candidate === dragHoverTarget) return true; // still the same target - timer (if any) keeps running undisturbed
               // Target changed (or cleared) - reset the dwell timer entirely,
               // so briefly passing over a card on the way to another one
@@ -1251,15 +1251,6 @@
       var card = document.createElement('div');
       card.className = 'card' + (row.doFast ? ' do-fast' : '') + (unlabeled ? ' needs-label' : '') + (row.workingOnIt ? ' working-on-it' : '');
       card.dataset.cardId = row.id;
-
-      // Small always-visible grab handle - the whole card is still
-      // draggable from any blank area, this just gives an unmistakable
-      // dedicated spot for it, same idea as a drag handle on a window.
-      var dragHandle = document.createElement('div');
-      dragHandle.className = 'card-drag-handle';
-      dragHandle.title = 'Drag from here';
-      dragHandle.textContent = '⠿';
-      card.appendChild(dragHandle);
 
       if (unlabeled) {
         var badge = document.createElement('div');
