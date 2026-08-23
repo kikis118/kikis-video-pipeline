@@ -91,8 +91,8 @@
   #createFolderForm input { flex: 1; max-width: 320px; background: var(--card); border: 1px solid var(--border); color: var(--text); border-radius: 6px; padding: 7px 10px; }
 
   #foldersContainer { display: flex; flex-direction: column; gap: 10px; padding: 12px 20px 20px; }
-  .folder-section { background: var(--panel); border-radius: 10px; }
-  .folder-section.main { border: 1px solid var(--accent); }
+  .folder-section { background: var(--panel); border-radius: 10px; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2); transition: box-shadow 0.15s ease; }
+  .folder-section.main { border: 1px solid var(--accent); box-shadow: 0 2px 12px rgba(124, 158, 255, 0.15); }
   .folder-header { display: flex; align-items: center; gap: 8px; padding: 10px 14px; flex-wrap: wrap; }
   .folder-section:not(.main) .folder-header:active { cursor: grabbing; }
   .sortable-ghost { opacity: 0.4; }
@@ -119,8 +119,9 @@
     padding: 10px;
     margin-bottom: 8px;
     position: relative;
-    transition: transform 0.12s ease, outline-color 0.12s ease;
+    transition: transform 0.12s ease, outline-color 0.12s ease, filter 0.12s ease;
   }
+  .card:hover { transform: translateY(-2px); filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.35)); }
   .card.do-fast { border-left: 3px solid var(--danger); }
   .card.card-drop-hover {
     outline: 2px dashed var(--accent);
