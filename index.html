@@ -190,6 +190,7 @@
   }
   .info-tag:hover::after { opacity: 1; }
   .config-row input.config-value { flex: 0 0 160px; background: var(--card); border: 1px solid var(--border); color: var(--text); border-radius: 6px; padding: 5px 8px; font-size: 13px; }
+  .config-save-btn { padding: 5px 10px; font-size: 12px; }
 
   .disk-cleanup-status {
     margin-top: 14px; border-top: 1px solid var(--border); padding-top: 10px;
@@ -325,6 +326,7 @@
         <div class="config-row">
           <span class="config-key">Root Drive folder</span>
           <input class="config-value" id="driveRootFolderInput" placeholder="Drive folder link or ID" style="flex: 0 0 320px;" />
+          <button class="secondary config-save-btn" id="driveRootFolderSaveBtn" style="display: none;">Save</button>
         </div>
       </div>
     </details>
@@ -1397,20 +1399,29 @@
     }
 
     // Static input (not rebuilt on every render like the rest of the
-    // panel), so this only needs wiring once.
-    document.getElementById('driveRootFolderInput').addEventListener('blur', function (e) {
-      var input = e.target;
-      var newVal = input.value.trim() ? extractDriveFolderId(input.value) : '';
-      if (newVal === (input.dataset.original || '')) return;
-      if (newVal && !confirm('Move every category folder (and everything inside them) to this new Drive folder? This actually relocates real files, not just a display change.')) {
-        input.value = input.dataset.original || '';
-        return;
+    // panel), so this only needs wiring once. Nothing here reaches
+    // Firestore just from typing or clicking away - only the Save button,
+    // and only after an explicit confirm.
+    (function () {
+      var input = document.getElementById('driveRootFolderInput');
+      var saveBtn = document.getElementById('driveRootFolderSaveBtn');
+      function refreshSaveBtn() {
+        var newVal = input.value.trim() ? extractDriveFolderId(input.value) : '';
+        saveBtn.style.display = (newVal === (input.dataset.original || '')) ? 'none' : 'inline-block';
       }
-      setDoc(doc(db, 'config', 'settings'), { DRIVE_ROOT_FOLDER_ID: newVal }, { merge: true }).then(function () {
-        input.dataset.original = newVal;
-        input.value = newVal;
-      }).catch(onError);
-    });
+      input.addEventListener('input', refreshSaveBtn);
+      saveBtn.addEventListener('click', function () {
+        var newVal = input.value.trim() ? extractDriveFolderId(input.value) : '';
+        if (newVal && !confirm('Move every category folder (and everything inside them) to this new Drive folder? This actually relocates real files, not just a display change.')) {
+          return;
+        }
+        setDoc(doc(db, 'config', 'settings'), { DRIVE_ROOT_FOLDER_ID: newVal }, { merge: true }).then(function () {
+          input.dataset.original = newVal;
+          input.value = newVal;
+          refreshSaveBtn();
+        }).catch(onError);
+      });
+    })();
 
     function renderConfig(rows) {
       configLoaded = true;
@@ -1435,27 +1446,43 @@
         var value = document.createElement('input');
         value.className = 'config-value';
         value.value = row.value;
-        value.addEventListener('blur', function () {
-          if (value.value === String(row.value)) return;
-          // Extra confirmation gate specifically for turning dry-run off -
-          // this is the one setting in this whole panel that starts
-          // permanently deleting real files. Everything else here just
-          // saves on blur; this one requires an explicit yes first.
+        el.appendChild(value);
+
+        // Explicit Save button instead of auto-saving on blur - just
+        // clicking away (tabbing through fields, clicking the info tag)
+        // shouldn't be able to silently commit a value nobody meant to
+        // finalize, especially for something as consequential as disk
+        // cleanup thresholds. Only appears once the value actually changed.
+        var saveBtn = document.createElement('button');
+        saveBtn.className = 'secondary config-save-btn';
+        saveBtn.textContent = 'Save';
+        saveBtn.style.display = 'none';
+        function refreshSaveBtn() {
+          saveBtn.style.display = (value.value === String(row.value)) ? 'none' : 'inline-block';
+        }
+        value.addEventListener('input', refreshSaveBtn);
+        saveBtn.addEventListener('click', function () {
+          // Every save requires an explicit yes, not just the dangerous
+          // ones - nothing in this panel reaches Firestore just from typing
+          // or clicking away. Turning dry-run off gets a much more specific
+          // warning since it's the one setting that starts permanently
+          // deleting real files; everything else gets a plain confirm.
           var turningDryRunOff = row.key === 'DISK_CLEANUP_DRY_RUN' && String(value.value).toLowerCase() === 'false';
-          if (turningDryRunOff && !confirm(
-            'Turn OFF dry-run mode?\n\nThe streaming PC will start PERMANENTLY DELETING real recording files ' +
-            'from RECORDING_ROOT on its next check (oldest files first, once past the trigger size) - not just ' +
-            'logging what it would delete anymore.\n\nOnly do this after you\'ve checked the Disk Cleanup status ' +
-            'box above and confirmed it\'s picking the right files.'
-          )) {
-            value.value = String(row.value);
-            return;
-          }
+          var confirmMessage = turningDryRunOff
+            ? 'Turn OFF dry-run mode?\n\nThe streaming PC will start PERMANENTLY DELETING real recording files ' +
+              'from RECORDING_ROOT on its next check (oldest files first, once past the trigger size) - not just ' +
+              'logging what it would delete anymore.\n\nOnly do this after you\'ve checked the Disk Cleanup status ' +
+              'box above and confirmed it\'s picking the right files.'
+            : 'Save ' + row.key + ' = "' + value.value + '"? This applies on the streaming PC within a few minutes.';
+          if (!confirm(confirmMessage)) return;
           var patch = {};
           patch[row.key] = value.value;
-          setDoc(doc(db, 'config', 'settings'), patch, { merge: true }).catch(onError);
+          setDoc(doc(db, 'config', 'settings'), patch, { merge: true }).then(function () {
+            row.value = value.value;
+            refreshSaveBtn();
+          }).catch(onError);
         });
-        el.appendChild(value);
+        el.appendChild(saveBtn);
 
         list.appendChild(el);
 
