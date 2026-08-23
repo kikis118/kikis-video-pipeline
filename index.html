@@ -117,13 +117,17 @@
   .card:active { cursor: grabbing; }
   .card:not(.do-fast):hover { border-color: var(--accent); }
   .card.do-fast:hover { box-shadow: inset 0 0 0 1px var(--accent); }
-  .card.working-on-it { outline: 2px solid #ff8c1a; animation: working-pulse 2s infinite; }
+  .card.working-on-it { outline: 2px solid #ff8c1a; animation: working-pulse 1.3s infinite; }
   @keyframes working-pulse {
-    0% { box-shadow: 0 0 0 0 rgba(255, 140, 26, 0.55); }
-    70% { box-shadow: 0 0 0 6px rgba(255, 140, 26, 0); }
+    0% { box-shadow: 0 0 0 0 rgba(255, 140, 26, 0.8); }
+    70% { box-shadow: 0 0 0 12px rgba(255, 140, 26, 0); }
     100% { box-shadow: 0 0 0 0 rgba(255, 140, 26, 0); }
   }
-  .working-on-it-btn.active { background: #ff8c1a; color: #2a1602; border-color: #ff8c1a; }
+  /* Same specificity as .flag-btn.active (2 classes each) further down -
+     three classes here so this reliably wins regardless of source order,
+     instead of silently depending on which rule happens to be declared
+     last in the stylesheet. */
+  .flag-btn.working-on-it-btn.active { background: #ff8c1a; color: #2a1602; border-color: #ff8c1a; }
   .card-title {
     font-size: 14px;
     font-weight: 600;
