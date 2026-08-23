@@ -387,6 +387,7 @@
     var state = { rows: [], folders: [] };
     var editing = {};
     var expandedActions = {}; // pipeline doc id -> true while "More actions" (Archive/Delete/Move) is revealed
+    var expandedFolderActions = {}; // folder id -> true while "More actions" (Set as Main/Archive) is revealed
     var expandedFolders = {}; // folder id -> true while expanded (Main is always expanded, not stored here)
     var showArchivedByFolder = {}; // folder id -> true while its per-clip Archived list is shown
     var showAllFinishedByFolder = {}; // "folderId:Finished" -> true while fully expanded
@@ -624,23 +625,38 @@
         actions.appendChild(provisioning);
       }
 
-      if (!isMain && !folder.archived) {
-        var setMainBtn = document.createElement('button');
-        setMainBtn.className = 'secondary';
-        setMainBtn.textContent = 'Set as Main Folder';
-        setMainBtn.onclick = function () { setMainFolder(folder.id).catch(onError); };
-        actions.appendChild(setMainBtn);
-      }
-
       if (!isMain) {
-        var archiveBtn = document.createElement('button');
-        archiveBtn.className = 'secondary';
-        archiveBtn.textContent = folder.archived ? 'Unarchive' : 'Archive';
-        archiveBtn.onclick = function () {
-          if (!folder.archived && !confirm('Archive folder "' + folder.name + '"? It moves out of the main view - still fully there, nothing is deleted.')) return;
-          updateDoc(doc(db, 'folders', folder.id), { archived: !folder.archived }).catch(onError);
-        };
-        actions.appendChild(archiveBtn);
+        if (expandedFolderActions[folder.id]) {
+          if (!folder.archived) {
+            var setMainBtn = document.createElement('button');
+            setMainBtn.className = 'secondary';
+            setMainBtn.textContent = 'Set as Main Folder';
+            setMainBtn.onclick = function () { setMainFolder(folder.id).catch(onError); };
+            actions.appendChild(setMainBtn);
+          }
+
+          var archiveBtn = document.createElement('button');
+          archiveBtn.className = 'secondary';
+          archiveBtn.textContent = folder.archived ? 'Unarchive' : 'Archive';
+          archiveBtn.onclick = function () {
+            if (!folder.archived && !confirm('Archive folder "' + folder.name + '"? It moves out of the main view - still fully there, nothing is deleted.')) return;
+            updateDoc(doc(db, 'folders', folder.id), { archived: !folder.archived }).catch(onError);
+          };
+          actions.appendChild(archiveBtn);
+
+          var closeFolderMoreBtn = document.createElement('button');
+          closeFolderMoreBtn.className = 'secondary';
+          closeFolderMoreBtn.textContent = '✕';
+          closeFolderMoreBtn.title = 'Hide';
+          closeFolderMoreBtn.onclick = function () { delete expandedFolderActions[folder.id]; renderFolders(); };
+          actions.appendChild(closeFolderMoreBtn);
+        } else {
+          var moreFolderBtn = document.createElement('button');
+          moreFolderBtn.className = 'secondary';
+          moreFolderBtn.textContent = '⋯ More';
+          moreFolderBtn.onclick = function () { expandedFolderActions[folder.id] = true; renderFolders(); };
+          actions.appendChild(moreFolderBtn);
+        }
       }
 
       header.appendChild(actions);
