@@ -317,6 +317,8 @@
     <details class="advanced-config">
       <summary>⚠ Advanced Config — don't touch unless you know what this does</summary>
       <div class="advanced-config-body">
+        <div id="advancedConfigList"></div>
+
         <p class="advanced-config-warning">
           Changing this physically moves every category folder - and
           everything inside them - to a different Google Drive folder.
@@ -1284,7 +1286,12 @@
       if (opening && !configLoaded) refreshConfig();
     }
 
-    var CONFIG_KEYS = ['DISK_CLEANUP_TRIGGER_GB', 'DISK_CLEANUP_TARGET_GB', 'DISK_CLEANUP_MIN_AGE_HOURS', 'DISK_CLEANUP_DRY_RUN', 'UPLOAD_THROTTLE_MBPS'];
+    var CONFIG_KEYS = ['DISK_CLEANUP_TRIGGER_GB', 'DISK_CLEANUP_TARGET_GB', 'DISK_CLEANUP_MIN_AGE_HOURS', 'UPLOAD_THROTTLE_MBPS'];
+    // Its own toggle can start permanently deleting real files - lives
+    // alongside the Drive-root migration in Advanced Config, not the basic
+    // panel, so it can't get flipped by accident while adjusting the
+    // ordinary knobs above it.
+    var ADVANCED_CONFIG_KEYS = ['DISK_CLEANUP_DRY_RUN'];
     var CONFIG_DEFAULTS = { DISK_CLEANUP_TRIGGER_GB: '150', DISK_CLEANUP_TARGET_GB: '130', DISK_CLEANUP_MIN_AGE_HOURS: '24', DISK_CLEANUP_DRY_RUN: 'true', UPLOAD_THROTTLE_MBPS: '50' };
     var CONFIG_DESCRIPTIONS = {
       DISK_CLEANUP_TRIGGER_GB: 'Once the recordings folder on the streaming PC reaches this size (in GB), automatic cleanup kicks in and starts deleting the oldest already-uploaded clips.',
@@ -1298,10 +1305,13 @@
       try {
         var snap = await getDoc(doc(db, 'config', 'settings'));
         var values = snap.exists() ? snap.data() : {};
-        var rows = CONFIG_KEYS.map(function (key) {
-          return { key: key, value: values[key] !== undefined ? values[key] : CONFIG_DEFAULTS[key] };
-        });
-        renderConfig(rows);
+        function toRows(keys) {
+          return keys.map(function (key) {
+            return { key: key, value: values[key] !== undefined ? values[key] : CONFIG_DEFAULTS[key] };
+          });
+        }
+        renderConfig(toRows(CONFIG_KEYS), document.getElementById('configList'));
+        renderConfig(toRows(ADVANCED_CONFIG_KEYS), document.getElementById('advancedConfigList'));
 
         var rootInput = document.getElementById('driveRootFolderInput');
         rootInput.value = values.DRIVE_ROOT_FOLDER_ID || '';
@@ -1423,9 +1433,8 @@
       });
     })();
 
-    function renderConfig(rows) {
+    function renderConfig(rows, list) {
       configLoaded = true;
-      var list = document.getElementById('configList');
       list.innerHTML = '';
       rows.forEach(function (row) {
         var el = document.createElement('div');
