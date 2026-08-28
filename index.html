@@ -301,6 +301,32 @@
     70% { box-shadow: 0 0 0 8px rgba(255, 107, 107, 0); }
     100% { box-shadow: 0 0 0 0 rgba(255, 107, 107, 0); }
   }
+
+  #shortsPanel { display: none; padding: 12px 20px; background: var(--panel); border-bottom: 1px solid var(--border); }
+  #shortsPanel.open { display: block; }
+  #shortsPanel h2 { font-size: 13px; color: var(--muted); margin: 0 0 10px; font-weight: 600; }
+  #shortsPanelBody { display: flex; flex-direction: column; gap: 8px; }
+  button.secondary.shorts-nav-btn {
+    background: #3a2249; color: #c9a3ff; border: 1px solid #5a3d73;
+  }
+  .badge.pending { background: #4a3d1a; color: var(--warn); }
+
+  /* Real-time strip, always at the top when there's anything worth
+     showing (hidden entirely if the streaming PC has never reported in
+     at all - see renderLiveStatusBanner). Deliberately outside both the
+     Config panel and any collapsible - this is meant to be seen without
+     having to go looking for it. */
+  #liveStatusBanner:empty { display: none; }
+  .live-status-bar {
+    display: flex; align-items: center; flex-wrap: wrap; gap: 14px;
+    padding: 8px 20px; background: var(--panel); border-bottom: 1px solid var(--border);
+    font-size: 12px; color: var(--muted);
+  }
+  .live-status-item { display: flex; align-items: center; gap: 6px; }
+  .live-status-item.open { color: var(--danger); font-weight: 600; }
+  .live-status-item.pending { color: var(--warn); font-weight: 600; }
+  .live-status-item.offline { color: var(--danger); }
+  .live-status-bar .spacer { flex: 1; }
   .config-row { display: flex; align-items: center; gap: 10px; padding: 6px 0; }
   .config-row .config-key { flex: 0 0 240px; font-size: 13px; font-family: monospace; color: var(--text); display: flex; align-items: center; gap: 6px; }
   .info-tag {
@@ -443,6 +469,7 @@
   <div id="appRoot">
   <header>
     <button class="secondary todo-nav-btn" onclick="toggleTodoPanel()">&#128203; To-Do Videos<span class="todo-nav-dot" id="todoNavDot" style="display: none;"></span></button>
+    <button class="secondary shorts-nav-btn" onclick="toggleShortsPanel()">&#127916; Shorts</button>
     <button onclick="toggleCreateFolderForm()">+ Create Folder</button>
     <button class="secondary" id="toggleArchivedFoldersBtn" onclick="toggleArchivedFolders()">Show Archived Folders</button>
     <div class="spacer"></div>
@@ -451,14 +478,24 @@
     <button class="secondary" onclick="toggleConfig()">&#9881; Config</button>
   </header>
 
+  <div id="liveStatusBanner"></div>
+
   <div id="todoPanel">
     <h2>To-Do Videos</h2>
     <div id="todoPanelBody"></div>
   </div>
 
+  <div id="shortsPanel">
+    <h2>Shorts</h2>
+    <div id="shortsPanelBody"></div>
+  </div>
+
   <div id="configPanel">
     <h2>Bot Config <span class="idea-notes">(changes apply within a few minutes - the streaming-PC app re-checks periodically)</span></h2>
     <div id="configList"></div>
+
+    <h2 style="margin-top: 16px;">Shorts</h2>
+    <div id="shortsConfigList"></div>
 
     <div class="disk-cleanup-status" id="diskCleanupStatus"></div>
 
@@ -612,6 +649,7 @@
       return state.rows.filter(function (r) {
         if (r.parentId) return false; // sub-video - rendered nested under its parent, never as its own top-level card
         if (r.status === 'Idea') return false; // to-do videos are a single global list, not scoped to any folder - see renderTodoPanel
+        if (r.status === 'Shorts') return false; // same treatment - see renderShortsPanel
         return folder.isMain ? (!r.folder || r.folder === folder.id) : r.folder === folder.id;
       });
     }
@@ -696,6 +734,7 @@
 
       renderTodoNavDot();
       renderTodoPanel();
+      renderShortsPanel();
     }
 
     // ---------- folders ----------
@@ -1067,6 +1106,35 @@
 
       if (doFastTodos.length) body.appendChild(renderIdeaSortableList(doFastTodos));
       if (otherTodos.length) body.appendChild(renderIdeaSortableList(otherTodos));
+    }
+
+    // ---------- shorts (global, not folder-scoped - same treatment as To-Do Videos) ----------
+
+    function toggleShortsPanel() {
+      document.getElementById('shortsPanel').classList.toggle('open');
+    }
+
+    function renderShortsPanel() {
+      var body = document.getElementById('shortsPanelBody');
+      if (!body) return;
+      body.innerHTML = '';
+
+      var shorts = state.rows.filter(function (r) { return r.status === 'Shorts'; })
+        .sort(function (a, b) { return (b.createdAtMs || 0) - (a.createdAtMs || 0); });
+
+      if (!shorts.length) {
+        var empty = document.createElement('div');
+        empty.className = 'idea-row-empty';
+        empty.textContent = 'No shorts yet — press the Shorts button on the Stream Deck to capture one.';
+        body.appendChild(empty);
+        return;
+      }
+
+      // Reuses the normal card renderer - Shorts is just another `status`
+      // value as far as renderCard is concerned (pending badge, no
+      // forward/back status buttons since NEXT_STATUS/PREV_STATUS don't
+      // define anything for it, no Move-to-folder since it's global).
+      shorts.forEach(function (row) { body.appendChild(renderCard(row, [])); });
     }
 
     var ideaSortables = [];
@@ -1460,7 +1528,16 @@
 
       var meta = document.createElement('div');
       meta.className = 'card-meta';
-      if (row.status === 'Recorded' && row.upload) {
+      // Shorts start life "pending" - nothing's been cut yet, the app is
+      // just waiting for the lookahead window to finish (see
+      // clipState.js handleShorts()) - shown instead of the upload badge
+      // until that resolves one way or the other.
+      if (row.status === 'Shorts' && row.pending) {
+        var pendingBadge = document.createElement('span');
+        pendingBadge.className = 'badge pending';
+        pendingBadge.textContent = '⏳ Capturing…' + (row.readyAtMs ? ' ready ~' + formatLocalTime(row.readyAtMs) : '');
+        meta.appendChild(pendingBadge);
+      } else if ((row.status === 'Recorded' || row.status === 'Shorts') && row.upload) {
         var uploadBadge = document.createElement('span');
         uploadBadge.className = 'badge ' + row.upload.toLowerCase();
         uploadBadge.textContent = row.upload;
@@ -1592,7 +1669,7 @@
 
         var currentFolderId = row.folder || (state.folders.find(function (f) { return f.isMain; }) || {}).id;
         var moveTargets = state.folders.filter(function (f) { return !f.archived && f.id !== currentFolderId; });
-        if (moveTargets.length) {
+        if (moveTargets.length && row.status !== 'Shorts') {
           var moveSelect = document.createElement('select');
           moveSelect.className = 'move-folder-select';
           var moveDefault = document.createElement('option');
@@ -1714,6 +1791,87 @@
       return h > 0 ? (h + ':' + pad(m) + ':' + pad(s)) : (m + ':' + pad(s));
     }
 
+    // ---------- live status ----------
+
+    var liveStatus = null; // system/liveStatus's raw data, or null if the streaming PC has never reported in
+
+    // A clip being open, a Shorts capture in progress, whether OBS is even
+    // recording - none of this is visible off Ghazzy's own machine
+    // otherwise. Re-rendered both on every real Firestore update (the
+    // streaming PC heartbeats every 15s - see index.js startLiveStatusLoop)
+    // and every second locally, so the elapsed-time/countdown text ticks
+    // smoothly in between actual updates.
+    function renderLiveStatusBanner() {
+      var el = document.getElementById('liveStatusBanner');
+      if (!el) return;
+      el.innerHTML = '';
+      if (!liveStatus) return; // never reported in yet - nothing to show
+
+      var heartbeatMs = liveStatus.heartbeatAt && liveStatus.heartbeatAt.toMillis ? liveStatus.heartbeatAt.toMillis() : 0;
+      // Heartbeats every 15s - anything older than 3x that is a real gap,
+      // not just an in-flight tick.
+      var isOnline = heartbeatMs && (Date.now() - heartbeatMs < 45000);
+
+      var bar = document.createElement('div');
+      bar.className = 'live-status-bar';
+
+      if (!isOnline) {
+        var offlineItem = document.createElement('span');
+        offlineItem.className = 'live-status-item offline';
+        offlineItem.textContent = '⚠ Streaming PC app appears offline' + (heartbeatMs ? ' (last seen ' + formatLocalTime(heartbeatMs) + ')' : '');
+        bar.appendChild(offlineItem);
+        el.appendChild(bar);
+        return;
+      }
+
+      var onlineItem = document.createElement('span');
+      onlineItem.className = 'live-status-item';
+      onlineItem.innerHTML = '<span class="live-dot"></span> App online';
+      bar.appendChild(onlineItem);
+
+      var obsItem = document.createElement('span');
+      obsItem.className = 'live-status-item';
+      obsItem.textContent = liveStatus.obsRecording ? '🔴 OBS recording' : 'OBS not recording';
+      bar.appendChild(obsItem);
+
+      var openSinceMs = liveStatus.clipOpenSince && liveStatus.clipOpenSince.toMillis ? liveStatus.clipOpenSince.toMillis() : null;
+      if (liveStatus.clipOpen && openSinceMs) {
+        var openItem = document.createElement('span');
+        openItem.className = 'live-status-item open';
+        openItem.textContent = '🔴 Clip open — ' + formatDuration(Date.now() - openSinceMs);
+        bar.appendChild(openItem);
+      }
+
+      var readyAtMs = liveStatus.shortsReadyAt && liveStatus.shortsReadyAt.toMillis ? liveStatus.shortsReadyAt.toMillis() : null;
+      if (liveStatus.shortsPending) {
+        var remainingMs = readyAtMs ? readyAtMs - Date.now() : 0;
+        var pendingItem = document.createElement('span');
+        pendingItem.className = 'live-status-item pending';
+        pendingItem.textContent = remainingMs > 0
+          ? '🟡 Shorts capturing — ready in ' + formatDuration(remainingMs)
+          : '🟡 Shorts capturing — finishing up…';
+        bar.appendChild(pendingItem);
+      }
+
+      var spacer = document.createElement('div');
+      spacer.className = 'spacer';
+      bar.appendChild(spacer);
+
+      if (liveStatus.clipOpen) {
+        var closeBtn = document.createElement('button');
+        closeBtn.className = 'danger';
+        closeBtn.textContent = 'Force close';
+        closeBtn.title = 'Remotely presses End - saves whatever has been recorded since Start.';
+        closeBtn.onclick = function () {
+          if (!confirm('Force-close the open clip?\n\nThis remotely presses End on the streaming PC - it saves and uploads whatever has been recorded since Start was pressed.')) return;
+          setDoc(doc(db, 'system', 'liveStatus'), { forceCloseRequestedAt: serverTimestamp() }, { merge: true }).catch(onError);
+        };
+        bar.appendChild(closeBtn);
+      }
+
+      el.appendChild(bar);
+    }
+
     function linkify(text) {
       var escaped = escapeHtml(text || '');
       return escaped.replace(/(https?:\/\/[^\s<]+)/g, function (url) {
@@ -1778,13 +1936,22 @@
       if (opening && !configLoaded) refreshConfig();
     }
 
-    var CONFIG_KEYS = ['DISK_CLEANUP_TRIGGER_GB', 'DISK_CLEANUP_TARGET_GB', 'DISK_CLEANUP_MIN_AGE_HOURS', 'UPLOAD_THROTTLE_MBPS'];
+    var CONFIG_KEYS = ['DISK_CLEANUP_TRIGGER_GB', 'DISK_CLEANUP_TARGET_GB', 'DISK_CLEANUP_MIN_AGE_HOURS', 'UPLOAD_THROTTLE_MBPS', 'START_PAD_SECONDS', 'END_PAD_SECONDS'];
     // Its own toggle can start permanently deleting real files - lives
     // alongside the Drive-root migration in Advanced Config, not the basic
     // panel, so it can't get flipped by accident while adjusting the
     // ordinary knobs above it.
     var ADVANCED_CONFIG_KEYS = ['DISK_CLEANUP_ENABLED', 'DISK_CLEANUP_DRY_RUN'];
-    var CONFIG_DEFAULTS = { DISK_CLEANUP_TRIGGER_GB: '150', DISK_CLEANUP_TARGET_GB: '130', DISK_CLEANUP_MIN_AGE_HOURS: '24', DISK_CLEANUP_ENABLED: 'true', DISK_CLEANUP_DRY_RUN: 'true', UPLOAD_THROTTLE_MBPS: '50' };
+    // Own visually separate section (not mixed into the basic knobs above,
+    // not Advanced either - nothing here is dangerous, just specific to
+    // the Shorts button).
+    var SHORTS_CONFIG_KEYS = ['SHORTS_LOOKBACK_SECONDS', 'SHORTS_LOOKAHEAD_SECONDS'];
+    var CONFIG_DEFAULTS = {
+      DISK_CLEANUP_TRIGGER_GB: '150', DISK_CLEANUP_TARGET_GB: '130', DISK_CLEANUP_MIN_AGE_HOURS: '24',
+      DISK_CLEANUP_ENABLED: 'true', DISK_CLEANUP_DRY_RUN: 'true', UPLOAD_THROTTLE_MBPS: '50',
+      START_PAD_SECONDS: '20', END_PAD_SECONDS: '20',
+      SHORTS_LOOKBACK_SECONDS: '300', SHORTS_LOOKAHEAD_SECONDS: '120',
+    };
     var CONFIG_DESCRIPTIONS = {
       DISK_CLEANUP_TRIGGER_GB: 'Once the recordings folder on the streaming PC reaches this size (in GB), automatic cleanup kicks in and starts deleting the oldest already-uploaded clips.',
       DISK_CLEANUP_TARGET_GB: 'When cleanup runs, it keeps deleting the oldest clips until the folder drops back down to this size (in GB). Always lower than the trigger size above.',
@@ -1792,6 +1959,10 @@
       DISK_CLEANUP_ENABLED: '"true" = the streaming PC actually checks the recordings folder on its normal schedule. "false" = a full stop - it skips the check entirely, not even looking at the folder, regardless of the dry-run setting below. Turning this off for a long time risks the recording drive silently filling up, since nothing is watching it.',
       DISK_CLEANUP_DRY_RUN: '"true" = cleanup only logs what it would delete, without deleting anything - safe to test with. Set to "false" once you\'ve checked the streaming PC\'s console and are confident it\'s picking the right files.',
       UPLOAD_THROTTLE_MBPS: 'Caps how fast clips upload to Google Drive, in megabits per second - keeps uploads from hogging all of the streaming PC\'s internet bandwidth while live.',
+      START_PAD_SECONDS: 'How many seconds before the Start press get included at the front of a clip. If clips keep cutting in a moment too late, raise this.',
+      END_PAD_SECONDS: 'How many seconds after the End press get included at the back of a clip. If clips keep cutting off a moment too early, raise this.',
+      SHORTS_LOOKBACK_SECONDS: 'How many seconds before the Shorts press get captured. 300 = 5 minutes.',
+      SHORTS_LOOKAHEAD_SECONDS: 'How many seconds after the Shorts press get captured. The button stays locked out until this finishes (plus a few seconds to actually save it). 120 = 2 minutes.',
     };
 
     async function refreshConfig() {
@@ -1804,6 +1975,7 @@
           });
         }
         renderConfig(toRows(CONFIG_KEYS), document.getElementById('configList'));
+        renderConfig(toRows(SHORTS_CONFIG_KEYS), document.getElementById('shortsConfigList'));
         renderConfig(toRows(ADVANCED_CONFIG_KEYS), document.getElementById('advancedConfigList'));
 
         var rootInput = document.getElementById('driveRootFolderInput');
@@ -2161,6 +2333,7 @@
             return Object.assign({ id: d.id }, data, {
               createdAtMs: data.createdAt && data.createdAt.toMillis ? data.createdAt.toMillis() : 0,
               uploadedAtMs: data.uploadedAt && data.uploadedAt.toMillis ? data.uploadedAt.toMillis() : 0,
+              readyAtMs: data.readyAt && data.readyAt.toMillis ? data.readyAt.toMillis() : 0,
             });
           })
           // Soft-deleted rows disappear immediately, even before the
@@ -2181,6 +2354,16 @@
         });
         renderFolders();
       }, onError);
+
+      onSnapshot(doc(db, 'system', 'liveStatus'), function (snap) {
+        liveStatus = snap.exists() ? snap.data() : null;
+        renderLiveStatusBanner();
+      }, onError);
+
+      // Local tick, independent of Firestore - keeps the elapsed-time/
+      // countdown text moving smoothly in between the streaming PC's real
+      // 15s heartbeats instead of jumping in 15s steps.
+      setInterval(renderLiveStatusBanner, 1000);
     }
 
     // Module scripts don't expose top-level functions on window, but the
@@ -2188,6 +2371,7 @@
     // to be attached explicitly.
     window.toggleConfig = toggleConfig;
     window.toggleTodoPanel = toggleTodoPanel;
+    window.toggleShortsPanel = toggleShortsPanel;
     window.toggleArchivedFolders = toggleArchivedFolders;
     window.toggleCreateFolderForm = toggleCreateFolderForm;
     window.submitCreateFolder = submitCreateFolder;
