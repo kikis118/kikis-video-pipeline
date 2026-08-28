@@ -1936,7 +1936,7 @@
       if (opening && !configLoaded) refreshConfig();
     }
 
-    var CONFIG_KEYS = ['DISK_CLEANUP_TRIGGER_GB', 'DISK_CLEANUP_TARGET_GB', 'DISK_CLEANUP_MIN_AGE_HOURS', 'UPLOAD_THROTTLE_MBPS', 'START_PAD_SECONDS', 'END_PAD_SECONDS'];
+    var CONFIG_KEYS = ['DISK_CLEANUP_TRIGGER_GB', 'DISK_CLEANUP_TARGET_GB', 'DISK_CLEANUP_MIN_AGE_HOURS', 'DISK_CLEANUP_INTERVAL_MINUTES', 'UPLOAD_THROTTLE_MBPS', 'START_PAD_SECONDS', 'END_PAD_SECONDS'];
     // Its own toggle can start permanently deleting real files - lives
     // alongside the Drive-root migration in Advanced Config, not the basic
     // panel, so it can't get flipped by accident while adjusting the
@@ -1947,7 +1947,7 @@
     // the Shorts button).
     var SHORTS_CONFIG_KEYS = ['SHORTS_LOOKBACK_SECONDS', 'SHORTS_LOOKAHEAD_SECONDS'];
     var CONFIG_DEFAULTS = {
-      DISK_CLEANUP_TRIGGER_GB: '150', DISK_CLEANUP_TARGET_GB: '130', DISK_CLEANUP_MIN_AGE_HOURS: '24',
+      DISK_CLEANUP_TRIGGER_GB: '150', DISK_CLEANUP_TARGET_GB: '130', DISK_CLEANUP_MIN_AGE_HOURS: '24', DISK_CLEANUP_INTERVAL_MINUTES: '30',
       DISK_CLEANUP_ENABLED: 'true', DISK_CLEANUP_DRY_RUN: 'true', UPLOAD_THROTTLE_MBPS: '50',
       START_PAD_SECONDS: '20', END_PAD_SECONDS: '20',
       SHORTS_LOOKBACK_SECONDS: '300', SHORTS_LOOKAHEAD_SECONDS: '120',
@@ -1956,6 +1956,7 @@
       DISK_CLEANUP_TRIGGER_GB: 'Once the recordings folder on the streaming PC reaches this size (in GB), automatic cleanup kicks in and starts deleting the oldest already-uploaded clips.',
       DISK_CLEANUP_TARGET_GB: 'When cleanup runs, it keeps deleting the oldest clips until the folder drops back down to this size (in GB). Always lower than the trigger size above.',
       DISK_CLEANUP_MIN_AGE_HOURS: 'A file has to be at least this many hours old before cleanup will ever consider deleting it, no matter how full the drive is. Lower this temporarily if testing same-day; keep it at a real value (24+) normally so nothing recent gets swept up before you\'ve had a chance to look at it.',
+      DISK_CLEANUP_INTERVAL_MINUTES: 'How often the streaming PC checks the recordings folder, in minutes. Each check is a small Firestore write, so this doesn\'t need to be tight - use the "Check Now" button below the status box if you want to see it right now instead of lowering this.',
       DISK_CLEANUP_ENABLED: '"true" = the streaming PC actually checks the recordings folder on its normal schedule. "false" = a full stop - it skips the check entirely, not even looking at the folder, regardless of the dry-run setting below. Turning this off for a long time risks the recording drive silently filling up, since nothing is watching it.',
       DISK_CLEANUP_DRY_RUN: '"true" = cleanup only logs what it would delete, without deleting anything - safe to test with. Set to "false" once you\'ve checked the streaming PC\'s console and are confident it\'s picking the right files.',
       UPLOAD_THROTTLE_MBPS: 'Caps how fast clips upload to Google Drive, in megabits per second - keeps uploads from hogging all of the streaming PC\'s internet bandwidth while live.',
@@ -2022,6 +2023,30 @@
       heading.style.alignItems = 'center';
       heading.style.gap = '7px';
       el.appendChild(heading);
+
+      // Writes a command the streaming PC's live-status heartbeat picks up
+      // and acts on (same mechanism as the live-status bar's Force Close) -
+      // for "I want to see this right now" without needing to lower the
+      // background check interval just for that.
+      if (isEnabled) {
+        var checkNowBtn = document.createElement('button');
+        checkNowBtn.className = 'secondary';
+        checkNowBtn.textContent = 'Check Now';
+        checkNowBtn.style.marginBottom = '8px';
+        checkNowBtn.onclick = function () {
+          checkNowBtn.disabled = true;
+          checkNowBtn.textContent = 'Requested…';
+          setDoc(doc(db, 'system', 'liveStatus'), { diskCleanupCheckRequestedAt: serverTimestamp() }, { merge: true })
+            .then(function () {
+              setTimeout(function () {
+                checkNowBtn.disabled = false;
+                checkNowBtn.textContent = 'Check Now';
+              }, 65000); // a little past the streaming PC's own heartbeat interval
+            })
+            .catch(onError);
+        };
+        el.appendChild(checkNowBtn);
+      }
 
       if (!status) {
         var none = document.createElement('div');
