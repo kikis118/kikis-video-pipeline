@@ -351,6 +351,12 @@
   .disk-cleanup-browse-note { font-size: 11px; color: var(--muted); margin: 6px 0; }
   .disk-cleanup-browse .disk-cleanup-file-list { max-height: 220px; }
 
+  .app-log-list { max-height: 260px; overflow-y: auto; border: 1px solid var(--border); border-radius: 6px; margin-top: 6px; }
+  .app-log-entry { padding: 6px 8px; border-bottom: 1px solid var(--border); font-size: 11px; }
+  .app-log-entry:last-child { border-bottom: none; }
+  .app-log-entry-time { color: var(--muted); margin-bottom: 2px; }
+  .app-log-entry-message { color: var(--danger); font-family: monospace; white-space: pre-wrap; word-break: break-word; }
+
   .advanced-config { margin-top: 14px; border-top: 1px solid var(--border); padding-top: 10px; }
   .advanced-config summary { cursor: pointer; font-size: 12px; color: var(--warn); font-weight: 600; }
   .advanced-config summary:hover { color: var(--danger); }
@@ -472,6 +478,8 @@
           <input class="config-value" id="driveRootFolderInput" placeholder="Drive folder link or ID" style="flex: 0 0 320px;" />
           <button class="secondary config-save-btn" id="driveRootFolderSaveBtn" style="display: none;">Save</button>
         </div>
+
+        <div id="appLogStatus"></div>
       </div>
     </details>
   </div>
@@ -1456,6 +1464,10 @@
         var uploadBadge = document.createElement('span');
         uploadBadge.className = 'badge ' + row.upload.toLowerCase();
         uploadBadge.textContent = row.upload;
+        if (row.upload === 'Failed' && row.failureReason) {
+          uploadBadge.title = row.failureReason;
+          uploadBadge.style.cursor = 'help';
+        }
         meta.appendChild(uploadBadge);
       }
       if (row.filename) {
@@ -1633,6 +1645,10 @@
         var badge = document.createElement('span');
         badge.className = 'badge ' + child.upload.toLowerCase();
         badge.textContent = child.upload;
+        if (child.upload === 'Failed' && child.failureReason) {
+          badge.title = child.failureReason;
+          badge.style.cursor = 'help';
+        }
         row.appendChild(badge);
       }
 
@@ -1807,6 +1823,13 @@
         // this catch is for a genuine read error instead.
         console.error('[disk-cleanup-status]', err);
       }
+
+      try {
+        var logSnap = await getDoc(doc(db, 'system', 'appLog'));
+        renderAppLog(logSnap.exists() ? logSnap.data() : null);
+      } catch (err) {
+        console.error('[app-log]', err);
+      }
     }
 
     function bytesToGB(bytes) {
@@ -1901,34 +1924,61 @@
       }
 
       var currentFiles = status.currentFiles || [];
-      var browse = document.createElement('details');
-      browse.className = 'disk-cleanup-browse';
-      var browseSummary = document.createElement('summary');
       // totalAfterBytes, not totalBeforeBytes - reflects the folder's real
       // size right now, after whatever this same check pass already did
       // (matches currentFiles, which is listed post-cleanup too).
       var sizeVsTrigger = (typeof status.totalAfterBytes === 'number' && typeof status.triggerBytes === 'number')
         ? ', ' + bytesToGB(status.totalAfterBytes) + 'GB / ' + bytesToGB(status.triggerBytes) + 'GB trigger'
         : '';
-      browseSummary.textContent = 'Browse recordings folder (' + (status.currentFilesTotalCount || 0) + ' file(s)' + sizeVsTrigger + ')';
+      el.appendChild(renderFileBrowseDetails({
+        summary: 'Browse recordings folder (' + (status.currentFilesTotalCount || 0) + ' file(s)' + sizeVsTrigger + ')',
+        files: currentFiles,
+        totalCount: status.currentFilesTotalCount || 0,
+        truncated: status.currentFilesTruncated,
+        emptyText: 'Nothing in the recordings folder right now.',
+      }));
+
+      // Never auto-cleaned by anything in this app - purely visibility so
+      // clips piling up can be spotted and cleared out by hand.
+      var finishedFiles = status.finishedClipsFiles || [];
+      var finishedSizeNote = typeof status.finishedClipsTotalBytes === 'number'
+        ? ', ' + bytesToGB(status.finishedClipsTotalBytes) + 'GB'
+        : '';
+      el.appendChild(renderFileBrowseDetails({
+        summary: 'Browse Finished Clips folder (' + (status.finishedClipsTotalCount || 0) + ' file(s)' + finishedSizeNote + ') - not auto-cleaned',
+        files: finishedFiles,
+        totalCount: status.finishedClipsTotalCount || 0,
+        truncated: status.finishedClipsTruncated,
+        emptyText: 'Nothing in the Finished Clips folder right now.',
+      }));
+    }
+
+    // Shared by both read-only file-browse sections above (raw recordings,
+    // Finished Clips) - same look, same "filenames/sizes/dates only, never
+    // plays or downloads anything" behavior either way.
+    function renderFileBrowseDetails(opts) {
+      var browse = document.createElement('details');
+      browse.className = 'disk-cleanup-browse';
+      var browseSummary = document.createElement('summary');
+      browseSummary.textContent = opts.summary;
       browse.appendChild(browseSummary);
 
-      if (status.currentFilesTruncated) {
+      if (opts.truncated) {
         var truncNote = document.createElement('div');
         truncNote.className = 'disk-cleanup-browse-note';
-        truncNote.textContent = 'Showing the ' + currentFiles.length + ' most recent of ' + status.currentFilesTotalCount + ' - filenames, sizes and dates only, nothing is played or downloaded from here.';
+        truncNote.textContent = 'Showing the ' + opts.files.length + ' most recent of ' + opts.totalCount + ' - filenames, sizes and dates only, nothing is played or downloaded from here.';
         browse.appendChild(truncNote);
-      } else if (currentFiles.length) {
+      } else if (opts.files.length) {
         var note = document.createElement('div');
         note.className = 'disk-cleanup-browse-note';
         note.textContent = 'Filenames, sizes and dates only - nothing is played or downloaded from here.';
         browse.appendChild(note);
       }
 
-      if (currentFiles.length) {
+      if (opts.files.length) {
         var browseList = document.createElement('div');
         browseList.className = 'disk-cleanup-file-list';
-        currentFiles.forEach(function (f) {
+        opts.files.forEach(function (f) {
           var row = document.createElement('div');
           row.className = 'disk-cleanup-file-row';
           var nameEl = document.createElement('span');
@@ -1945,11 +1995,53 @@
       } else {
         var empty = document.createElement('div');
         empty.className = 'disk-cleanup-browse-note';
-        empty.textContent = 'Nothing in the recordings folder right now.';
+        empty.textContent = opts.emptyText;
         browse.appendChild(empty);
       }
 
-      el.appendChild(browse);
+      return browse;
+    }
+
+    // Mirrors the pattern above (fetched once when the panel opens, not
+    // live) - a small, capped, most-recent-first feed of every
+    // console.error the streaming PC has logged, mirrored into Firestore
+    // by lib/fileLogger.js so an overnight failure is checkable from here
+    // without needing terminal/file access on his actual machine.
+    function renderAppLog(data) {
+      var el = document.getElementById('appLogStatus');
+      if (!el) return;
+      el.innerHTML = '';
+
+      var heading = document.createElement('h3');
+      heading.textContent = 'Recent Errors (streaming PC)';
+      heading.style.marginTop = '14px';
+      el.appendChild(heading);
+
+      var entries = (data && data.entries) || [];
+      if (!entries.length) {
+        var empty = document.createElement('div');
+        empty.className = 'disk-cleanup-browse-note';
+        empty.textContent = 'No errors logged yet.';
+        el.appendChild(empty);
+        return;
+      }
+
+      var list = document.createElement('div');
+      list.className = 'app-log-list';
+      entries.slice().reverse().forEach(function (entry) {
+        var row = document.createElement('div');
+        row.className = 'app-log-entry';
+        var timeEl = document.createElement('div');
+        timeEl.className = 'app-log-entry-time';
+        timeEl.textContent = formatLocalTime(entry.ts);
+        var msgEl = document.createElement('div');
+        msgEl.className = 'app-log-entry-message';
+        msgEl.textContent = entry.message;
+        row.appendChild(timeEl);
+        row.appendChild(msgEl);
+        list.appendChild(row);
+      });
+      el.appendChild(list);
     }
 
     function formatFileSize(bytes) {
