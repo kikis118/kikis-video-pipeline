@@ -190,6 +190,17 @@
     70% { box-shadow: 0 0 0 12px rgba(255, 140, 26, 0); }
     100% { box-shadow: 0 0 0 0 rgba(255, 140, 26, 0); }
   }
+  /* Status "Recording" - the instant card created the moment Start is
+     pressed (see clipState.js handleStart()), still mid-capture, no file
+     yet. Same pulsing-outline treatment as working-on-it, red instead of
+     orange since this is "actively happening", not just a flag. */
+  .card.recording { outline: 2px solid var(--danger); animation: recording-pulse 1.3s infinite; }
+  @keyframes recording-pulse {
+    0% { box-shadow: 0 0 0 0 rgba(255, 107, 107, 0.8); }
+    70% { box-shadow: 0 0 0 12px rgba(255, 107, 107, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(255, 107, 107, 0); }
+  }
+  .badge.recording-badge { background: #4a1c1c; color: var(--danger); }
   /* Same specificity as .flag-btn.active (2 classes each) further down -
      three classes here so this reliably wins regardless of source order,
      instead of silently depending on which rule happens to be declared
@@ -917,7 +928,15 @@
         // least once) sort by it; everything else falls back to newest-first,
         // same as before reordering existed. Do Fast always wins regardless -
         // it's a separate primary sort key, not something a drag can override.
-        var colRows = rows.filter(function (r) { return r.status === statusName; }).slice().sort(function (a, b) {
+        // Recording cards (still mid-capture, no file yet - see clipState.js
+        // handleStart()) live in the Recorded column too, pinned above even
+        // Do Fast, since "actively happening right now" outranks priority.
+        var colRows = rows.filter(function (r) {
+          if (r.status === statusName) return true;
+          return statusName === 'Recorded' && r.status === 'Recording';
+        }).slice().sort(function (a, b) {
+          var aRecording = a.status === 'Recording', bRecording = b.status === 'Recording';
+          if (aRecording !== bRecording) return aRecording ? -1 : 1;
           if (a.doFast !== b.doFast) return a.doFast ? -1 : 1;
           var ao = a.order !== undefined ? a.order : Infinity;
           var bo = b.order !== undefined ? b.order : Infinity;
@@ -1447,7 +1466,7 @@
     function renderCard(row, folderRows) {
       var unlabeled = needsLabel(row);
       var card = document.createElement('div');
-      card.className = 'card' + (row.doFast ? ' do-fast' : '') + (unlabeled ? ' needs-label' : '') + (row.workingOnIt ? ' working-on-it' : '');
+      card.className = 'card' + (row.doFast ? ' do-fast' : '') + (unlabeled ? ' needs-label' : '') + (row.workingOnIt ? ' working-on-it' : '') + (row.status === 'Recording' ? ' recording' : '');
       card.dataset.cardId = row.id;
 
       var attachHandle = document.createElement('span');
@@ -1532,7 +1551,12 @@
       // just waiting for the lookahead window to finish (see
       // clipState.js handleShorts()) - shown instead of the upload badge
       // until that resolves one way or the other.
-      if (row.status === 'Shorts' && row.pending) {
+      if (row.status === 'Recording') {
+        var recordingBadge = document.createElement('span');
+        recordingBadge.className = 'badge recording-badge';
+        recordingBadge.textContent = '🔴 Recording…';
+        meta.appendChild(recordingBadge);
+      } else if (row.status === 'Shorts' && row.pending) {
         var pendingBadge = document.createElement('span');
         pendingBadge.className = 'badge pending';
         pendingBadge.textContent = '⏳ Capturing…' + (row.readyAtMs ? ' ready ~' + formatLocalTime(row.readyAtMs) : '');
@@ -1808,9 +1832,11 @@
       if (!liveStatus) return; // never reported in yet - nothing to show
 
       var heartbeatMs = liveStatus.heartbeatAt && liveStatus.heartbeatAt.toMillis ? liveStatus.heartbeatAt.toMillis() : 0;
-      // Heartbeats every 15s - anything older than 3x that is a real gap,
-      // not just an in-flight tick.
-      var isOnline = heartbeatMs && (Date.now() - heartbeatMs < 45000);
+      // Heartbeats every 60s (see index.js startLiveStatusLoop) - anything
+      // older than 3x that is a real gap, not just an in-flight tick. This
+      // has to stay ahead of the actual heartbeat interval or it flashes
+      // "offline" every cycle right before the next beat lands.
+      var isOnline = heartbeatMs && (Date.now() - heartbeatMs < 180000);
 
       var bar = document.createElement('div');
       bar.className = 'live-status-bar';
