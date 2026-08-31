@@ -260,6 +260,10 @@
   .card-notes-view.empty { font-style: italic; opacity: 0.7; }
   .card-notes-view:hover { background: rgba(255, 255, 255, 0.05); border-radius: 4px; }
   .card-meta { display: flex; align-items: center; gap: 8px; margin-top: 6px; font-size: 11px; color: var(--muted); }
+  /* More noticeable than the rest of the meta row on purpose - "how
+     recently did this land" is the one thing worth seeing at a glance
+     without having to read anything else on the card. */
+  .card-uploaded-at { color: var(--accent); font-weight: 700; cursor: help; }
   .badge { padding: 1px 6px; border-radius: 999px; font-size: 10px; font-weight: 600; }
   .badge.uploading { background: #4a3d1a; color: var(--warn); }
   .badge.uploaded { background: #1c4030; color: var(--good); }
@@ -1583,7 +1587,9 @@
       }
       if (row.uploadedAtMs) {
         var uploadedAt = document.createElement('span');
-        uploadedAt.textContent = 'Uploaded ' + formatLocalTime(row.uploadedAtMs);
+        uploadedAt.className = 'card-uploaded-at';
+        uploadedAt.textContent = 'Uploaded ' + formatRelativeTime(row.uploadedAtMs);
+        uploadedAt.title = formatLocalTime(row.uploadedAtMs); // exact date/time on hover
         meta.appendChild(uploadedAt);
       }
       card.appendChild(meta);
@@ -1804,6 +1810,32 @@
     // of who's looking or where.
     function formatLocalTime(ms) {
       return new Date(ms).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' });
+    }
+
+    // At-a-glance "what's new" - precise minutes/hours for anything recent
+    // (where the exact recency actually matters), calendar-day labels once
+    // it's further out (where "9 hours ago" is less useful to read than
+    // "yesterday"). The full exact date/time is still always available via
+    // the element's title="" tooltip - see where this is called.
+    function formatRelativeTime(ms) {
+      var diffMs = Date.now() - ms;
+      var diffMin = Math.floor(diffMs / 60000);
+      if (diffMin < 1) return 'just now';
+      if (diffMin < 60) return diffMin + (diffMin === 1 ? ' minute ago' : ' minutes ago');
+      var diffHours = Math.floor(diffMin / 60);
+      if (diffHours < 6) return diffHours + (diffHours === 1 ? ' hour ago' : ' hours ago');
+
+      var then = new Date(ms);
+      var now = new Date();
+      var yesterday = new Date(now);
+      yesterday.setDate(yesterday.getDate() - 1);
+      function sameDay(a, b) { return a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate(); }
+
+      if (sameDay(then, now)) return 'today';
+      if (sameDay(then, yesterday)) return 'yesterday';
+      var diffDays = Math.floor(diffHours / 24);
+      if (diffDays < 7) return diffDays + ' days ago';
+      return formatLocalTime(ms);
     }
 
     function formatDuration(ms) {
