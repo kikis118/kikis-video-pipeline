@@ -5,10 +5,18 @@
 <title>Ghazzy's YT Video Pipeline</title>
 <style>
   :root {
-    --bg: #1c1d21;
-    --panel: #26272c;
-    --card: #303136;
-    --border: #3d3e44;
+    /* Darker page + a raised/recessed relationship between the three
+       surface tiers (was: card lighter than panel, so a video card
+       - which sits on --panel - was actually slightly DARKER than the
+       --card-colored column trough around it, with nothing but a 1px
+       border marking it out). Flipped so cards clearly float above
+       their column: bg (darkest) < card (column trough, secondary
+       buttons, inputs) < panel (header/folder frame AND the card
+       itself, lightest) - see .column vs .card below. */
+    --bg: #0b0c0e;
+    --panel: #303136;
+    --card: #26272c;
+    --border: #4a4c54;
     --text: #e8e8ea;
     --muted: #9a9ba3;
     --accent: #7c9eff;
