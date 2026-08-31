@@ -62,6 +62,32 @@
     filter: brightness(0.92);
     transform: scale(0.98);
   }
+  /* Twitch's own brand purple, not the app's accent blue - meant to stand
+     out from every other header button as "this one leaves the site."
+     is-live swaps in red + a pulsing dot, driven off liveStatus.obsRecording
+     (see renderLiveStatusBanner) - reuses the same realtime listener the
+     live-status banner already pays for, no extra Firestore reads. */
+  .btn-twitch {
+    background: #9146ff; color: #fff; border: none; border-radius: 6px;
+    padding: 7px 12px; font-size: 13px; font-weight: 600; cursor: pointer;
+    box-sizing: border-box; text-decoration: none;
+    display: inline-flex; align-items: center; gap: 6px;
+    transition: filter 0.1s ease, transform 0.05s ease, background 0.2s ease;
+  }
+  .btn-twitch:hover { filter: brightness(1.15); }
+  .btn-twitch:active { filter: brightness(0.92); transform: scale(0.98); }
+  .btn-twitch.is-live {
+    background: var(--danger);
+    animation: twitch-live-pulse 1.6s ease-in-out infinite;
+  }
+  .btn-twitch .live-dot {
+    display: none; width: 7px; height: 7px; border-radius: 50%; background: #fff;
+  }
+  .btn-twitch.is-live .live-dot { display: inline-block; }
+  @keyframes twitch-live-pulse {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(255, 107, 107, 0.5); }
+    50% { box-shadow: 0 0 0 5px rgba(255, 107, 107, 0); }
+  }
   .flag-btn:hover { border-color: var(--muted); }
 
   a.btn-upload { background: #1c4030; color: var(--good); border: 1px solid var(--good); }
@@ -503,8 +529,12 @@
   <header>
     <button class="secondary todo-nav-btn" onclick="toggleTodoPanel()">&#128203; To-Do Videos<span class="todo-nav-dot" id="todoNavDot" style="display: none;"></span></button>
     <button class="secondary shorts-nav-btn" onclick="toggleShortsPanel()">&#127916; Shorts</button>
-    <a class="secondary" href="https://twitch.tv/ghazzytv" target="_blank" rel="noopener">&#128250; Open Stream</a>
     <button onclick="toggleCreateFolderForm()">+ Create Folder</button>
+    <a class="btn-twitch" id="openStreamBtn" href="https://twitch.tv/ghazzytv" target="_blank" rel="noopener">
+      <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor" aria-hidden="true"><path d="M4.5 2 2 6.5v13h5.5V22l3-2.5h4L20.5 15V2H4.5Zm14.5 12-3 3h-4l-3 2.5V17H6V4h13v10Z"/><path d="M15.5 7h2v5h-2zM10 7h2v5h-2z"/></svg>
+      <span class="live-dot"></span>
+      <span id="openStreamLabel">Open Stream</span>
+    </a>
     <button class="secondary" id="toggleArchivedFoldersBtn" onclick="toggleArchivedFolders()">Show Archived Folders</button>
     <div class="spacer"></div>
     <span class="signed-in-as" id="signedInAs"></span>
@@ -1929,17 +1959,32 @@
 
     var liveStatus = null; // system/liveStatus's raw data, or null if the streaming PC has never reported in
 
+    // Only a proxy for "actually live on Twitch" - OBS recording locally
+    // doesn't guarantee the stream itself is up - but it's the only signal
+    // already flowing through system/liveStatus, so it's close enough
+    // without paying for a real Twitch-API integration/poll.
+    function updateOpenStreamBadge(isLive) {
+      var btn = document.getElementById('openStreamBtn');
+      var label = document.getElementById('openStreamLabel');
+      if (!btn || !label) return;
+      btn.classList.toggle('is-live', isLive);
+      label.textContent = isLive ? 'Live right now' : 'Open Stream';
+    }
+
     // A clip being open, a Shorts capture in progress, whether OBS is even
     // recording - none of this is visible off Ghazzy's own machine
     // otherwise. Re-rendered both on every real Firestore update (the
-    // streaming PC heartbeats every 15s - see index.js startLiveStatusLoop)
+    // streaming PC heartbeats every 60s - see index.js startLiveStatusLoop)
     // and every second locally, so the elapsed-time/countdown text ticks
-    // smoothly in between actual updates.
+    // smoothly in between actual updates. That local tick is free - it just
+    // re-reads the same already-subscribed liveStatus value, no extra
+    // Firestore traffic - which is also why the Twitch button's live badge
+    // above piggybacks on this instead of its own listener/poll.
     function renderLiveStatusBanner() {
       var el = document.getElementById('liveStatusBanner');
       if (!el) return;
       el.innerHTML = '';
-      if (!liveStatus) return; // never reported in yet - nothing to show
+      if (!liveStatus) { updateOpenStreamBadge(false); return; } // never reported in yet - nothing to show
 
       var heartbeatMs = liveStatus.heartbeatAt && liveStatus.heartbeatAt.toMillis ? liveStatus.heartbeatAt.toMillis() : 0;
       // Heartbeats every 60s (see index.js startLiveStatusLoop) - anything
@@ -1947,6 +1992,7 @@
       // has to stay ahead of the actual heartbeat interval or it flashes
       // "offline" every cycle right before the next beat lands.
       var isOnline = heartbeatMs && (Date.now() - heartbeatMs < 180000);
+      updateOpenStreamBadge(isOnline && Boolean(liveStatus.obsRecording));
 
       var bar = document.createElement('div');
       bar.className = 'live-status-bar';
