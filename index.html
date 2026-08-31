@@ -14,9 +14,9 @@
        buttons, inputs) < panel (header/folder frame AND the card
        itself, lightest) - see .column vs .card below. */
     --bg: #0b0c0e;
-    --panel: #303136;
-    --card: #26272c;
-    --border: #4a4c54;
+    --panel: #36383f;
+    --card: #1f2024;
+    --border: #62646e;
     --text: #e8e8ea;
     --muted: #9a9ba3;
     --accent: #7c9eff;
@@ -47,7 +47,7 @@
     background: var(--accent);
     color: #10131c;
     border: none;
-    border-radius: 6px;
+    border-radius: 3px;
     padding: 7px 12px;
     font-size: 13px;
     font-weight: 600;
@@ -77,7 +77,7 @@
      (see renderLiveStatusBanner) - reuses the same realtime listener the
      live-status banner already pays for, no extra Firestore reads. */
   .btn-twitch {
-    background: #9146ff; color: #fff; border: none; border-radius: 6px;
+    background: #9146ff; color: #fff; border: none; border-radius: 3px;
     padding: 7px 12px; font-size: 13px; font-weight: 600; cursor: pointer;
     box-sizing: border-box; text-decoration: none;
     display: inline-flex; align-items: center; gap: 6px;
@@ -131,10 +131,10 @@
 
   #createFolderForm { display: none; gap: 8px; padding: 10px 20px 0; }
   #createFolderForm.open { display: flex; }
-  #createFolderForm input { flex: 1; max-width: 320px; background: var(--card); border: 1px solid var(--border); color: var(--text); border-radius: 6px; padding: 7px 10px; }
+  #createFolderForm input { flex: 1; max-width: 320px; background: var(--card); border: 1px solid var(--border); color: var(--text); border-radius: 2px; padding: 7px 10px; }
 
   #foldersContainer { display: flex; flex-direction: column; gap: 10px; padding: 12px 20px 20px; }
-  .folder-section { background: var(--panel); border-radius: 10px; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2); transition: box-shadow 0.15s ease; }
+  .folder-section { background: var(--panel); border-radius: 5px; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2); transition: box-shadow 0.15s ease; }
   .folder-section.main { border: 1px solid var(--accent); box-shadow: 0 2px 12px rgba(124, 158, 255, 0.15); }
   .folder-header { display: flex; align-items: center; gap: 8px; padding: 10px 14px; flex-wrap: wrap; }
   .folder-section:not(.main) .folder-header:active { cursor: grabbing; }
@@ -146,15 +146,15 @@
   .folder-toggle { background: transparent; border: none; color: var(--muted); font-size: 13px; padding: 2px 4px; cursor: pointer; }
   .idea-desc-toggle {
     display: inline-flex; align-items: center; justify-content: center;
-    width: 18px; height: 18px; border-radius: 5px; flex-shrink: 0;
+    width: 18px; height: 18px; border-radius: 2px; flex-shrink: 0;
     background: var(--card); border: 1px solid var(--border);
     color: var(--muted); font-size: 11px; font-weight: 700; cursor: pointer;
   }
   .idea-desc-toggle.has-content { color: var(--accent); border-color: var(--accent); background: rgba(124, 158, 255, 0.14); }
   .idea-desc-toggle:hover { background: var(--accent); color: #10131c; border-color: var(--accent); }
   .folder-name { font-size: 14px; font-weight: 700; cursor: text; }
-  .folder-name-input { font-size: 14px; font-weight: 700; background: var(--card); border: 1px solid var(--border); border-radius: 4px; color: var(--text); padding: 2px 6px; }
-  .folder-badge { background: var(--accent); color: #10131c; font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 999px; letter-spacing: 0.03em; }
+  .folder-name-input { font-size: 14px; font-weight: 700; background: var(--card); border: 1px solid var(--border); border-radius: 2px; color: var(--text); padding: 2px 6px; }
+  .folder-badge { background: var(--accent); color: #10131c; font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 3px; letter-spacing: 0.03em; }
   .folder-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--danger); display: inline-block; flex-shrink: 0; }
   .folder-count { color: var(--muted); font-size: 12px; }
   .folder-actions { display: flex; gap: 6px; align-items: center; }
@@ -162,14 +162,14 @@
   .folder-body { padding: 0 14px 14px; }
 
   .board { display: flex; gap: 14px; align-items: flex-start; margin-bottom: 12px; }
-  .column { flex: 1; min-width: 240px; background: var(--card); border-radius: 10px; padding: 10px; }
+  .column { flex: 1; min-width: 240px; background: var(--card); border-radius: 5px; padding: 10px; }
   .column h2 { font-size: 13px; text-transform: uppercase; letter-spacing: 0.04em; color: var(--muted); margin: 4px 6px 10px; }
   .column .count { color: var(--muted); font-weight: 400; }
 
   .card {
     background: var(--panel);
-    border: 1px solid var(--border);
-    border-radius: 8px;
+    border: 2px solid var(--border);
+    border-radius: 4px;
     padding: 16px 14px;
     margin-bottom: 14px;
     position: relative;
@@ -207,7 +207,7 @@
   .card-attach-handle {
     position: absolute; top: 8px; right: 8px; z-index: 2;
     width: 30px; height: 30px; display: flex; align-items: center; justify-content: center;
-    border-radius: 6px; background: var(--card); border: 1px solid var(--border);
+    border-radius: 2px; background: var(--card); border: 1px solid var(--border);
     color: var(--muted); font-size: 17px; cursor: grab; touch-action: none;
   }
   .card-attach-handle:hover { color: var(--accent); border-color: var(--accent); background: rgba(124, 158, 255, 0.12); }
@@ -233,7 +233,7 @@
   .sub-video-drag-ghost {
     position: fixed; z-index: 1000; pointer-events: none;
     background: var(--accent); color: #10131c; font-weight: 700; font-size: 12px;
-    padding: 6px 10px; border-radius: 999px; box-shadow: 0 4px 14px rgba(0, 0, 0, 0.4);
+    padding: 6px 10px; border-radius: 3px; box-shadow: 0 4px 14px rgba(0, 0, 0, 0.4);
     max-width: 220px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
   }
   @keyframes armed-pulse {
@@ -277,7 +277,7 @@
   .card-children-list {
     display: flex; flex-direction: column; gap: 4px;
     margin: 0 0 8px; padding: 6px 8px; background: rgba(0, 0, 0, 0.18);
-    border-radius: 6px; border: 1px dashed var(--border);
+    border-radius: 2px; border: 1px dashed var(--border);
   }
   .card-child-row {
     display: flex; align-items: center; gap: 6px; font-size: 11px;
@@ -298,7 +298,7 @@
     width: 100%;
     padding: 2px 0;
   }
-  .card-title:focus { outline: 1px solid var(--accent); border-radius: 3px; }
+  .card-title:focus { outline: 1px solid var(--accent); border-radius: 2px; }
   .card-notes {
     width: 100%;
     background: transparent;
@@ -311,20 +311,20 @@
     padding: 2px 0;
     font-family: inherit;
   }
-  .card-notes:focus { outline: 1px solid var(--accent); border-radius: 3px; }
+  .card-notes:focus { outline: 1px solid var(--accent); border-radius: 2px; }
   .card-notes-view {
     color: var(--muted); font-size: 12px; padding: 2px 0; cursor: text;
     white-space: pre-wrap; word-break: break-word; min-height: 16px;
   }
   .card-notes-view a { color: var(--accent); }
   .card-notes-view.empty { font-style: italic; opacity: 0.7; }
-  .card-notes-view:hover { background: rgba(255, 255, 255, 0.05); border-radius: 4px; }
+  .card-notes-view:hover { background: rgba(255, 255, 255, 0.05); border-radius: 2px; }
   .card-meta { display: flex; align-items: center; gap: 8px; margin-top: 6px; font-size: 11px; color: var(--muted); }
   /* More noticeable than the rest of the meta row on purpose - "how
      recently did this land" is the one thing worth seeing at a glance
      without having to read anything else on the card. */
   .card-uploaded-at { color: var(--accent); font-weight: 700; cursor: help; }
-  .badge { padding: 1px 6px; border-radius: 999px; font-size: 10px; font-weight: 600; }
+  .badge { padding: 1px 6px; border-radius: 3px; font-size: 10px; font-weight: 600; }
   .badge.uploading { background: #4a3d1a; color: var(--warn); }
   .badge.uploaded { background: #1c4030; color: var(--good); }
   .badge.failed { background: #4a1c1c; color: var(--danger); }
@@ -335,13 +335,13 @@
   .flag-btn.active { background: var(--danger); color: #2a0a0a; border-color: var(--danger); }
   .move-folder-select {
     background: var(--card); color: var(--text); border: 1px solid var(--border);
-    border-radius: 6px; padding: 4px 6px; font-size: 11px; width: 100%; margin-top: 6px;
+    border-radius: 2px; padding: 4px 6px; font-size: 11px; width: 100%; margin-top: 6px;
   }
 
   .column-more { width: 100%; margin-top: 4px; }
 
   .card-actions a {
-    padding: 4px 8px; font-size: 11px; font-weight: 600; border-radius: 6px;
+    padding: 4px 8px; font-size: 11px; font-weight: 600; border-radius: 3px;
     text-decoration: none; display: inline-block;
   }
   .btn-view { background: var(--accent); color: #10131c; }
@@ -419,13 +419,13 @@
     content: attr(data-tooltip);
     position: absolute; left: 50%; bottom: 130%; transform: translateX(-50%);
     background: var(--card); border: 1px solid var(--border); color: var(--text);
-    padding: 6px 9px; border-radius: 6px; font-size: 11px; font-weight: 400;
+    padding: 6px 9px; border-radius: 2px; font-size: 11px; font-weight: 400;
     line-height: 1.4; white-space: normal; width: max-content; max-width: 260px;
     box-shadow: 0 4px 14px rgba(0, 0, 0, 0.35);
     opacity: 0; pointer-events: none; z-index: 20;
   }
   .info-tag:hover::after { opacity: 1; }
-  .config-row input.config-value { flex: 0 0 160px; background: var(--card); border: 1px solid var(--border); color: var(--text); border-radius: 6px; padding: 5px 8px; font-size: 13px; }
+  .config-row input.config-value { flex: 0 0 160px; background: var(--card); border: 1px solid var(--border); color: var(--text); border-radius: 2px; padding: 5px 8px; font-size: 13px; }
   .config-save-btn { padding: 5px 10px; font-size: 12px; }
 
   .disk-cleanup-status {
@@ -433,17 +433,17 @@
     font-size: 12px; color: var(--muted);
   }
   .disk-cleanup-status h3 { font-size: 12px; color: var(--text); margin: 0 0 8px; font-weight: 600; }
-  .disk-cleanup-status .badge { font-size: 10px; padding: 1px 6px; border-radius: 999px; font-weight: 600; margin-left: 6px; }
+  .disk-cleanup-status .badge { font-size: 10px; padding: 1px 6px; border-radius: 3px; font-weight: 600; margin-left: 6px; }
   .disk-cleanup-status .badge.dry-run { background: #4a3d1a; color: var(--warn); }
   .disk-cleanup-status .badge.real { background: #1c4030; color: var(--good); }
   .disk-cleanup-status .badge.alert { background: #4a1c1c; color: var(--danger); }
-  .disk-cleanup-file-list { max-height: 140px; overflow-y: auto; margin-top: 6px; border: 1px solid var(--border); border-radius: 6px; }
+  .disk-cleanup-file-list { max-height: 140px; overflow-y: auto; margin-top: 6px; border: 1px solid var(--border); border-radius: 2px; }
   .disk-cleanup-file-row { display: flex; justify-content: space-between; gap: 10px; padding: 4px 8px; font-size: 11px; border-bottom: 1px solid var(--border); }
   .disk-cleanup-file-row:last-child { border-bottom: none; }
   .disk-cleanup-file-row .path { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .disk-cleanup-blocked {
     background: #4a1c1c; border: 1px solid var(--danger); color: #ffb4b4;
-    border-radius: 6px; padding: 8px 10px; margin-bottom: 8px; font-size: 12px; line-height: 1.5;
+    border-radius: 2px; padding: 8px 10px; margin-bottom: 8px; font-size: 12px; line-height: 1.5;
   }
   .disk-cleanup-blocked strong { color: var(--danger); }
   .disk-cleanup-browse { margin-top: 10px; }
@@ -452,7 +452,7 @@
   .disk-cleanup-browse-note { font-size: 11px; color: var(--muted); margin: 6px 0; }
   .disk-cleanup-browse .disk-cleanup-file-list { max-height: 220px; }
 
-  .app-log-list { max-height: 260px; overflow-y: auto; border: 1px solid var(--border); border-radius: 6px; margin-top: 6px; }
+  .app-log-list { max-height: 260px; overflow-y: auto; border: 1px solid var(--border); border-radius: 2px; margin-top: 6px; }
   .app-log-entry { padding: 6px 8px; border-bottom: 1px solid var(--border); font-size: 11px; }
   .app-log-entry:last-child { border-bottom: none; }
   .app-log-entry-time { color: var(--muted); margin-bottom: 2px; }
@@ -466,11 +466,11 @@
 
   .add-form { display: none; gap: 8px; margin: 8px 0; }
   .add-form.open { display: flex; }
-  .add-form input { flex: 1; background: var(--card); border: 1px solid var(--border); color: var(--text); border-radius: 6px; padding: 7px 10px; }
+  .add-form input { flex: 1; background: var(--card); border: 1px solid var(--border); color: var(--text); border-radius: 2px; padding: 7px 10px; }
   .ideas-list { display: flex; flex-direction: column; gap: 6px; }
   .idea-row {
     display: flex; flex-direction: column; gap: 3px;
-    padding: 6px 8px 6px 20px; border-radius: 6px; position: relative;
+    padding: 6px 8px 6px 20px; border-radius: 2px; position: relative;
     background: transparent; border: 1px dashed var(--border);
   }
   .idea-row.do-fast { border: 1px solid var(--danger); }
@@ -485,7 +485,7 @@
     flex: 1; background: transparent; border: none; color: var(--text);
     font-size: 14px; font-weight: 600; padding: 2px 0;
   }
-  .idea-row input.idea-title:focus { outline: 1px solid var(--accent); border-radius: 3px; }
+  .idea-row input.idea-title:focus { outline: 1px solid var(--accent); border-radius: 2px; }
   .idea-notes-view {
     color: var(--muted); font-size: 12px; padding: 2px 0; cursor: text;
     white-space: pre-wrap; word-break: break-word; min-height: 16px;
@@ -497,23 +497,23 @@
     font-size: 12px; resize: vertical; min-height: 26px; padding: 2px 0;
     font-family: inherit;
   }
-  .idea-notes-edit:focus { outline: 1px solid var(--accent); border-radius: 3px; }
+  .idea-notes-edit:focus { outline: 1px solid var(--accent); border-radius: 2px; }
   .idea-row-actions { display: flex; gap: 4px; justify-content: flex-end; }
   .idea-row-actions button { padding: 3px 8px; font-size: 11px; }
   .idea-row-empty { color: var(--muted); font-size: 12px; font-style: italic; padding: 4px 10px; }
 
   .archived-panel { margin-top: 8px; }
-  .archived-row { display: flex; justify-content: space-between; align-items: center; padding: 6px 10px; background: var(--card); border-radius: 6px; margin-bottom: 4px; font-size: 13px; }
+  .archived-row { display: flex; justify-content: space-between; align-items: center; padding: 6px 10px; background: var(--card); border-radius: 2px; margin-bottom: 4px; font-size: 13px; }
 
   .card.needs-label { border-color: var(--warn); }
   .needs-label-badge {
     display: inline-block; background: #4a3d1a; color: var(--warn);
-    font-size: 10px; font-weight: 600; padding: 2px 6px; border-radius: 999px;
+    font-size: 10px; font-weight: 600; padding: 2px 6px; border-radius: 3px;
     margin-bottom: 6px;
   }
   .link-idea-select {
     width: 100%; margin-top: 6px; background: var(--card); color: var(--text);
-    border: 1px solid var(--border); border-radius: 6px; padding: 5px; font-size: 12px;
+    border: 1px solid var(--border); border-radius: 2px; padding: 5px; font-size: 12px;
   }
 
   #authGate {
@@ -527,7 +527,7 @@
   .google-signin-btn {
     display: inline-flex; align-items: center; gap: 10px;
     background: #fff; color: #1f1f1f; border: 1px solid var(--border);
-    border-radius: 6px; padding: 10px 18px; font-size: 14px; font-weight: 600;
+    border-radius: 2px; padding: 10px 18px; font-size: 14px; font-weight: 600;
   }
   #appRoot { display: none; }
   #appRoot.show { display: block; }
