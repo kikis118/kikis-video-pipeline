@@ -30,6 +30,7 @@
     padding: 14px 20px;
     border-bottom: 1px solid var(--border);
     background: var(--panel);
+    position: relative;
   }
   header h1 { font-size: 16px; margin: 0 8px 0 0; }
   header button, header a { white-space: nowrap; }
@@ -73,9 +74,16 @@
     box-sizing: border-box; text-decoration: none;
     display: inline-flex; align-items: center; gap: 6px;
     transition: filter 0.1s ease, transform 0.05s ease, background 0.2s ease;
+    /* Pulled out of the normal flex row and pinned to the header's true
+       horizontal midpoint - two equal flex spacers would only land it in
+       the middle of the *gap* between the left and right button clusters,
+       which isn't the same point unless those clusters happen to be the
+       same width. This is dead center of the bar itself, always. */
+    position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%);
+    z-index: 4;
   }
   .btn-twitch:hover { filter: brightness(1.15); }
-  .btn-twitch:active { filter: brightness(0.92); transform: scale(0.98); }
+  .btn-twitch:active { filter: brightness(0.92); transform: translate(-50%, -50%) scale(0.98); }
   .btn-twitch.is-live {
     background: var(--danger);
     animation: twitch-live-pulse 1.6s ease-in-out infinite;
