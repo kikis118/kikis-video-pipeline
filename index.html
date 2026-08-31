@@ -45,6 +45,7 @@
     cursor: pointer;
     box-sizing: border-box;
     display: inline-block;
+    text-decoration: none;
   }
   button.secondary, a.secondary { background: var(--card); color: var(--text); border: 1px solid var(--border); }
   button.danger { background: var(--danger); color: #2a0a0a; }
@@ -169,16 +170,19 @@
   }
   .card-attach-handle:hover { color: var(--accent); border-color: var(--accent); background: rgba(124, 158, 255, 0.12); }
   .card-attach-handle:active { cursor: grabbing; }
-  /* "New, haven't looked at this yet" marker - top-left corner (top-right
-     is already the attach handle). Pulses to read as "fresh off the
-     stove" per the request that prompted it; click it (or View/Download,
-     see renderCard) to dismiss. */
+  /* "New, haven't looked at this yet" marker - sits right on the top-left
+     corner, half-overlapping the card edge like a notification badge
+     (top-right is already the attach handle). Pulses to read as "fresh
+     off the stove" per the request that prompted it; dismissed by
+     clicking it, hovering it, dragging the card, or clicking
+     View/Download (see renderCard). */
   .card-fresh-dot {
-    position: absolute; top: 10px; left: 10px; z-index: 2;
-    width: 12px; height: 12px; border-radius: 50%;
-    background: var(--danger); box-shadow: 0 0 0 2px var(--card);
+    position: absolute; top: -5px; left: -5px; z-index: 3;
+    width: 11px; height: 11px; border-radius: 50%;
+    background: var(--good); box-shadow: 0 0 0 2px var(--panel);
     cursor: pointer; animation: fresh-dot-pulse 1.6s ease-in-out infinite;
   }
+  .card-fresh-dot:hover { animation: none; opacity: 0; }
   @keyframes fresh-dot-pulse {
     0%, 100% { opacity: 1; transform: scale(1); }
     50% { opacity: 0.55; transform: scale(1.15); }
@@ -499,6 +503,7 @@
   <header>
     <button class="secondary todo-nav-btn" onclick="toggleTodoPanel()">&#128203; To-Do Videos<span class="todo-nav-dot" id="todoNavDot" style="display: none;"></span></button>
     <button class="secondary shorts-nav-btn" onclick="toggleShortsPanel()">&#127916; Shorts</button>
+    <a class="secondary" href="https://twitch.tv/ghazzytv" target="_blank" rel="noopener">&#128250; Open Stream</a>
     <button onclick="toggleCreateFolderForm()">+ Create Folder</button>
     <button class="secondary" id="toggleArchivedFoldersBtn" onclick="toggleArchivedFolders()">Show Archived Folders</button>
     <div class="spacer"></div>
@@ -633,11 +638,16 @@
     function isFreshAndUnseen(row) {
       return Boolean(row.uploadedAtMs) && (Date.now() - row.uploadedAtMs < FRESH_WINDOW_MS) && !seenCardIds[row.id];
     }
-    function markCardSeen(id) {
+    // skipRerender: used from the card-drag onStart handler below, where a
+    // full renderFolders() mid-drag would rebuild the DOM out from under
+    // SortableJS and break the drag in progress - the dot is removed
+    // directly there instead, and the next normal re-render just won't
+    // recreate it.
+    function markCardSeen(id, skipRerender) {
       if (seenCardIds[id]) return;
       seenCardIds[id] = true;
       try { localStorage.setItem(SEEN_CARDS_KEY, JSON.stringify(seenCardIds)); } catch (e) {}
-      renderFolders();
+      if (!skipRerender) renderFolders();
     }
 
     function onError(err) {
@@ -1029,6 +1039,17 @@
             // never got one when cards started being draggable.
             filter: 'input, textarea, button, a, select, .card-notes-view, .card-children-toggle, .card-attach-handle',
             preventOnFilter: false,
+            // Dragging a card at all counts as "seen" it - remove the dot's
+            // DOM node directly (skipRerender:true) rather than going
+            // through the normal renderFolders() path, which would tear
+            // down the very element Sortable is mid-drag on.
+            onStart: function (evt) {
+              var cardId = evt.item.dataset.cardId;
+              if (!cardId) return;
+              markCardSeen(cardId, true);
+              var dot = evt.item.querySelector('.card-fresh-dot');
+              if (dot) dot.remove();
+            },
             onEnd: function (evt) {
               var cardId = evt.item.dataset.cardId;
               if (!cardId) return;
@@ -1508,14 +1529,16 @@
       card.dataset.cardId = row.id;
 
       // Freshly-uploaded-and-not-yet-looked-at flag - top-left corner
-      // (attach handle already owns top-right). Click it to dismiss
-      // directly; View/Download below also dismiss it as a side effect of
-      // actually engaging with the clip.
+      // (attach handle already owns top-right). Dismissed by clicking or
+      // even just hovering it, by dragging the card at all (see the
+      // cardSortable onStart below), or via View/Download further down -
+      // any of those counts as "actually looked at this."
       if (isFreshAndUnseen(row)) {
         var freshDot = document.createElement('span');
         freshDot.className = 'card-fresh-dot';
-        freshDot.title = 'New upload - click to mark as seen';
+        freshDot.title = 'New upload';
         freshDot.onclick = function (e) { e.stopPropagation(); markCardSeen(row.id); };
+        freshDot.onmouseenter = function () { markCardSeen(row.id); };
         card.appendChild(freshDot);
       }
 
