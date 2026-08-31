@@ -169,6 +169,20 @@
   }
   .card-attach-handle:hover { color: var(--accent); border-color: var(--accent); background: rgba(124, 158, 255, 0.12); }
   .card-attach-handle:active { cursor: grabbing; }
+  /* "New, haven't looked at this yet" marker - top-left corner (top-right
+     is already the attach handle). Pulses to read as "fresh off the
+     stove" per the request that prompted it; click it (or View/Download,
+     see renderCard) to dismiss. */
+  .card-fresh-dot {
+    position: absolute; top: 10px; left: 10px; z-index: 2;
+    width: 12px; height: 12px; border-radius: 50%;
+    background: var(--danger); box-shadow: 0 0 0 2px var(--card);
+    cursor: pointer; animation: fresh-dot-pulse 1.6s ease-in-out infinite;
+  }
+  @keyframes fresh-dot-pulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.55; transform: scale(1.15); }
+  }
   .card.sub-video-drag-source { opacity: 0.4; }
   .sub-video-drag-ghost {
     position: fixed; z-index: 1000; pointer-events: none;
@@ -604,6 +618,26 @@
     function markTodosSeen(todoRows) {
       todoRows.forEach(function (r) { seenTodoIds[r.id] = true; });
       try { localStorage.setItem(SEEN_TODOS_KEY, JSON.stringify(seenTodoIds)); } catch (e) {}
+    }
+
+    // Same idea as seenTodoIds above, but for individual clip/Shorts cards -
+    // a small dot flags anything freshly uploaded that hasn't been looked
+    // at yet (see renderCard's freshDot). Two independent ways it goes
+    // away: explicit dismissal (click the dot, or View/Download), or just
+    // naturally aging out of FRESH_WINDOW_MS - nothing stays flagged
+    // forever just because it was never clicked.
+    var FRESH_WINDOW_MS = 14 * 3600 * 1000; // 14h - "12-16 hours" requested, splitting the difference
+    var SEEN_CARDS_KEY = 'ghazzy_seen_card_ids_v1';
+    var seenCardIds = {};
+    try { seenCardIds = JSON.parse(localStorage.getItem(SEEN_CARDS_KEY) || '{}'); } catch (e) { seenCardIds = {}; }
+    function isFreshAndUnseen(row) {
+      return Boolean(row.uploadedAtMs) && (Date.now() - row.uploadedAtMs < FRESH_WINDOW_MS) && !seenCardIds[row.id];
+    }
+    function markCardSeen(id) {
+      if (seenCardIds[id]) return;
+      seenCardIds[id] = true;
+      try { localStorage.setItem(SEEN_CARDS_KEY, JSON.stringify(seenCardIds)); } catch (e) {}
+      renderFolders();
     }
 
     function onError(err) {
@@ -1473,6 +1507,18 @@
       card.className = 'card' + (row.doFast ? ' do-fast' : '') + (unlabeled ? ' needs-label' : '') + (row.workingOnIt ? ' working-on-it' : '') + (row.status === 'Recording' ? ' recording' : '');
       card.dataset.cardId = row.id;
 
+      // Freshly-uploaded-and-not-yet-looked-at flag - top-left corner
+      // (attach handle already owns top-right). Click it to dismiss
+      // directly; View/Download below also dismiss it as a side effect of
+      // actually engaging with the clip.
+      if (isFreshAndUnseen(row)) {
+        var freshDot = document.createElement('span');
+        freshDot.className = 'card-fresh-dot';
+        freshDot.title = 'New upload - click to mark as seen';
+        freshDot.onclick = function (e) { e.stopPropagation(); markCardSeen(row.id); };
+        card.appendChild(freshDot);
+      }
+
       var attachHandle = document.createElement('span');
       attachHandle.className = 'card-attach-handle';
       attachHandle.title = 'Drag onto another clip to attach as a sub-video';
@@ -1589,8 +1635,15 @@
         var uploadedAt = document.createElement('span');
         uploadedAt.className = 'card-uploaded-at';
         uploadedAt.textContent = 'Uploaded ' + formatRelativeTime(row.uploadedAtMs);
-        uploadedAt.title = formatLocalTime(row.uploadedAtMs); // exact date/time on hover
         meta.appendChild(uploadedAt);
+
+        // Exact date right alongside it, plain/grey like the rest of the
+        // row - the relative text above is the "at a glance" one, this is
+        // for when the precise date actually matters, without needing to
+        // hover for it.
+        var uploadedAtExact = document.createElement('span');
+        uploadedAtExact.textContent = '(' + formatLocalTime(row.uploadedAtMs) + ')';
+        meta.appendChild(uploadedAtExact);
       }
       card.appendChild(meta);
 
@@ -1611,6 +1664,7 @@
         viewLink.target = '_blank';
         viewLink.rel = 'noopener';
         viewLink.textContent = '▶ View';
+        viewLink.onclick = function () { markCardSeen(row.id); };
         left.appendChild(viewLink);
 
         var downloadLink = document.createElement('a');
@@ -1619,6 +1673,7 @@
         downloadLink.target = '_blank';
         downloadLink.rel = 'noopener';
         downloadLink.textContent = '⬇ Download';
+        downloadLink.onclick = function () { markCardSeen(row.id); };
         left.appendChild(downloadLink);
       }
 
