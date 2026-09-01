@@ -328,6 +328,13 @@
   .badge.uploading { background: #4a3d1a; color: var(--warn); }
   .badge.uploaded { background: #1c4030; color: var(--good); }
   .badge.failed { background: #4a1c1c; color: var(--danger); }
+  /* Shown right on the card, not hover-only (feedback, 2026-09-01 - a
+     tooltip was easy to miss and annoying to have to go find). */
+  .card-failure-reason {
+    margin-top: 6px; padding: 6px 8px; border-radius: 3px;
+    background: #2a1414; border: 1px solid #4a1c1c; color: #ff9a9a;
+    font-size: 12px; line-height: 1.4; word-break: break-word;
+  }
   .card-actions { display: flex; justify-content: space-between; align-items: center; gap: 6px; margin-top: 8px; flex-wrap: wrap; }
   .card-actions button { padding: 4px 8px; font-size: 11px; }
   .actions-left, .actions-right { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
@@ -1684,10 +1691,6 @@
         var uploadBadge = document.createElement('span');
         uploadBadge.className = 'badge ' + row.upload.toLowerCase();
         uploadBadge.textContent = row.upload;
-        if (row.upload === 'Failed' && row.failureReason) {
-          uploadBadge.title = row.failureReason;
-          uploadBadge.style.cursor = 'help';
-        }
         meta.appendChild(uploadBadge);
       }
       if (row.filename) {
@@ -1715,6 +1718,16 @@
         meta.appendChild(uploadedAtExact);
       }
       card.appendChild(meta);
+
+      // Shown directly on the card, not just as a hover tooltip on the
+      // badge - a hover-only reason was easy to miss and annoying to have
+      // to go find on purpose (feedback, 2026-09-01).
+      if (row.upload === 'Failed' && row.failureReason) {
+        var failureReasonEl = document.createElement('div');
+        failureReasonEl.className = 'card-failure-reason';
+        failureReasonEl.textContent = row.failureReason;
+        card.appendChild(failureReasonEl);
+      }
 
       var actions = document.createElement('div');
       actions.className = 'card-actions';
