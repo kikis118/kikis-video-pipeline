@@ -393,6 +393,38 @@
   }
   .badge.pending { background: #4a3d1a; color: var(--warn); }
 
+  /* Read-only status view for the separate 24/7 rerun-channel project
+     (ghazzy-247-rerun) - same toggle-panel pattern as Shorts/Todo above,
+     fed by system/rerunStatus (see webapp/SETUP.md). Nothing here writes
+     back to Firestore - no remote controls, just a status view, since
+     that's all this was actually asked for. */
+  #rerunPanel { display: none; padding: 12px 20px; background: var(--panel); border-bottom: 1px solid var(--border); }
+  #rerunPanel.open { display: block; }
+  #rerunPanel h2 { font-size: 13px; color: var(--muted); margin: 0 0 10px; font-weight: 600; }
+  button.secondary.rerun-nav-btn {
+    background: #1a3a3a; color: #7fd9d9; border: 1px solid #2d5a5a;
+  }
+  .rerun-status-grid {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 10px;
+  }
+  .rerun-stat {
+    background: var(--card); border: 1px solid var(--border); border-radius: 4px;
+    padding: 10px 12px;
+  }
+  .rerun-stat .rerun-stat-label { font-size: 11px; color: var(--muted); margin-bottom: 4px; }
+  .rerun-stat .rerun-stat-value { font-size: 15px; font-weight: 600; color: var(--text); }
+  .rerun-state-badge {
+    display: inline-block; padding: 2px 8px; border-radius: 3px; font-size: 12px; font-weight: 600;
+  }
+  .rerun-state-badge.LOOPING { background: #1a3a2a; color: #7fd99a; }
+  .rerun-state-badge.COUNTDOWN { background: #4a3d1a; color: var(--warn); }
+  .rerun-state-badge.OFFLINE_WAIT { background: #3a2249; color: #c9a3ff; }
+  .rerun-cache-bar {
+    height: 6px; border-radius: 3px; background: var(--border); overflow: hidden; margin-top: 6px;
+  }
+  .rerun-cache-bar-fill { height: 100%; background: var(--accent); }
+
   /* Real-time strip, always at the top when there's anything worth
      showing (hidden entirely if the streaming PC has never reported in
      at all - see renderLiveStatusBanner). Deliberately outside both the
@@ -552,6 +584,7 @@
   <header>
     <button class="secondary todo-nav-btn" onclick="toggleTodoPanel()">&#128203; To-Do Videos<span class="todo-nav-dot" id="todoNavDot" style="display: none;"></span></button>
     <button class="secondary shorts-nav-btn" onclick="toggleShortsPanel()">&#127916; Shorts</button>
+    <button class="secondary rerun-nav-btn" id="rerunNavBtn" onclick="toggleRerunPanel()" style="display: none;">&#128225; Rerun Status</button>
     <button onclick="toggleCreateFolderForm()">+ Create Folder</button>
     <a class="btn-twitch" id="openStreamBtn" href="https://twitch.tv/ghazzytv" target="_blank" rel="noopener">
       <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor" aria-hidden="true"><path d="M4.5 2 2 6.5v13h5.5V22l3-2.5h4L20.5 15V2H4.5Zm14.5 12-3 3h-4l-3 2.5V17H6V4h13v10Z"/><path d="M15.5 7h2v5h-2zM10 7h2v5h-2z"/></svg>
@@ -575,6 +608,11 @@
   <div id="shortsPanel">
     <h2>Shorts</h2>
     <div id="shortsPanelBody"></div>
+  </div>
+
+  <div id="rerunPanel">
+    <h2>24/7 Rerun Channel <span class="idea-notes">(read-only - reported by the rerun-channel PC, separate from the main streaming PC above)</span></h2>
+    <div id="rerunPanelBody"></div>
   </div>
 
   <div id="configPanel">
@@ -1987,6 +2025,7 @@
     // ---------- live status ----------
 
     var liveStatus = null; // system/liveStatus's raw data, or null if the streaming PC has never reported in
+    var rerunStatus = null; // system/rerunStatus's raw data, or null if the rerun-channel PC has never reported in
 
     // Only a proxy for "actually live on Twitch" - OBS recording locally
     // doesn't guarantee the stream itself is up - but it's the only signal
@@ -2081,6 +2120,90 @@
       }
 
       el.appendChild(bar);
+    }
+
+    function toggleRerunPanel() {
+      document.getElementById('rerunPanel').classList.toggle('open');
+    }
+
+    // Read-only mirror of the ghazzy-247-rerun orchestrator's own state -
+    // see that project's WORKFLOW.md for what LOOPING/COUNTDOWN/OFFLINE_WAIT
+    // actually mean. No remote controls here, deliberately - just visibility
+    // for whoever's on the go and can't get to remote access right now.
+    function renderRerunPanel() {
+      var body = document.getElementById('rerunPanelBody');
+      if (!body) return;
+      body.innerHTML = '';
+
+      if (!rerunStatus) {
+        var empty = document.createElement('div');
+        empty.className = 'idea-row-empty';
+        empty.textContent = 'The rerun-channel PC has never reported in yet.';
+        body.appendChild(empty);
+        return;
+      }
+
+      var heartbeatMs = rerunStatus.heartbeatAt && rerunStatus.heartbeatAt.toMillis ? rerunStatus.heartbeatAt.toMillis() : 0;
+      // Default heartbeat is every 30s (STATUS_HEARTBEAT_SECONDS in that
+      // project's .env) - 3x that, same margin-of-safety convention as the
+      // main live-status banner above.
+      var isOnline = heartbeatMs && (Date.now() - heartbeatMs < 90000);
+
+      if (!isOnline) {
+        var offline = document.createElement('div');
+        offline.className = 'live-status-item offline';
+        offline.textContent = '⚠ Rerun-channel PC appears offline' + (heartbeatMs ? ' (last seen ' + formatLocalTime(heartbeatMs) + ')' : ' (never reported in)');
+        body.appendChild(offline);
+        return;
+      }
+
+      var grid = document.createElement('div');
+      grid.className = 'rerun-status-grid';
+
+      function stat(label, valueHtml) {
+        var box = document.createElement('div');
+        box.className = 'rerun-stat';
+        var lab = document.createElement('div');
+        lab.className = 'rerun-stat-label';
+        lab.textContent = label;
+        var val = document.createElement('div');
+        val.className = 'rerun-stat-value';
+        val.innerHTML = valueHtml;
+        box.appendChild(lab);
+        box.appendChild(val);
+        return box;
+      }
+
+      var stateLabel = { LOOPING: 'Looping', COUNTDOWN: 'Raiding soon', OFFLINE_WAIT: 'Live - waiting to resume' };
+      grid.appendChild(stat('State', '<span class="rerun-state-badge ' + escapeHtml(rerunStatus.state || '') + '">' + escapeHtml(stateLabel[rerunStatus.state] || rerunStatus.state || 'Unknown') + '</span>'));
+      grid.appendChild(stat('Rerun OBS', rerunStatus.obsConnected ? (rerunStatus.isStreaming ? '🔴 Streaming' : 'Connected, not streaming') : '⚠ Disconnected'));
+      grid.appendChild(stat('Current scene', escapeHtml(rerunStatus.currentScene || '—')));
+
+      if (rerunStatus.state === 'COUNTDOWN') {
+        var endsMs = rerunStatus.countdownEndsAt && rerunStatus.countdownEndsAt.toMillis ? rerunStatus.countdownEndsAt.toMillis() : null;
+        var remaining = endsMs ? Math.max(0, endsMs - Date.now()) : null;
+        grid.appendChild(stat('Raiding in', remaining !== null ? formatDuration(remaining) : '—'));
+      }
+
+      var lastRaidMs = rerunStatus.lastRaidAt && rerunStatus.lastRaidAt.toMillis ? rerunStatus.lastRaidAt.toMillis() : null;
+      grid.appendChild(stat('Last raid', lastRaidMs ? formatLocalTime(lastRaidMs) : 'Never yet'));
+
+      if (typeof rerunStatus.cacheUsedBytes === 'number' && typeof rerunStatus.cacheBudgetBytes === 'number' && rerunStatus.cacheBudgetBytes > 0) {
+        var usedGb = (rerunStatus.cacheUsedBytes / 1024 ** 3).toFixed(1);
+        var budgetGb = (rerunStatus.cacheBudgetBytes / 1024 ** 3).toFixed(0);
+        var pct = Math.min(100, (rerunStatus.cacheUsedBytes / rerunStatus.cacheBudgetBytes) * 100);
+        var cacheBox = stat('VOD cache', usedGb + 'GB / ' + budgetGb + 'GB');
+        var barOuter = document.createElement('div');
+        barOuter.className = 'rerun-cache-bar';
+        var barFill = document.createElement('div');
+        barFill.className = 'rerun-cache-bar-fill';
+        barFill.style.width = pct + '%';
+        barOuter.appendChild(barFill);
+        cacheBox.appendChild(barOuter);
+        grid.appendChild(cacheBox);
+      }
+
+      body.appendChild(grid);
     }
 
     function linkify(text) {
@@ -2596,10 +2719,21 @@
         renderLiveStatusBanner();
       }, onError);
 
+      // Separate doc, separate PC (the 24/7 rerun-channel project, not
+      // this main streaming PC) - see webapp/SETUP.md's system/rerunStatus
+      // rule. The nav button stays hidden until this has reported in at
+      // least once, same "don't show a permanently-broken button before
+      // it's ever been deployed" reasoning as the main live-status banner.
+      onSnapshot(doc(db, 'system', 'rerunStatus'), function (snap) {
+        rerunStatus = snap.exists() ? snap.data() : null;
+        document.getElementById('rerunNavBtn').style.display = rerunStatus ? '' : 'none';
+        renderRerunPanel();
+      }, onError);
+
       // Local tick, independent of Firestore - keeps the elapsed-time/
       // countdown text moving smoothly in between the streaming PC's real
       // 15s heartbeats instead of jumping in 15s steps.
-      setInterval(renderLiveStatusBanner, 1000);
+      setInterval(function () { renderLiveStatusBanner(); renderRerunPanel(); }, 1000);
     }
 
     // Module scripts don't expose top-level functions on window, but the
@@ -2608,6 +2742,7 @@
     window.toggleConfig = toggleConfig;
     window.toggleTodoPanel = toggleTodoPanel;
     window.toggleShortsPanel = toggleShortsPanel;
+    window.toggleRerunPanel = toggleRerunPanel;
     window.toggleArchivedFolders = toggleArchivedFolders;
     window.toggleCreateFolderForm = toggleCreateFolderForm;
     window.submitCreateFolder = submitCreateFolder;
