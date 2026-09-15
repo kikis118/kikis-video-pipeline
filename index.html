@@ -2056,6 +2056,7 @@
 
     var liveStatus = null; // system/liveStatus's raw data, or null if the streaming PC has never reported in
     var rerunStatus = null; // system/rerunStatus's raw data, or null if the rerun-channel PC has never reported in
+    var rerunConfig = {}; // system/rerunConfig's raw data (webapp-editable ad-break settings) - {} until this webapp (or the rerun PC's own .env fallback) has ever saved anything
 
     // Only a proxy for "actually live on Twitch" - OBS recording locally
     // doesn't guarantee the stream itself is up - but it's the only signal
@@ -2246,7 +2247,131 @@
         grid.appendChild(cacheBox);
       }
 
+      if (rerunStatus.obsWatchdog) {
+        var wd = rerunStatus.obsWatchdog;
+        var wdParts = [];
+        if (wd.relaunchCount) wdParts.push('relaunched OBS ' + wd.relaunchCount + 'x');
+        if (wd.streamRestartCount) wdParts.push('restarted stream ' + wd.streamRestartCount + 'x');
+        var wdText = wdParts.length ? wdParts.join(', ') : 'No issues detected';
+        var wdMostRecentMs = [wd.lastRelaunchAttemptAt, wd.lastStreamRestartAt]
+          .map(function (t) { return t && t.toMillis ? t.toMillis() : 0; })
+          .reduce(function (a, b) { return Math.max(a, b); }, 0);
+        if (wdMostRecentMs) wdText += ' (last ' + formatLocalTime(wdMostRecentMs) + ')';
+        grid.appendChild(stat('OBS watchdog', wdText));
+      }
+
+      if (rerunStatus.adBreak) {
+        var ab = rerunStatus.adBreak;
+        var abText;
+        if (!ab.enabled) {
+          abText = 'Disabled';
+        } else if (ab.lastResult && ab.lastResult.ok) {
+          abText = '✅ Last: ' + ab.lastResult.length + 's ok';
+        } else if (ab.lastResult && !ab.lastResult.ok) {
+          abText = '⚠ Last attempt failed';
+        } else {
+          abText = 'Enabled, none run yet';
+        }
+        var abBox = stat('Ad breaks', abText);
+        if (ab.enabled && ab.lastResult && !ab.lastResult.ok) {
+          var abErr = document.createElement('div');
+          abErr.style.cssText = 'font-size:11px;color:var(--muted);margin-top:3px;';
+          abErr.textContent = ab.lastResult.error || '';
+          abBox.appendChild(abErr);
+        }
+        grid.appendChild(abBox);
+      }
+
       body.appendChild(grid);
+      body.appendChild(renderRerunConfig());
+    }
+
+    // Editable ad-break settings - writes to system/rerunConfig, which the
+    // rerun-channel PC only ever reads (system/rerunStatus above is the
+    // reverse: that PC only ever writes it, this webapp only ever reads
+    // it). Same explicit-Save-button-only-when-changed + confirm pattern
+    // as the main Config panel's renderConfig() - see CLAUDE.md's note on
+    // why every save gets a confirm, not just the scary ones.
+    function renderRerunConfig() {
+      var wrap = document.createElement('div');
+      wrap.style.cssText = 'margin-top:14px;border-top:1px solid var(--border);padding-top:10px;';
+
+      var heading = document.createElement('h3');
+      heading.style.cssText = 'font-size:12px;color:var(--text);margin:0 0 8px;font-weight:600;';
+      heading.textContent = 'Ad break settings';
+      wrap.appendChild(heading);
+
+      var note = document.createElement('p');
+      note.style.cssText = 'font-size:11px;color:var(--muted);margin:0 0 10px;line-height:1.5;max-width:480px;';
+      note.textContent = 'Requires the rerun channel to be Twitch Partner/Affiliate - Twitch itself rejects the request otherwise (see "Ad breaks" above for the last result). Changes apply within a few minutes.';
+      wrap.appendChild(note);
+
+      function configField(key, label, currentValue, parseFn) {
+        var row = document.createElement('div');
+        row.className = 'config-row';
+
+        var keyEl = document.createElement('span');
+        keyEl.className = 'config-key';
+        keyEl.textContent = label;
+        row.appendChild(keyEl);
+
+        var input = document.createElement('input');
+        input.className = 'config-value';
+        input.value = currentValue;
+        row.appendChild(input);
+
+        var saveBtn = document.createElement('button');
+        saveBtn.className = 'secondary config-save-btn';
+        saveBtn.textContent = 'Save';
+        saveBtn.style.display = 'none';
+        function refresh() { saveBtn.style.display = (input.value === String(currentValue)) ? 'none' : 'inline-block'; }
+        input.addEventListener('input', refresh);
+        saveBtn.addEventListener('click', function () {
+          var parsed = parseFn(input.value);
+          if (parsed === null) { alert('Enter a valid number for ' + label + '.'); return; }
+          if (!confirm('Save ' + label + ' = ' + parsed + '? Applies on the rerun-channel PC within a few minutes.')) return;
+          var patch = {};
+          patch[key] = parsed;
+          setDoc(doc(db, 'system', 'rerunConfig'), patch, { merge: true }).catch(onError);
+        });
+        row.appendChild(saveBtn);
+        return row;
+      }
+
+      var enabledRow = document.createElement('div');
+      enabledRow.className = 'config-row';
+      var enabledKey = document.createElement('span');
+      enabledKey.className = 'config-key';
+      enabledKey.textContent = 'Ad breaks enabled';
+      enabledRow.appendChild(enabledKey);
+      var enabledBtn = document.createElement('button');
+      enabledBtn.className = 'secondary';
+      var currentlyEnabled = Boolean(rerunConfig.adBreakEnabled);
+      enabledBtn.textContent = currentlyEnabled ? 'Enabled - click to disable' : 'Disabled - click to enable';
+      enabledBtn.addEventListener('click', function () {
+        var next = !currentlyEnabled;
+        var msg = next
+          ? 'Enable automatic ad breaks on the rerun channel?\n\nOnly actually runs ads once Twitch confirms the channel is Partner/Affiliate - otherwise every attempt just fails harmlessly (visible in "Ad breaks" above).'
+          : 'Disable automatic ad breaks?';
+        if (!confirm(msg)) return;
+        setDoc(doc(db, 'system', 'rerunConfig'), { adBreakEnabled: next }, { merge: true }).catch(onError);
+      });
+      enabledRow.appendChild(enabledBtn);
+      wrap.appendChild(enabledRow);
+
+      var intervalDefault = rerunConfig.adBreakIntervalMinutes !== undefined ? rerunConfig.adBreakIntervalMinutes : 60;
+      wrap.appendChild(configField('adBreakIntervalMinutes', 'Interval (minutes)', intervalDefault, function (v) {
+        var n = Number(v);
+        return Number.isFinite(n) && n > 0 ? n : null;
+      }));
+
+      var durationDefault = rerunConfig.adBreakDurationSeconds !== undefined ? rerunConfig.adBreakDurationSeconds : 180;
+      wrap.appendChild(configField('adBreakDurationSeconds', 'Duration (seconds, max 180)', durationDefault, function (v) {
+        var n = Number(v);
+        return Number.isFinite(n) && n > 0 ? Math.min(180, n) : null;
+      }));
+
+      return wrap;
     }
 
     function linkify(text) {
@@ -2770,6 +2895,17 @@
       onSnapshot(doc(db, 'system', 'rerunStatus'), function (snap) {
         rerunStatus = snap.exists() ? snap.data() : null;
         document.getElementById('rerunNavBtn').style.display = rerunStatus ? '' : 'none';
+        renderRerunPanel();
+      }, onError);
+
+      // Webapp-editable ad-break settings (see renderRerunConfig()) - a
+      // SEPARATE doc from rerunStatus above: that one is Admin-SDK-only
+      // (this webapp never writes it), this one is the reverse - the
+      // rerun-channel PC only ever READS it, this webapp is what writes
+      // it. Same split as config/settings vs system/liveStatus on the main
+      // streaming PC's side.
+      onSnapshot(doc(db, 'system', 'rerunConfig'), function (snap) {
+        rerunConfig = snap.exists() ? snap.data() : {};
         renderRerunPanel();
       }, onError);
 
