@@ -771,6 +771,24 @@
       if (!skipRerender) renderFolders();
     }
 
+    // Dedicated, deliberately quiet error handler for the two optional
+    // side-panel listeners (system/rerunStatus, system/rerunConfig) -
+    // added 2026-09-15 after exactly the failure mode it exists to
+    // prevent: system/rerunConfig's Firestore rule can very plausibly not
+    // be published yet on any given deployment (it's a manual Console
+    // step, see RIG_CHECKLIST.md in the sibling repo), and a bare
+    // "permission denied" on THIS one optional doc is indistinguishable,
+    // by message text alone, from "this whole account isn't allowlisted."
+    // Routing it through the shared onError() below would incorrectly
+    // slam a fully-approved user into the "not approved" auth gate over a
+    // side panel that hasn't had its own rule pasted in yet - it happened
+    // for real the same day this was added. These two listeners must
+    // degrade to "panel just shows nothing new" on a permission error,
+    // never to "you can't use the board at all."
+    function onOptionalPanelError(err) {
+      console.error('[optional-panel]', err && err.message ? err.message : err, '- a Firestore rule for this doc may not be published yet; the rest of the board is unaffected.');
+    }
+
     function onError(err) {
       var message = (err && err.message) ? err.message : String(err);
       // A signed-in Google account that isn't on the allowlist gets exactly
@@ -2896,7 +2914,7 @@
         rerunStatus = snap.exists() ? snap.data() : null;
         document.getElementById('rerunNavBtn').style.display = rerunStatus ? '' : 'none';
         renderRerunPanel();
-      }, onError);
+      }, onOptionalPanelError);
 
       // Webapp-editable ad-break settings (see renderRerunConfig()) - a
       // SEPARATE doc from rerunStatus above: that one is Admin-SDK-only
@@ -2907,7 +2925,7 @@
       onSnapshot(doc(db, 'system', 'rerunConfig'), function (snap) {
         rerunConfig = snap.exists() ? snap.data() : {};
         renderRerunPanel();
-      }, onError);
+      }, onOptionalPanelError);
 
       // Local tick, independent of Firestore - keeps the elapsed-time/
       // countdown text moving smoothly in between the streaming PC's real
