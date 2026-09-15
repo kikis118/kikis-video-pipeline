@@ -424,6 +424,24 @@
     height: 6px; border-radius: 3px; background: var(--border); overflow: hidden; margin-top: 6px;
   }
   .rerun-cache-bar-fill { height: 100%; background: var(--accent); }
+  /* Same Twitch-brand-purple/live-pulse treatment as the header's
+     #openStreamBtn (.btn-twitch), reused here inline inside the panel
+     instead of pinned to the header's horizontal midpoint - a separate
+     class rather than fighting .btn-twitch's absolute positioning with
+     inline overrides. Links straight to the RERUN channel's own Twitch
+     page (rerunStatus.rerunChannelLogin), not the main channel. */
+  .btn-twitch-inline {
+    background: #9146ff; color: #fff; border: none; border-radius: 3px;
+    padding: 7px 12px; font-size: 13px; font-weight: 600; cursor: pointer;
+    text-decoration: none; display: inline-flex; align-items: center; gap: 6px;
+    margin-bottom: 12px;
+    transition: filter 0.1s ease, transform 0.05s ease, background 0.2s ease;
+  }
+  .btn-twitch-inline:hover { filter: brightness(1.15); }
+  .btn-twitch-inline:active { filter: brightness(0.92); transform: scale(0.98); }
+  .btn-twitch-inline.is-live { background: var(--danger); animation: twitch-live-pulse 1.6s ease-in-out infinite; }
+  .btn-twitch-inline .live-dot { display: none; }
+  .btn-twitch-inline.is-live .live-dot { display: inline-block; }
 
   /* Real-time strip, always at the top when there's anything worth
      showing (hidden entirely if the streaming PC has never reported in
@@ -584,7 +602,7 @@
   <header>
     <button class="secondary todo-nav-btn" onclick="toggleTodoPanel()">&#128203; To-Do Videos<span class="todo-nav-dot" id="todoNavDot" style="display: none;"></span></button>
     <button class="secondary shorts-nav-btn" onclick="toggleShortsPanel()">&#127916; Shorts</button>
-    <button class="secondary rerun-nav-btn" id="rerunNavBtn" onclick="toggleRerunPanel()" style="display: none;">&#128225; Rerun Status</button>
+    <button class="secondary rerun-nav-btn" id="rerunNavBtn" onclick="toggleRerunPanel()" style="display: none;">&#128225; 24/7 Stream</button>
     <button onclick="toggleCreateFolderForm()">+ Create Folder</button>
     <a class="btn-twitch" id="openStreamBtn" href="https://twitch.tv/ghazzytv" target="_blank" rel="noopener">
       <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor" aria-hidden="true"><path d="M4.5 2 2 6.5v13h5.5V22l3-2.5h4L20.5 15V2H4.5Zm14.5 12-3 3h-4l-3 2.5V17H6V4h13v10Z"/><path d="M15.5 7h2v5h-2zM10 7h2v5h-2z"/></svg>
@@ -611,7 +629,7 @@
   </div>
 
   <div id="rerunPanel">
-    <h2>24/7 Rerun Channel <span class="idea-notes">(read-only - reported by the rerun-channel PC, separate from the main streaming PC above)</span></h2>
+    <h2>24/7 Stream <span class="idea-notes">(read-only - reported by the rerun-channel PC, separate from the main streaming PC above)</span></h2>
     <div id="rerunPanelBody"></div>
   </div>
 
@@ -2167,6 +2185,19 @@
         offline.textContent = '⚠ Rerun-channel PC appears offline' + (heartbeatMs ? ' (last seen ' + formatLocalTime(heartbeatMs) + ')' : ' (never reported in)');
         body.appendChild(offline);
         return;
+      }
+
+      if (rerunStatus.rerunChannelLogin) {
+        var rerunLink = document.createElement('a');
+        rerunLink.className = 'btn-twitch-inline' + (rerunStatus.isStreaming ? ' is-live' : '');
+        rerunLink.href = 'https://twitch.tv/' + encodeURIComponent(rerunStatus.rerunChannelLogin);
+        rerunLink.target = '_blank';
+        rerunLink.rel = 'noopener';
+        rerunLink.innerHTML =
+          '<svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor" aria-hidden="true"><path d="M4.5 2 2 6.5v13h5.5V22l3-2.5h4L20.5 15V2H4.5Zm14.5 12-3 3h-4l-3 2.5V17H6V4h13v10Z"/><path d="M15.5 7h2v5h-2zM10 7h2v5h-2z"/></svg>' +
+          '<span class="live-dot"></span>' +
+          '<span>' + (rerunStatus.isStreaming ? 'Live right now — Open Rerun Stream' : 'Open Rerun Stream') + '</span>';
+        body.appendChild(rerunLink);
       }
 
       var grid = document.createElement('div');
