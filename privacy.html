@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Privacy Policy — Video Pipeline Tool</title>
+<style>
+  :root {
+    --bg: #0b0c0e;
+    --panel: #16181c;
+    --ink: #e8e9ec;
+    --muted: #9a9ea6;
+    --accent: #7c9eff;
+    --line: #24262b;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: -apple-system, Segoe UI, Roboto, sans-serif;
+    line-height: 1.6;
+    padding: 48px 20px 80px;
+  }
+  main {
+    max-width: 640px;
+    margin: 0 auto;
+  }
+  h1 {
+    font-size: 22px;
+    margin: 0 0 4px;
+  }
+  .updated {
+    color: var(--muted);
+    font-size: 13px;
+    margin-bottom: 32px;
+  }
+  h2 {
+    font-size: 16px;
+    color: var(--accent);
+    margin: 32px 0 8px;
+  }
+  p, li {
+    font-size: 14.5px;
+    color: var(--ink);
+  }
+  ul {
+    padding-left: 20px;
+    margin: 8px 0;
+  }
+  .box {
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 20px 24px;
+  }
+  a {
+    color: var(--accent);
+  }
+  .contact {
+    margin-top: 32px;
+    padding-top: 20px;
+    border-top: 1px solid var(--line);
+    color: var(--muted);
+    font-size: 13.5px;
+  }
+</style>
+</head>
+<body>
+<main>
+  <div class="box">
+    <h1>Privacy Policy</h1>
+    <div class="updated">Video Pipeline Tool &middot; last updated September 22, 2026</div>
+
+    <p>
+      This tool is a private, internal utility used by a small team to manage
+      stream recordings and clips. It is not a public product, and it is not
+      distributed or offered to anyone outside that team.
+    </p>
+
+    <h2>What it accesses</h2>
+    <p>
+      The tool uses Google's Drive API, authorized directly by whoever runs the
+      one-time sign-in, to:
+    </p>
+    <ul>
+      <li>Upload video files (stream recordings and clips) into a specific Google Drive folder</li>
+      <li>Read, rename, and organize files within that same folder</li>
+      <li>Remove files from that folder when they're deliberately deleted from the tool</li>
+    </ul>
+    <p>
+      It does not access any other files, folders, or data in the connected
+      Google account beyond what the tool itself creates or is pointed at.
+    </p>
+
+    <h2>What it doesn't do</h2>
+    <ul>
+      <li>It does not sell, share, or transmit this data to any third party</li>
+      <li>It does not use the data for advertising, analytics, or profiling of any kind</li>
+      <li>It does not run on any server other than the machine it's installed on (an internal streaming rig)</li>
+    </ul>
+
+    <h2>Where data lives</h2>
+    <p>
+      Video files stay in Google Drive, in the account that authorized access.
+      Metadata about clips (titles, notes, status) is stored in a private
+      Firebase database used only by this tool, accessible only to the small
+      team operating it.
+    </p>
+
+    <h2>Revoking access</h2>
+    <p>
+      Access can be revoked at any time from
+      <a href="https://myaccount.google.com/permissions" target="_blank" rel="noopener">Google Account &rarr; Security &rarr; Third-party access</a>.
+    </p>
+
+    <div class="contact">
+      Questions about this tool or this policy: contact the account that
+      authorized access.
+    </div>
+  </div>
+</main>
+</body>
+</html>
