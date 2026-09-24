@@ -1845,6 +1845,30 @@
         left.appendChild(downloadLink);
       }
 
+      // Failed-upload recovery - the local app still has the clip file
+      // sitting on the streaming rig (uploads only fail after the cut
+      // already succeeded, except the rare case where the cut itself
+      // failed and there's genuinely nothing to retry; the app checks that
+      // and reports it back into failureReason if so). Flags retryUpload
+      // on the doc instead of calling anything directly - this webpage has
+      // no Drive credentials of its own, so app/lib/driveSync.js on the
+      // rig is what actually re-attempts the upload on its next tick (see
+      // its own header comment).
+      if (row.upload === 'Failed') {
+        var retryBtn = document.createElement('button');
+        retryBtn.className = 'secondary';
+        if (row.retryUpload) {
+          retryBtn.textContent = '⟳ Retrying…';
+          retryBtn.disabled = true;
+        } else {
+          retryBtn.textContent = '⟳ Retry upload';
+          retryBtn.onclick = function () {
+            updateDoc(doc(db, 'pipeline', row.id), { retryUpload: true }).catch(onError);
+          };
+        }
+        left.appendChild(retryBtn);
+      }
+
       // Editor-only, like View/Download - a pure visual signal to Ghazzy
       // ("she's seen it, working on it") that never touches status. Toggled
       // off the same way it's toggled on, no separate confirm needed since
@@ -2002,6 +2026,23 @@
         downloadLink.textContent = '⬇';
         downloadLink.title = 'Download';
         linksWrap.appendChild(downloadLink);
+      }
+
+      if (child.upload === 'Failed') {
+        var childRetryBtn = document.createElement('button');
+        childRetryBtn.className = 'secondary';
+        if (child.retryUpload) {
+          childRetryBtn.textContent = '⟳';
+          childRetryBtn.title = 'Retrying…';
+          childRetryBtn.disabled = true;
+        } else {
+          childRetryBtn.textContent = '⟳';
+          childRetryBtn.title = 'Retry upload';
+          childRetryBtn.onclick = function () {
+            updateDoc(doc(db, 'pipeline', child.id), { retryUpload: true }).catch(onError);
+          };
+        }
+        linksWrap.appendChild(childRetryBtn);
       }
 
       var detachBtn = document.createElement('button');
