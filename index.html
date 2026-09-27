@@ -459,6 +459,24 @@
   .live-status-item.pending { color: var(--warn); font-weight: 600; }
   .live-status-item.offline { color: var(--danger); }
   .live-status-bar .spacer { flex: 1; }
+
+  /* Full-width on purpose, above the thinner live-status-bar strip - this
+     is meant to be impossible to miss, not just another item in the row.
+     .warn is steady (still days of runway); .expired blinks, since by
+     that point uploads are actually failing right now. */
+  .drive-auth-banner {
+    display: flex; align-items: center; gap: 10px;
+    padding: 10px 20px; font-size: 13px; font-weight: 600;
+  }
+  .drive-auth-banner.warn { background: #4a3d1a; color: var(--warn); }
+  .drive-auth-banner.expired {
+    background: #4a1c1c; color: var(--danger);
+    animation: drive-auth-blink 1.4s infinite;
+  }
+  @keyframes drive-auth-blink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.6; }
+  }
   .config-row { display: flex; align-items: center; gap: 10px; padding: 6px 0; }
   .config-row .config-key { flex: 0 0 240px; font-size: 13px; font-family: monospace; color: var(--text); display: flex; align-items: center; gap: 6px; }
   .info-tag {
@@ -2138,11 +2156,56 @@
     // re-reads the same already-subscribed liveStatus value, no extra
     // Firestore traffic - which is also why the Twitch button's live badge
     // above piggybacks on this instead of its own listener/poll.
+    // Independent of the app online/offline check right below - a dead
+    // Drive token is just as true (and just as worth seeing) whether or
+    // not the streaming PC app happens to be reachable right this second,
+    // since these are absolute timestamps computed server-side from
+    // driveUploader.authorizedAt (see index.js's publishLiveStatus), not
+    // something that goes stale just because the heartbeat did. A missing
+    // driveTokenAuthorizedAt is treated as "needs it now" - same call the
+    // app's own driveUpload.js/checkDriveAuthAge.js already make for a
+    // token from before this tracking existed (or, before this specific
+    // webapp feature has even reached the rig yet via Check-for-Updates).
+    function renderDriveAuthWarning(container) {
+      var warnMs = liveStatus.driveTokenWarnAt && liveStatus.driveTokenWarnAt.toMillis ? liveStatus.driveTokenWarnAt.toMillis() : null;
+      var expiresMs = liveStatus.driveTokenExpiresAt && liveStatus.driveTokenExpiresAt.toMillis ? liveStatus.driveTokenExpiresAt.toMillis() : null;
+      var authorizedMs = liveStatus.driveTokenAuthorizedAt && liveStatus.driveTokenAuthorizedAt.toMillis ? liveStatus.driveTokenAuthorizedAt.toMillis() : null;
+      var neverTracked = !authorizedMs;
+
+      var now = Date.now();
+      var state = null; // null (fine, nothing shown) | 'warn' | 'expired'
+      if (neverTracked) state = 'expired';
+      else if (expiresMs && now >= expiresMs) state = 'expired';
+      else if (warnMs && now >= warnMs) state = 'warn';
+      if (!state) return;
+
+      var bar = document.createElement('div');
+      bar.className = 'drive-auth-banner ' + state;
+
+      var icon = document.createElement('span');
+      icon.textContent = state === 'expired' ? '🚨' : '⚠';
+      bar.appendChild(icon);
+
+      var text = document.createElement('span');
+      if (neverTracked) {
+        text.textContent = 'Google Drive access needs re-authorizing (age unknown, or the streaming PC hasn\'t reported it yet) — connect via RustDesk and run "node scripts/authorizeDrive.js" in the app folder on the streaming rig.';
+      } else if (state === 'expired') {
+        text.textContent = 'Google Drive access has likely expired (authorized ' + formatLocalTime(authorizedMs) + ', Google cuts it off after 7 days) — uploads are probably failing right now. Connect via RustDesk and run "node scripts/authorizeDrive.js" on the streaming rig.';
+      } else {
+        text.textContent = 'Google Drive access expires soon (around ' + formatLocalTime(expiresMs) + ') — re-authorize before then: connect via RustDesk and run "node scripts/authorizeDrive.js" on the streaming rig.';
+      }
+      bar.appendChild(text);
+
+      container.appendChild(bar);
+    }
+
     function renderLiveStatusBanner() {
       var el = document.getElementById('liveStatusBanner');
       if (!el) return;
       el.innerHTML = '';
       if (!liveStatus) { updateOpenStreamBadge(false); return; } // never reported in yet - nothing to show
+
+      renderDriveAuthWarning(el);
 
       var heartbeatMs = liveStatus.heartbeatAt && liveStatus.heartbeatAt.toMillis ? liveStatus.heartbeatAt.toMillis() : 0;
       // Heartbeats every 60s (see index.js startLiveStatusLoop) - anything
