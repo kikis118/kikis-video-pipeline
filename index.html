@@ -2237,6 +2237,29 @@
       obsItem.textContent = liveStatus.obsRecording ? '🔴 OBS recording' : 'OBS not recording';
       bar.appendChild(obsItem);
 
+      // Always-on countdown to Google's 7-day Drive cutoff - the banner
+      // above only appears once it's close, this is the "how long do I
+      // have" readout for the rest of the time. Same fields/timestamps as
+      // renderDriveAuthWarning; hidden if the rig hasn't reported a date
+      // (that case already shows the red banner instead).
+      var driveExpMs = liveStatus.driveTokenExpiresAt && liveStatus.driveTokenExpiresAt.toMillis ? liveStatus.driveTokenExpiresAt.toMillis() : null;
+      var driveWarnMs = liveStatus.driveTokenWarnAt && liveStatus.driveTokenWarnAt.toMillis ? liveStatus.driveTokenWarnAt.toMillis() : null;
+      if (driveExpMs) {
+        var driveLeftMs = driveExpMs - Date.now();
+        var driveItem = document.createElement('span');
+        driveItem.className = 'live-status-item' + (driveLeftMs <= 0 ? ' offline' : (driveWarnMs && Date.now() >= driveWarnMs ? ' pending' : ''));
+        driveItem.title = 'Google cuts off the Drive connection 7 days after it was authorized (expires ' + formatLocalTime(driveExpMs) + '). Re-authorize via RustDesk: node scripts/authorizeDrive.js';
+        if (driveLeftMs <= 0) {
+          driveItem.textContent = '🔑 Drive access expired';
+        } else {
+          var dLeft = Math.floor(driveLeftMs / 86400000);
+          var hLeft = Math.floor((driveLeftMs % 86400000) / 3600000);
+          var mLeft = Math.floor((driveLeftMs % 3600000) / 60000);
+          driveItem.textContent = '🔑 Drive access expires in ' + (dLeft > 0 ? dLeft + 'd ' + hLeft + 'h' : hLeft + 'h ' + mLeft + 'm');
+        }
+        bar.appendChild(driveItem);
+      }
+
       var openSinceMs = liveStatus.clipOpenSince && liveStatus.clipOpenSince.toMillis ? liveStatus.clipOpenSince.toMillis() : null;
       if (liveStatus.clipOpen && openSinceMs) {
         var openItem = document.createElement('span');
