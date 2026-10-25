@@ -2325,6 +2325,11 @@
       // main live-status banner above.
       var isOnline = heartbeatMs && (Date.now() - heartbeatMs < 90000);
 
+      // Shown even while the PC is offline: a Stop set now is honored the
+      // moment the 24/7 tool next starts (it reads system/rerunConfig.paused
+      // at boot, before ever starting the stream).
+      body.appendChild(renderRerunPauseControl(isOnline));
+
       if (!isOnline) {
         var offline = document.createElement('div');
         offline.className = 'live-status-item offline';
@@ -2429,6 +2434,57 @@
 
       body.appendChild(grid);
       body.appendChild(renderRerunConfig());
+    }
+
+    // Stop/Start for the whole 24/7 channel. Writes system/rerunConfig.paused;
+    // the 24/7 PC (ghazzytv-24-7-stream-tool index.js applyPaused) stops the
+    // stream and keeps it off - no reruns, countdowns or raids - until Start.
+    // Stopping it in OBS directly doesn't stick (the watchdog restarts a
+    // "stalled" stream), which is why this exists. rerunStatus.paused is
+    // what the PC is actually doing; when it differs from what was asked,
+    // show "applying" instead of pretending it already happened.
+    function renderRerunPauseControl(isOnline) {
+      var wrap = document.createElement('div');
+      wrap.style.cssText = 'display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin:0 0 12px;padding:10px 12px;border:1px solid var(--border);border-radius:8px;background:var(--panel);';
+
+      var wantPaused = Boolean(rerunConfig.paused);
+      var isPaused = Boolean(rerunStatus && rerunStatus.paused);
+      var applying = isOnline && wantPaused !== isPaused;
+
+      var text = document.createElement('div');
+      text.style.cssText = 'flex:1;min-width:200px;font-size:13px;';
+      var who = rerunConfig.pausedBy ? ' by ' + rerunConfig.pausedBy : '';
+      var whenMs = rerunConfig.pausedAt && rerunConfig.pausedAt.toMillis ? rerunConfig.pausedAt.toMillis() : null;
+      var when = whenMs ? ' (' + formatLocalTime(whenMs) + ')' : '';
+      if (applying) {
+        text.innerHTML = '<b>' + (wantPaused ? 'Stopping…' : 'Starting…') + '</b> <span style="color:var(--muted)">the 24/7 PC picks this up within a few seconds.</span>';
+      } else if (wantPaused) {
+        text.innerHTML = '<b style="color:var(--danger)">■ 24/7 stream stopped</b> <span style="color:var(--muted)">' + escapeHtml((who + when).trim()) + (who || when ? '. ' : '') + 'Stays off until you press Start, even after a reboot.</span>';
+      } else {
+        text.innerHTML = '<b>● 24/7 stream on</b> <span style="color:var(--muted)">reruns while ghazzytv is offline, raids when he goes live.</span>';
+      }
+      if (!isOnline) {
+        text.innerHTML += '<div style="color:var(--muted);font-size:12px;margin-top:2px;">The 24/7 PC is offline right now - this applies as soon as it starts again.</div>';
+      }
+      wrap.appendChild(text);
+
+      var btn = document.createElement('button');
+      btn.className = wantPaused ? '' : 'danger';
+      btn.textContent = wantPaused ? '▶ Start 24/7 stream' : '■ Stop 24/7 stream';
+      btn.onclick = function () {
+        var msg = wantPaused
+          ? 'Start the 24/7 stream again?\n\nghazzychill goes live with the reruns within about a minute, and goes back to raiding ghazzytv whenever he goes live.'
+          : 'Stop the 24/7 stream?\n\nghazzychill goes offline within a few seconds and STAYS off - no reruns, no countdown, no raids - until someone presses Start here. It stays off even if the PC reboots.';
+        if (!confirm(msg)) return;
+        var email = auth.currentUser ? auth.currentUser.email : null;
+        setDoc(doc(db, 'system', 'rerunConfig'), {
+          paused: !wantPaused,
+          pausedAt: serverTimestamp(),
+          pausedBy: email,
+        }, { merge: true }).catch(onError);
+      };
+      wrap.appendChild(btn);
+      return wrap;
     }
 
     // Editable ad-break settings - writes to system/rerunConfig, which the
