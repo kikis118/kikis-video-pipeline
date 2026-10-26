@@ -2473,8 +2473,8 @@
       btn.textContent = wantPaused ? '▶ Start 24/7 stream' : '■ Stop 24/7 stream';
       btn.onclick = function () {
         var msg = wantPaused
-          ? 'Start the 24/7 stream again?\n\nghazzychill goes live with the reruns within about a minute, and goes back to raiding ghazzytv whenever he goes live.'
-          : 'Stop the 24/7 stream?\n\nghazzychill goes offline within a few seconds and STAYS off - no reruns, no countdown, no raids - until someone presses Start here. It stays off even if the PC reboots.';
+          ? 'Start the 24/7 stream again?\n\nghazzytv24_7 goes live with the reruns within about a minute, and goes back to raiding ghazzytv whenever he goes live.'
+          : 'Stop the 24/7 stream?\n\nghazzytv24_7 goes offline within a few seconds and STAYS off - no reruns, no countdown, no raids - until someone presses Start here. It stays off even if the PC reboots.';
         if (!confirm(msg)) return;
         var email = auth.currentUser ? auth.currentUser.email : null;
         setDoc(doc(db, 'system', 'rerunConfig'), {
