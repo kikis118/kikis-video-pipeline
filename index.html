@@ -2376,11 +2376,23 @@
       if (rerunStatus.state === 'COUNTDOWN') {
         var endsMs = rerunStatus.countdownEndsAt && rerunStatus.countdownEndsAt.toMillis ? rerunStatus.countdownEndsAt.toMillis() : null;
         var remaining = endsMs ? Math.max(0, endsMs - Date.now()) : null;
-        grid.appendChild(stat('Raiding in', remaining !== null ? formatDuration(remaining) : '—'));
+        // raidPending: Twitch accepted the raid and is running its own 90s
+        // countdown - the rerun stream deliberately stays up until it lands.
+        grid.appendChild(stat('Raiding in', rerunStatus.raidPending ? 'Raid sent - Twitch is counting down' : (remaining !== null ? formatDuration(remaining) : '—')));
       }
 
       var lastRaidMs = rerunStatus.lastRaidAt && rerunStatus.lastRaidAt.toMillis ? rerunStatus.lastRaidAt.toMillis() : null;
-      grid.appendChild(stat('Last raid', lastRaidMs ? formatLocalTime(lastRaidMs) : 'Never yet'));
+      var raidBox = stat('Last raid', lastRaidMs ? formatLocalTime(lastRaidMs) : 'Never yet');
+      // Twitch's reason for the last failed raid, plus what to do about it
+      // (written by the 24/7 PC's stateMachine.js describeRaidError) - the
+      // 2026-10-27 raid failed silently with nothing on this page to say why.
+      if (rerunStatus.lastRaidError) {
+        var raidErr = document.createElement('div');
+        raidErr.style.cssText = 'font-size:12px;color:var(--danger);margin-top:4px;font-weight:500;';
+        raidErr.textContent = '⚠ Raid failed: ' + rerunStatus.lastRaidError;
+        raidBox.appendChild(raidErr);
+      }
+      grid.appendChild(raidBox);
 
       if (typeof rerunStatus.cacheUsedBytes === 'number' && typeof rerunStatus.cacheBudgetBytes === 'number' && rerunStatus.cacheBudgetBytes > 0) {
         var usedGb = (rerunStatus.cacheUsedBytes / 1024 ** 3).toFixed(1);
