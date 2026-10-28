@@ -2221,7 +2221,7 @@
       if (!isOnline) {
         var offlineItem = document.createElement('span');
         offlineItem.className = 'live-status-item offline';
-        offlineItem.textContent = '⚠ Streaming PC app appears offline' + (heartbeatMs ? ' (last seen ' + formatLocalTime(heartbeatMs) + ')' : '');
+        offlineItem.textContent = '⚠ Clip tool (Stream Deck clips + Drive uploads) is offline - start it on the streaming PC' + (heartbeatMs ? ' (last seen ' + formatLocalTime(heartbeatMs) + ')' : '');
         bar.appendChild(offlineItem);
         el.appendChild(bar);
         return;
@@ -2333,7 +2333,7 @@
       if (!isOnline) {
         var offline = document.createElement('div');
         offline.className = 'live-status-item offline';
-        offline.textContent = '⚠ Rerun-channel PC appears offline' + (heartbeatMs ? ' (last seen ' + formatLocalTime(heartbeatMs) + ')' : ' (never reported in)');
+        offline.textContent = '⚠ 24/7 tool appears offline' + (heartbeatMs ? ' (last seen ' + formatLocalTime(heartbeatMs) + ')' : ' (never reported in)');
         body.appendChild(offline);
         return;
       }
