@@ -2351,6 +2351,8 @@
         body.appendChild(rerunLink);
       }
 
+      body.appendChild(renderRerunNowPlaying());
+
       var grid = document.createElement('div');
       grid.className = 'rerun-status-grid';
 
@@ -2451,6 +2453,59 @@
 
       body.appendChild(grid);
       body.appendChild(renderRerunConfig());
+    }
+
+    // Which VOD the 24/7 channel is playing right now. rerunStatus.nowPlaying
+    // comes from the 24/7 PC's lib/vodPlayer.js (newest -> oldest, intro
+    // skipped). The position is moved forward locally between the PC's 30s
+    // heartbeats so the clock ticks smoothly (this panel re-renders every
+    // second); only while it's actually looping and streaming.
+    function renderRerunNowPlaying() {
+      var np = rerunStatus.nowPlaying;
+      var box = document.createElement('div');
+      box.style.cssText = 'margin:10px 0 12px;padding:12px 14px;border-radius:8px;border:1px solid var(--border);background:var(--panel);';
+      if (!np) {
+        box.innerHTML = '<div style="font-size:13px;color:var(--muted);">No VOD loaded yet' +
+          (rerunStatus.paused ? ' (24/7 stream stopped)' : ' - nothing in the rerun cache, or the 24/7 tool is still on older code') + '.</div>';
+        return box;
+      }
+      var onAir = rerunStatus.isStreaming && rerunStatus.state === 'LOOPING' && !rerunStatus.paused;
+      var cursor = typeof np.cursorMs === 'number' ? np.cursorMs : null;
+      var hbMs = rerunStatus.heartbeatAt && rerunStatus.heartbeatAt.toMillis ? rerunStatus.heartbeatAt.toMillis() : null;
+      if (onAir && cursor !== null && hbMs) cursor = Math.min(cursor + (Date.now() - hbMs), np.durationMs || Infinity);
+      var recMs = np.recordedAt && np.recordedAt.toMillis ? np.recordedAt.toMillis() : null;
+      var which = np.position === 1 ? 'newest' : (np.position === np.count ? 'oldest' : 'VOD ' + np.position + ' of ' + np.count);
+
+      var label = document.createElement('div');
+      label.style.cssText = 'font-size:11px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:' + (onAir ? 'var(--danger)' : 'var(--muted)') + ';margin-bottom:4px;';
+      label.textContent = onAir ? '● Now playing on the 24/7 stream' : 'Loaded (not on air right now)';
+      box.appendChild(label);
+
+      var title = document.createElement('div');
+      title.style.cssText = 'font-size:15px;font-weight:600;color:var(--text);word-break:break-all;';
+      title.textContent = np.file;
+      box.appendChild(title);
+
+      var meta = document.createElement('div');
+      meta.style.cssText = 'font-size:12px;color:var(--muted);margin-top:4px;';
+      var parts = [which + ' (' + np.position + ' of ' + np.count + ')'];
+      if (recMs) parts.push('recorded ' + formatLocalTime(recMs));
+      if (cursor !== null) parts.push(formatDuration(cursor) + (np.durationMs ? ' / ' + formatDuration(np.durationMs) : ''));
+      if (np.startMs) parts.push('first ' + Math.round(np.startMs / 60000) + ' min skipped');
+      meta.textContent = parts.join(' · ');
+      box.appendChild(meta);
+
+      if (np.durationMs && cursor !== null) {
+        var bar = document.createElement('div');
+        bar.className = 'rerun-cache-bar';
+        bar.style.marginTop = '8px';
+        var fill = document.createElement('div');
+        fill.className = 'rerun-cache-bar-fill';
+        fill.style.width = Math.min(100, (cursor / np.durationMs) * 100) + '%';
+        bar.appendChild(fill);
+        box.appendChild(bar);
+      }
+      return box;
     }
 
     // Stop/Start for the whole 24/7 channel. Writes system/rerunConfig.paused;
