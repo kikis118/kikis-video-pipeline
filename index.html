@@ -2369,6 +2369,11 @@
       }
 
       var stateLabel = { LOOPING: 'Looping', COUNTDOWN: 'Raiding soon', OFFLINE_WAIT: 'Live - waiting to resume' };
+      // While stopped from this page the 24/7 PC doesn't run its state
+      // machine at all, so rerunStatus.state is just whatever it was at the
+      // moment Stop was pressed (e.g. a frozen "Raiding soon") - show the
+      // truth instead.
+      if (rerunStatus.paused) stateLabel = { LOOPING: 'Stopped', COUNTDOWN: 'Stopped', OFFLINE_WAIT: 'Stopped' };
       grid.appendChild(stat('State', '<span class="rerun-state-badge ' + escapeHtml(rerunStatus.state || '') + '">' + escapeHtml(stateLabel[rerunStatus.state] || rerunStatus.state || 'Unknown') + '</span>'));
       grid.appendChild(stat('Rerun OBS', rerunStatus.obsConnected ? (rerunStatus.isStreaming ? '🔴 Streaming' : 'Connected, not streaming') : '⚠ Disconnected'));
       grid.appendChild(stat('Current scene', escapeHtml(rerunStatus.currentScene || '—')));
