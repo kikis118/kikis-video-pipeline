@@ -85,8 +85,8 @@ never has to wait on a Drive API round-trip.
 
 An `Idea` row can carry `checklist: [{id, title, url, note, section, done, doneAt}]`
 on its own `pipeline` doc (no new collection, no rule change). `renderChecklist`
-shows a progress bar + "Next up" (first unticked item, with a ✓ Done button)
-collapsed, and the full sectioned list with add/remove when expanded. Writes
+shows a progress bar + a "Show list" toggle
+collapsed, and the full sectioned checklist with add/remove when expanded. Writes
 replace the whole array, rebuilt from the latest `state.rows` at click time.
 Add-form drafts live in `checklistDrafts` so live re-renders don't wipe typing.
 

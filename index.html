@@ -584,16 +584,15 @@
   .checklist { display: flex; flex-direction: column; gap: 6px; padding: 4px 0 2px; cursor: default; }
   .cl-bar { height: 5px; background: var(--card); border-radius: 3px; overflow: hidden; }
   .cl-bar > i { display: block; height: 100%; background: #6fdc8c; transition: width .25s; }
-  .cl-next { display: flex; align-items: center; gap: 8px; background: rgba(124, 158, 255, 0.10); border: 1px solid var(--accent); border-radius: 3px; padding: 6px 8px; }
-  .cl-next .lbl { font-size: 10px; font-weight: 700; letter-spacing: .5px; color: var(--accent); text-transform: uppercase; white-space: nowrap; }
-  .cl-next .body { flex: 1; min-width: 0; }
-  .cl-next a { color: var(--text); font-weight: 600; font-size: 13px; text-decoration: none; }
-  .cl-next a:hover { text-decoration: underline; }
-  .cl-next .note { color: var(--muted); font-size: 11.5px; }
-  .cl-next button { padding: 4px 10px; font-size: 12px; white-space: nowrap; }
-  .cl-alldone { font-size: 12px; color: #6fdc8c; font-weight: 600; }
-  .cl-toggle { align-self: flex-start; background: none; border: none; color: var(--muted); font-size: 12px; padding: 2px 0; cursor: pointer; }
-  .cl-toggle:hover { color: var(--text); }
+  .cl-toggle {
+    display: flex; align-items: center; gap: 10px; width: 100%; text-align: left; cursor: pointer;
+    background: rgba(124, 158, 255, 0.10); border: 1px solid var(--accent); border-radius: 3px;
+    color: var(--text); font-size: 13px; font-weight: 600; padding: 8px 12px;
+  }
+  .cl-toggle:hover { background: rgba(124, 158, 255, 0.22); }
+  .cl-toggle .chev { color: var(--accent); font-size: 14px; width: 12px; transition: transform .15s; }
+  .cl-toggle.open .chev { transform: rotate(90deg); }
+  .cl-toggle .sub { margin-left: auto; color: var(--muted); font-weight: 500; font-size: 12px; }
   .cl-section { font-size: 11px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: .5px; margin-top: 6px; }
   .cl-item { display: flex; align-items: flex-start; gap: 8px; padding: 3px 4px; border-radius: 2px; }
   .cl-item:hover { background: rgba(255, 255, 255, 0.04); }
@@ -604,7 +603,6 @@
   .cl-item .note { color: var(--muted); font-size: 11.5px; }
   .cl-item.done .body { opacity: .45; }
   .cl-item.done a { text-decoration: line-through; }
-  .cl-item.is-next { outline: 1px solid var(--accent); }
   .cl-item .del { background: none; border: none; color: var(--muted); font-size: 15px; line-height: 1; padding: 0 4px; cursor: pointer; opacity: 0; }
   .cl-item:hover .del { opacity: 1; }
   .cl-item .del:hover { color: var(--danger); }
@@ -1620,7 +1618,6 @@
     function renderChecklist(row) {
       var items = row.checklist || [];
       var done = items.filter(function (i) { return i.done; }).length;
-      var next = items.find(function (i) { return !i.done; });
       var open = !!expandedChecklists[row.id];
       var wrap = document.createElement('div');
       wrap.className = 'checklist';
@@ -1632,27 +1629,11 @@
         wrap.appendChild(bar);
       }
 
-      if (next) {
-        var nx = document.createElement('div');
-        nx.className = 'cl-next';
-        var lbl = document.createElement('span'); lbl.className = 'lbl'; lbl.textContent = 'Next up';
-        var body = document.createElement('div'); body.className = 'body';
-        body.appendChild(checklistLink(next));
-        if (next.note) { var nn = document.createElement('div'); nn.className = 'note'; nn.textContent = next.note; body.appendChild(nn); }
-        var doneBtn = document.createElement('button');
-        doneBtn.textContent = '✓ Done';
-        doneBtn.title = 'Tick this one off - the next one moves up';
-        doneBtn.onclick = function () { setChecklistDone(row.id, next.id, true); };
-        nx.appendChild(lbl); nx.appendChild(body); nx.appendChild(doneBtn);
-        wrap.appendChild(nx);
-      } else if (items.length) {
-        var ad = document.createElement('div'); ad.className = 'cl-alldone'; ad.textContent = '✓ All done';
-        wrap.appendChild(ad);
-      }
-
       var tog = document.createElement('button');
-      tog.className = 'cl-toggle';
-      tog.textContent = open ? '▾ Hide list' : '▸ Show full list (' + items.length + ')';
+      tog.className = 'cl-toggle' + (open ? ' open' : '');
+      tog.innerHTML = '<span class="chev">▶</span><span></span><span class="sub"></span>';
+      tog.children[1].textContent = open ? 'Hide list' : 'Show list';
+      tog.children[2].textContent = items.length + ' item' + (items.length === 1 ? '' : 's') + ' · ' + done + ' done';
       tog.onclick = function () { expandedChecklists[row.id] = !open; renderFolders(); };
       wrap.appendChild(tog);
       if (!open) return wrap;
@@ -1665,7 +1646,7 @@
         wrap.appendChild(h);
         items.filter(function (i) { return (i.section || 'Other') === s; }).forEach(function (item) {
           var it = document.createElement('div');
-          it.className = 'cl-item' + (item.done ? ' done' : '') + (next && item.id === next.id ? ' is-next' : '');
+          it.className = 'cl-item' + (item.done ? ' done' : '');
           var cb = document.createElement('input');
           cb.type = 'checkbox'; cb.checked = !!item.done;
           cb.onchange = function () { setChecklistDone(row.id, item.id, cb.checked); };
@@ -1744,7 +1725,7 @@
         if (!(await getDoc(ref)).exists()) {
           await setDoc(ref, {
             title: 'PoE2 1.0 Reacts (ExileCon 2026)', status: 'Idea', doFast: false,
-            notes: 'Open the next video, react, hit ✓ Done - the next one moves up. Add or remove videos under "Show full list".',
+            notes: 'Open "Show list", react to a video, tick it off. Add or remove videos at the bottom of the list.',
             upload: '', filename: '', driveFileId: '', pendingDelete: false,
             order: -1, createdAt: serverTimestamp(), checklist: REACT_SEED,
           });
