@@ -43,7 +43,10 @@ body:not(.present) #bMode{opacity:1}
 .card.ph{opacity:.2}
 .drag{position:fixed;z-index:99;pointer-events:none;transform:rotate(2deg) scale(1.06);box-shadow:0 14px 34px #000d}
 
-.poolwrap{border-top:3px solid var(--cyan);background:#0d0a11;height:30vh;min-height:150px;display:flex}
+.poolwrap{border-top:3px solid var(--cyan);background:#0d0a11;height:30vh;min-height:60px;display:flex;position:relative;flex:none}
+.grip{position:absolute;left:0;right:0;top:-9px;height:16px;cursor:ns-resize;z-index:5;touch-action:none}
+.grip::after{content:"";position:absolute;left:50%;top:3px;width:70px;height:7px;margin-left:-35px;border-radius:4px;background:var(--cyan);opacity:.55}
+.grip:hover::after,.grip.on::after{opacity:1}
 #pool{flex:1;overflow:auto;padding:12px 20px;min-height:0}
 
 /* editor */
@@ -69,7 +72,7 @@ body:not(.present) #bMode{opacity:1}
     <button id="bMode" class="primary">▶ Present</button>
   </header>
   <div class="board" id="board"></div>
-  <div class="poolwrap"><div class="zone" id="pool"></div></div>
+  <div class="poolwrap" id="poolwrap"><div class="grip" id="grip" title="Drag to resize"></div><div class="zone" id="pool"></div></div>
 </div>
 
 <div class="editor" id="editor">
@@ -165,14 +168,28 @@ function render(s){
   s.tiers.forEach(t=>{board.appendChild(tierEl(t.label,t.color,t.ids)); t.ids.forEach(i=>placed.add(i));});
   const order=(s.pool||[]).filter(i=>byId(i));
   [...order,...builds.map(b=>b.id).filter(i=>!order.includes(i))].forEach(id=>{if(!placed.has(id)) pool.appendChild(cardEl(byId(id)));});
-  setMode(!!s.present);
 }
 function snapshot(){
-  return {title:$('#title').textContent,present:presenting(),builds,
+  return {title:$('#title').textContent,builds,
     tiers:[...board.querySelectorAll('.tier')].map(t=>({label:t.querySelector('span').textContent,color:t.querySelector('.label').style.background,ids:[...t.querySelectorAll('.card')].map(c=>c.dataset.id)})),
     pool:[...pool.querySelectorAll('.card')].map(c=>c.dataset.id)};
 }
-function save(){try{localStorage.setItem(KEY,JSON.stringify(snapshot()));}catch(e){}}
+/* Live sync: on the hosted page a module script (bottom of file) sets window.syncPush
+   and calls window.applyRemote. Opened from a file it stays local-only. */
+let pendingRemote=null, pushTimer=null;
+function save(){
+  const s=snapshot();
+  try{localStorage.setItem(KEY,JSON.stringify(s));}catch(e){}
+  if(window.syncPush){clearTimeout(pushTimer); pushTimer=setTimeout(()=>window.syncPush(snapshot()),250);}
+}
+window.applyRemote=s=>{
+  if(!s||!s.tiers) return;
+  if(drag||editing!==null||document.activeElement&&document.activeElement.isContentEditable){pendingRemote=s;return;}
+  pendingRemote=null; render(s);
+  try{localStorage.setItem(KEY,JSON.stringify(s));}catch(e){}
+};
+window.localState=()=>snapshot();
+function flushRemote(){ if(pendingRemote) setTimeout(()=>pendingRemote&&window.applyRemote(pendingRemote),0); }
 function fresh(){return {tiers:DEFAULT_TIERS.map(([l,c])=>({label:l,color:c,ids:[]}))};}
 function load(){try{const s=JSON.parse(localStorage.getItem(KEY)); if(s&&s.tiers) return s;}catch(e){} return fresh();}
 
@@ -182,8 +199,9 @@ function setMode(p){
   $('#bMode').textContent=p?'✎ Edit':'▶ Present';
   $('#title').contentEditable=p?'false':'true';
   if(p) closeEditor();
+  try{localStorage.setItem(KEY+'-present',p?'1':'');}catch(e){}
 }
-$('#bMode').onclick=()=>{setMode(!presenting()); save();};
+$('#bMode').onclick=()=>setMode(!presenting());
 
 /* drag & drop */
 let drag=null;
@@ -217,6 +235,7 @@ document.addEventListener('pointerup',()=>{
   if(!drag) return; const d=drag; drag=null;
   if(d.started){d.ghost.remove(); d.c.classList.remove('ph'); save();}
   else if(!presenting()) openEditor(d.c.dataset.id);
+  flushRemote();
 });
 document.addEventListener('contextmenu',e=>{
   const c=e.target.closest('.card'); if(!c||c.closest('.editor')) return; e.preventDefault();
@@ -261,7 +280,7 @@ function openEditor(id){
   $('#eDel').style.display=byId(id)?'':'none';
   ed.classList.add('show'); preview(); setTimeout(()=>$('#eName').focus(),50);
 }
-function closeEditor(){ed.classList.remove('show'); editing=null;}
+function closeEditor(){ed.classList.remove('show'); editing=null; flushRemote();}
 $('#eClose').onclick=closeEditor;
 $('#eCls').onchange=()=>{fillAsc($('#eCls').value,CLASSES[$('#eCls').value].asc[0]); preview();};
 $('#eName').addEventListener('input',preview); $('#eAsc').addEventListener('input',preview);
@@ -290,7 +309,89 @@ document.addEventListener('keydown',e=>{
   if(e.key==='Escape') closeEditor();
 });
 addEventListener('resize',()=>document.querySelectorAll('.card').forEach(fit));
+/* resizable pool (height remembered per PC) */
+(()=>{
+  const pw=$('#poolwrap'), g=$('#grip');
+  const setH=h=>{h=Math.max(60,Math.min(innerHeight-140,h)); pw.style.height=h+'px'; return h;};
+  try{const h=+localStorage.getItem(KEY+'-poolh'); if(h) setH(h);}catch(e){}
+  g.addEventListener('pointerdown',e=>{
+    e.preventDefault(); g.setPointerCapture(e.pointerId); g.classList.add('on');
+    const move=ev=>setH(innerHeight-ev.clientY);
+    const up=ev=>{g.classList.remove('on'); g.removeEventListener('pointermove',move); g.removeEventListener('pointerup',up);
+      try{localStorage.setItem(KEY+'-poolh',Math.round(pw.getBoundingClientRect().height));}catch(e){}};
+    g.addEventListener('pointermove',move); g.addEventListener('pointerup',up);
+  });
+  g.addEventListener('dblclick',()=>{pw.style.height=''; try{localStorage.removeItem(KEY+'-poolh');}catch(e){}});
+})();
 render(load());
+let startPresent=false; try{startPresent=!!localStorage.getItem(KEY+'-present');}catch(e){}
+setMode(startPresent);
+</script>
+
+<!-- Live sync (only on the hosted https page): shared board in the pipeline's Firestore,
+     doc config/tierlist-3.30, same Google sign-in + allowlist as the pipeline board. -->
+<div id="sync" class="sync"></div>
+<style>
+.sync{position:fixed;left:12px;bottom:10px;z-index:80;font-size:13px;font-weight:600;display:flex;gap:8px;align-items:center;
+  background:#000c;border:1px solid var(--line);border-radius:20px;padding:5px 12px;color:var(--dim)}
+.sync:empty{display:none}
+.sync .dot{width:9px;height:9px;border-radius:50%;background:#555}
+.sync.live .dot{background:#3ddc6a;box-shadow:0 0 8px #3ddc6a}
+.sync.warn .dot{background:#e8a33a}
+.sync button{padding:4px 10px;font-size:13px}
+.present .sync.live{opacity:.0}
+.present .sync.live:hover{opacity:1}
+</style>
+<script type="module">
+if(location.protocol==='https:'||location.hostname==='localhost'||location.hostname==='127.0.0.1'){
+  const el=document.getElementById('sync');
+  const show=(cls,html)=>{el.className='sync '+cls; el.innerHTML='<span class="dot"></span>'+html;};
+  show('','Connecting…');
+  try{
+    const V='https://www.gstatic.com/firebasejs/10.13.2/';
+    const {initializeApp}=await import(V+'firebase-app.js');
+    const {getFirestore,doc,onSnapshot,setDoc,serverTimestamp}=await import(V+'firebase-firestore.js');
+    const {getAuth,GoogleAuthProvider,signInWithPopup,onAuthStateChanged}=await import(V+'firebase-auth.js');
+    // Same public web config as the pipeline board (index.html); access is gated by Firestore rules + allowlist.
+    const app=initializeApp({
+      apiKey:'AIzaSyCHyVL3XBiqnKRqK1gRIml0EYDnB3A8d6U',
+      authDomain:'ghazzy-video-pipeline-8ecd4.firebaseapp.com',
+      projectId:'ghazzy-video-pipeline-8ecd4',
+      storageBucket:'ghazzy-video-pipeline-8ecd4.firebasestorage.app',
+      messagingSenderId:'889310513985',
+      appId:'1:889310513985:web:faac82e551a72345d86fc0',
+    });
+    const db=getFirestore(app), auth=getAuth(app);
+    const ref=doc(db,'config','tierlist-3.30');
+    let lastSent=null, unsub=null;
+    const fail=err=>{
+      const m=String(err&&err.message||err);
+      window.syncPush=null;
+      show('warn',m.includes('insufficient permissions')?'Not on the allowlist — changes stay on this PC':'Sync error — changes stay on this PC');
+      console.error('[tierlist sync]',err);
+    };
+    const signInUi=()=>{
+      show('warn','Not synced <button id="syncIn">Sign in with Google</button>');
+      document.getElementById('syncIn').onclick=()=>signInWithPopup(auth,new GoogleAuthProvider()).catch(fail);
+    };
+    onAuthStateChanged(auth,user=>{
+      if(unsub){unsub();unsub=null;}
+      if(!user){window.syncPush=null; return signInUi();}
+      window.syncPush=s=>{
+        const json=JSON.stringify(s); if(json===lastSent) return;
+        lastSent=json;
+        setDoc(ref,{state:json,by:user.email||'',at:serverTimestamp()}).catch(fail);
+      };
+      unsub=onSnapshot(ref,snap=>{
+        show('live','Live');
+        if(!snap.exists()){ window.syncPush(window.localState()); return; }   // first ever: seed from this browser
+        const json=snap.data().state; if(!json||json===lastSent) return;
+        lastSent=json;
+        try{ window.applyRemote(JSON.parse(json)); }catch(e){ console.error(e); }
+      },fail);
+    });
+  }catch(err){ show('warn','Offline — changes stay on this PC'); console.error(err); }
+}
 </script>
 </body>
 </html>
