@@ -577,6 +577,42 @@
   .idea-row-actions button { padding: 3px 8px; font-size: 11px; }
   .idea-row-empty { color: var(--muted); font-size: 12px; font-style: italic; padding: 4px 10px; }
 
+  /* Checklist inside a To-Do row (e.g. a list of videos to react to).
+     Stored as a `checklist` array field on the Idea doc itself - see renderChecklist. */
+  .cl-count { font-size: 11px; font-weight: 700; color: var(--muted); border: 1px solid var(--border); border-radius: 10px; padding: 1px 8px; white-space: nowrap; }
+  .cl-count.all-done { color: #6fdc8c; border-color: #6fdc8c; }
+  .checklist { display: flex; flex-direction: column; gap: 6px; padding: 4px 0 2px; cursor: default; }
+  .cl-bar { height: 5px; background: var(--card); border-radius: 3px; overflow: hidden; }
+  .cl-bar > i { display: block; height: 100%; background: #6fdc8c; transition: width .25s; }
+  .cl-next { display: flex; align-items: center; gap: 8px; background: rgba(124, 158, 255, 0.10); border: 1px solid var(--accent); border-radius: 3px; padding: 6px 8px; }
+  .cl-next .lbl { font-size: 10px; font-weight: 700; letter-spacing: .5px; color: var(--accent); text-transform: uppercase; white-space: nowrap; }
+  .cl-next .body { flex: 1; min-width: 0; }
+  .cl-next a { color: var(--text); font-weight: 600; font-size: 13px; text-decoration: none; }
+  .cl-next a:hover { text-decoration: underline; }
+  .cl-next .note { color: var(--muted); font-size: 11.5px; }
+  .cl-next button { padding: 4px 10px; font-size: 12px; white-space: nowrap; }
+  .cl-alldone { font-size: 12px; color: #6fdc8c; font-weight: 600; }
+  .cl-toggle { align-self: flex-start; background: none; border: none; color: var(--muted); font-size: 12px; padding: 2px 0; cursor: pointer; }
+  .cl-toggle:hover { color: var(--text); }
+  .cl-section { font-size: 11px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: .5px; margin-top: 6px; }
+  .cl-item { display: flex; align-items: flex-start; gap: 8px; padding: 3px 4px; border-radius: 2px; }
+  .cl-item:hover { background: rgba(255, 255, 255, 0.04); }
+  .cl-item input[type=checkbox] { margin-top: 2px; width: 15px; height: 15px; accent-color: #6fdc8c; cursor: pointer; flex: none; }
+  .cl-item .body { flex: 1; min-width: 0; font-size: 13px; line-height: 1.35; }
+  .cl-item a { color: var(--text); text-decoration: none; }
+  .cl-item a:hover { color: var(--accent); text-decoration: underline; }
+  .cl-item .note { color: var(--muted); font-size: 11.5px; }
+  .cl-item.done .body { opacity: .45; }
+  .cl-item.done a { text-decoration: line-through; }
+  .cl-item.is-next { outline: 1px solid var(--accent); }
+  .cl-item .del { background: none; border: none; color: var(--muted); font-size: 15px; line-height: 1; padding: 0 4px; cursor: pointer; opacity: 0; }
+  .cl-item:hover .del { opacity: 1; }
+  .cl-item .del:hover { color: var(--danger); }
+  .cl-add { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 6px; }
+  .cl-add input { flex: 1 1 160px; background: var(--card); border: 1px solid var(--border); color: var(--text); border-radius: 2px; padding: 6px 8px; font-size: 12px; }
+  .cl-add input.url { flex-basis: 220px; }
+  .cl-add button { padding: 5px 10px; font-size: 12px; }
+
   .archived-panel { margin-top: 8px; }
   .archived-row { display: flex; justify-content: space-between; align-items: center; padding: 6px 10px; background: var(--card); border-radius: 2px; margin-bottom: 4px; font-size: 13px; }
 
@@ -1384,7 +1420,7 @@
           delay: 250,
           delayOnTouchOnly: true,
           animation: 150,
-          filter: 'button, input, a, select, textarea',
+          filter: 'button, input, a, select, textarea, .checklist',
           preventOnFilter: false,
           onEnd: function () {
             Array.from(list.children).forEach(function (el, i) {
@@ -1470,12 +1506,30 @@
         if (title.value.trim() && title.value.trim() !== row.title) updateDoc(doc(db, 'pipeline', row.id), { title: title.value.trim() }).catch(onError);
       });
       top.appendChild(title);
+      var hasChecklist = Array.isArray(row.checklist);
+      if (hasChecklist) {
+        var clItems = row.checklist, clDone = clItems.filter(function (i) { return i.done; }).length;
+        var count = document.createElement('span');
+        count.className = 'cl-count' + (clItems.length && clDone === clItems.length ? ' all-done' : '');
+        count.textContent = clDone + ' / ' + clItems.length + ' done';
+        top.appendChild(count);
+      }
       el.appendChild(top);
 
       if (descExpanded) el.appendChild(renderIdeaNotes(row));
+      if (hasChecklist) el.appendChild(renderChecklist(row));
 
       var actions = document.createElement('div');
       actions.className = 'idea-row-actions';
+
+      if (!hasChecklist) {
+        var clBtn = document.createElement('button');
+        clBtn.className = 'secondary';
+        clBtn.textContent = '☑ Add checklist';
+        clBtn.title = 'Turn this to-do into a list you can tick off one by one';
+        clBtn.onclick = function () { expandedChecklists[row.id] = true; updateDoc(doc(db, 'pipeline', row.id), { checklist: [] }).catch(onError); };
+        actions.appendChild(clBtn);
+      }
 
       var flagBtn = document.createElement('button');
       flagBtn.className = 'flag-btn' + (row.doFast ? ' active' : '');
@@ -1530,6 +1584,175 @@
         if (el) { el.focus(); el.setSelectionRange(el.value.length, el.value.length); }
       });
       return view;
+    }
+
+    // ---------- checklist inside a To-Do row ----------
+    // A to-do can carry `checklist: [{id, title, url, note, section, done, doneAt}]`
+    // on its own pipeline doc - e.g. "PoE2 1.0 Reacts": a list of videos to
+    // react to, ticked off one at a time. Collapsed it shows a progress bar
+    // and just the next unticked item; expanded it shows the whole list
+    // grouped by section, with add/remove. Writes replace the whole array,
+    // always rebuilt from the latest snapshot in state.rows at click time.
+    var expandedChecklists = {}; // idea id -> true while the full list is shown
+    var checklistDrafts = {};    // idea id -> { url, title, section } - survives live re-renders
+    var checklistFocus = null;   // 'ideaId:field' of the add-form input that had focus
+
+    function latestChecklist(rowId) {
+      var r = state.rows.find(function (x) { return x.id === rowId; });
+      return r && Array.isArray(r.checklist) ? r.checklist.map(function (i) { return Object.assign({}, i); }) : [];
+    }
+    function saveChecklist(rowId, items) {
+      return updateDoc(doc(db, 'pipeline', rowId), { checklist: items }).catch(onError);
+    }
+    function setChecklistDone(rowId, itemId, done) {
+      saveChecklist(rowId, latestChecklist(rowId).map(function (i) {
+        if (i.id === itemId) { i.done = done; i.doneAt = done ? Date.now() : null; }
+        return i;
+      }));
+    }
+    function checklistLink(item) {
+      var a = document.createElement(item.url ? 'a' : 'span');
+      a.textContent = item.title || item.url;
+      if (item.url) { a.href = item.url; a.target = '_blank'; a.rel = 'noopener noreferrer'; }
+      return a;
+    }
+
+    function renderChecklist(row) {
+      var items = row.checklist || [];
+      var done = items.filter(function (i) { return i.done; }).length;
+      var next = items.find(function (i) { return !i.done; });
+      var open = !!expandedChecklists[row.id];
+      var wrap = document.createElement('div');
+      wrap.className = 'checklist';
+
+      if (items.length) {
+        var bar = document.createElement('div');
+        bar.className = 'cl-bar';
+        bar.innerHTML = '<i style="width:' + Math.round(done / items.length * 100) + '%"></i>';
+        wrap.appendChild(bar);
+      }
+
+      if (next) {
+        var nx = document.createElement('div');
+        nx.className = 'cl-next';
+        var lbl = document.createElement('span'); lbl.className = 'lbl'; lbl.textContent = 'Next up';
+        var body = document.createElement('div'); body.className = 'body';
+        body.appendChild(checklistLink(next));
+        if (next.note) { var nn = document.createElement('div'); nn.className = 'note'; nn.textContent = next.note; body.appendChild(nn); }
+        var doneBtn = document.createElement('button');
+        doneBtn.textContent = '✓ Done';
+        doneBtn.title = 'Tick this one off - the next one moves up';
+        doneBtn.onclick = function () { setChecklistDone(row.id, next.id, true); };
+        nx.appendChild(lbl); nx.appendChild(body); nx.appendChild(doneBtn);
+        wrap.appendChild(nx);
+      } else if (items.length) {
+        var ad = document.createElement('div'); ad.className = 'cl-alldone'; ad.textContent = '✓ All done';
+        wrap.appendChild(ad);
+      }
+
+      var tog = document.createElement('button');
+      tog.className = 'cl-toggle';
+      tog.textContent = open ? '▾ Hide list' : '▸ Show full list (' + items.length + ')';
+      tog.onclick = function () { expandedChecklists[row.id] = !open; renderFolders(); };
+      wrap.appendChild(tog);
+      if (!open) return wrap;
+
+      // Full list, grouped by section in first-seen order.
+      var sections = [];
+      items.forEach(function (i) { var s = i.section || 'Other'; if (sections.indexOf(s) === -1) sections.push(s); });
+      sections.forEach(function (s) {
+        var h = document.createElement('div'); h.className = 'cl-section'; h.textContent = s;
+        wrap.appendChild(h);
+        items.filter(function (i) { return (i.section || 'Other') === s; }).forEach(function (item) {
+          var it = document.createElement('div');
+          it.className = 'cl-item' + (item.done ? ' done' : '') + (next && item.id === next.id ? ' is-next' : '');
+          var cb = document.createElement('input');
+          cb.type = 'checkbox'; cb.checked = !!item.done;
+          cb.onchange = function () { setChecklistDone(row.id, item.id, cb.checked); };
+          var body = document.createElement('div'); body.className = 'body';
+          body.appendChild(checklistLink(item));
+          if (item.note) { var n = document.createElement('div'); n.className = 'note'; n.textContent = item.note; body.appendChild(n); }
+          var del = document.createElement('button');
+          del.className = 'del'; del.textContent = '×'; del.title = 'Remove from list';
+          del.onclick = function () {
+            if (confirm('Remove "' + (item.title || item.url) + '" from the list?')) {
+              saveChecklist(row.id, latestChecklist(row.id).filter(function (i) { return i.id !== item.id; }));
+            }
+          };
+          it.appendChild(cb); it.appendChild(body); it.appendChild(del);
+          wrap.appendChild(it);
+        });
+      });
+
+      // Add form - drafts live in checklistDrafts so a live update from the
+      // other person mid-typing doesn't wipe what's been typed.
+      var draft = checklistDrafts[row.id] || (checklistDrafts[row.id] = { url: '', title: '', section: '' });
+      var add = document.createElement('div'); add.className = 'cl-add';
+      var dlId = 'cl-sections-' + row.id;
+      var dl = document.createElement('datalist'); dl.id = dlId;
+      sections.forEach(function (s) { var o = document.createElement('option'); o.value = s; dl.appendChild(o); });
+      function field(key, ph, cls) {
+        var inp = document.createElement('input');
+        inp.placeholder = ph; inp.value = draft[key]; if (cls) inp.className = cls;
+        inp.dataset.clField = row.id + ':' + key;
+        inp.oninput = function () { draft[key] = inp.value; };
+        inp.onfocus = function () { checklistFocus = row.id + ':' + key; };
+        // A live re-render removes this input, which also fires blur - only a
+        // real blur (input still on the page) should forget the focus.
+        inp.onblur = function () { setTimeout(function () { if (inp.isConnected && checklistFocus === row.id + ':' + key) checklistFocus = null; }, 0); };
+        inp.onkeydown = function (e) { if (e.key === 'Enter') addBtn.click(); };
+        return inp;
+      }
+      var urlIn = field('url', 'Paste a link (YouTube etc.)', 'url');
+      var titleIn = field('title', 'Title');
+      var secIn = field('section', 'Section (optional)');
+      secIn.setAttribute('list', dlId);
+      var addBtn = document.createElement('button');
+      addBtn.textContent = '+ Add';
+      addBtn.onclick = function () {
+        var url = draft.url.trim(), t = draft.title.trim();
+        if (!url && !t) { urlIn.focus(); return; }
+        var list = latestChecklist(row.id);
+        list.push({ id: 'i' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6), title: t || url, url: url, note: '', section: draft.section.trim() || 'Added', done: false });
+        checklistDrafts[row.id] = { url: '', title: '', section: draft.section };
+        checklistFocus = row.id + ':url';
+        saveChecklist(row.id, list);
+      };
+      add.appendChild(urlIn); add.appendChild(titleIn); add.appendChild(secIn); add.appendChild(addBtn); add.appendChild(dl);
+      wrap.appendChild(add);
+
+      if (checklistFocus && checklistFocus.indexOf(row.id + ':') === 0) {
+        setTimeout(function () {
+          var f = document.querySelector('[data-cl-field="' + checklistFocus + '"]');
+          if (f && document.activeElement !== f) { f.focus(); f.setSelectionRange(f.value.length, f.value.length); }
+        }, 0);
+      }
+      return wrap;
+    }
+
+    // One-time seed: the PoE2 1.0 react list (from the GhazzyTV-PoE2-Handoff
+    // folder, Nov 12 2026) as a To-Do row with a checklist. Fixed doc id so two
+    // browsers loading at once can't create it twice; config/seeds remembers it
+    // was done, so deleting the row later doesn't bring it back.
+    var REACT_SEED = [{"id":"r01","title":"PoE 2 Infernalist MASSIVE Rework","url":"https://www.youtube.com/shorts/47sBGPjQIG0","note":"Short on the 1.0 Infernalist rework: new minions and upgraded abilities.","section":"Minion-focused","done":false},{"id":"r02","title":"Path of Exile 2: What's New - the Shadow Is Real, and the Duelist Gets a Squire","url":"https://www.youtube.com/shorts/HgrUA7yg9yM","note":"Short on the Shadow's stealth, Shades and Darkness, plus the Duelist's new squire.","section":"Minion-focused","done":false},{"id":"r03","title":"PoE 2's New Classes: Shadow Traps and the Knight's Squire","url":"https://www.youtube.com/shorts/GOtHBcoPQ7c","note":"Short on how Shadow traps fire in order, and the Knight's squire.","section":"Minion-focused","done":false},{"id":"r04","title":"PoE 2 1.0 Changes EVERYTHING! New Passive Tree & Skills Revealed!","url":"https://www.youtube.com/watch?v=xWVAifF2Ty4","note":"Updated passive tree, new skills and the ascendancy reworks shown at ExileCon.","section":"Minion-focused","done":false},{"id":"r05","title":"Exilecon 2026: Full Keynote Presentation","url":"https://www.youtube.com/watch?v=yul3Bt_irNY","note":"GGG's 2-hour keynote on the future of Path of Exile 1 and 2.","section":"Official ExileCon streams and interviews","done":false},{"id":"r06","title":"Path of Exile: Jonathan Rogers & Mark Roberts ExileCon Roundtable","url":"https://www.youtube.com/watch?v=lOP0IFfKK9g","note":"Creator and media roundtable with the game directors on the upcoming 1.0 release.","section":"Official ExileCon streams and interviews","done":false},{"id":"r07","title":"ExileCon2026: GGG Founders Roundtable","url":"https://www.youtube.com/watch?v=2UNC9EkMWHY","note":"Kripparian puts audience questions to Chris Wilson, Jonathan Rogers, Erik Olofsson and Mark Roberts.","section":"Official ExileCon streams and interviews","done":false},{"id":"r08","title":"The PoE 2 Developer Interview Everyone Needs to See!","url":"https://www.youtube.com/watch?v=U4X6Jh-XmvA","note":"Jonathan Rogers and Mark on where the game goes next, ahead of 1.0.","section":"Official ExileCon streams and interviews","done":false},{"id":"r09","title":"Huge Path of Exile 2 Features GGG Didn't Mention in the Main Reveal (ExileCon Q&A)","url":"https://www.youtube.com/watch?v=cU2jEa1mqXE","note":"Reaction to the dev Q&A, covering features that were not shown on the main stage.","section":"Q&A and stuff that came out after the reveal","done":false},{"id":"r10","title":"12 Hidden PoE 2 Changes From Exilecon 2026","url":"https://www.youtube.com/watch?v=rDgmYvmQGQs","note":"Changes cut from the presentation but discussed in the interviews held at the event.","section":"Q&A and stuff that came out after the reveal","done":false},{"id":"r11","title":"POE2 1.0 is MASSIVE - Full ExileCon Reveal Breakdown","url":"https://www.youtube.com/watch?v=LZEpKCqNnCQ","note":"Breakdown of the reveal and the dev Q&A without watching the full broadcast.","section":"Q&A and stuff that came out after the reveal","done":false},{"id":"r12","title":"ExileCon 2026 Q&A: I Played the Shadow and Duelist, Ask Me Anything","url":"https://www.youtube.com/watch?v=wJ2tIXvSuhU","note":"Hands-on answers about both new classes from someone who played them before launch.","section":"Q&A and stuff that came out after the reveal","done":false},{"id":"r13","title":"Path of Exile 2: New Classes","url":"https://www.youtube.com/watch?v=-EAz-Cd-m1g","note":"How Shadow and Duelist play, based on the ExileCon developer panel.","section":"Q&A and stuff that came out after the reveal","done":false},{"id":"r14","title":"I played the Duelist For 5 Hours. He's gonna break PoE 2 1.0!","url":"https://www.youtube.com/watch?v=yBeJ6zpV-as","note":"Five hours on the Knight ascendancy, including the return of Cyclone.","section":"Q&A and stuff that came out after the reveal","done":false},{"id":"r15","title":"ExileCon 2026 Keynote Blind Reaction","url":"https://www.youtube.com/watch?v=Zqs8wpoY-n4","note":"Fully blind live reaction to the whole keynote.","section":"Reveal reactions and breakdowns","done":false},{"id":"r16","title":"My notes and initial reaction of the ExileCon 1.0 reveal","url":"https://www.youtube.com/watch?v=uhzvMZYXovw","note":"Reaction with notes and resources in the description. Nov 7.","section":"Reveal reactions and breakdowns","done":false},{"id":"r17","title":"Exilecon 2026 Live Reaction - Path of Exile 2","url":"https://www.youtube.com/watch?v=2MrL16g_HUk","note":"Live reaction to the stream and the 1.0 features.","section":"Reveal reactions and breakdowns","done":false},{"id":"r18","title":"GGG Just Dropped the Most Insane Keynote in ARPG History...","url":"https://www.youtube.com/watch?v=3XI-ca9cawQ","note":"Full live watch-along of the keynote.","section":"Reveal reactions and breakdowns","done":false},{"id":"r19","title":"POE 2 1.0 IS GOING TO BE INSANE!!","url":"https://www.youtube.com/watch?v=H71kSdiYU9M","note":"Hype reaction to the ExileCon announcements.","section":"Reveal reactions and breakdowns","done":false},{"id":"r20","title":"PoE 2 Conquerors of Wraeclast FULL Reveal Reaction","url":"https://www.youtube.com/watch?v=TuY-0haonQY","note":"Reaction to the league showcase: armies, strongholds and castle sieges.","section":"Reveal reactions and breakdowns","done":false},{"id":"r21","title":"Path of Exile 2's NEW 1.0 League Is MASSIVE!","url":"https://www.youtube.com/watch?v=rf_Nr-GNm14","note":"Overview of the Conquerors of Wraeclast league mechanic and its army battles.","section":"Reveal reactions and breakdowns","done":false},{"id":"r22","title":"This League Mechanic Goes Hard - Quin DEEP DIVES the PoE2 1.0 Reveal","url":"https://www.youtube.com/watch?v=uPpW3L-LH94","note":"Long deep dive with timestamps, streamed Nov 11.","section":"Reveal reactions and breakdowns","done":false},{"id":"r23","title":"PoE2 Just Dropped a MASSIVE Bombshell (1.0)","url":"https://www.youtube.com/watch?v=ZqRf6Pn7CsM","note":"Creator who was on the ground at ExileCon in Auckland, hosting a panel and playing.","section":"Reveal reactions and breakdowns","done":false},{"id":"r24","title":"ONLY the POE 2 1.0 Changes That Actually Matter","url":"https://www.youtube.com/watch?v=jz54CmwietQ","note":"Shadow, Duelist, the league, crafting changes and revamped uniques, filtered down.","section":"Reveal reactions and breakdowns","done":false},{"id":"r25","title":"The Most HYPE Changes to PoE2 From ExileCon","url":"https://www.youtube.com/watch?v=vqoT-QAQPgI","note":"Day 1 breakdown of the biggest 1.0 changes.","section":"Reveal reactions and breakdowns","done":false},{"id":"r26","title":"EVERYTHING Revealed for Path of Exile 2's 1.0 Release!","url":"https://www.youtube.com/watch?v=AaPsThmOvto","note":"Full rundown of the Dec 11 release content.","section":"Reveal reactions and breakdowns","done":false},{"id":"r27","title":"Path of Exile 2 1.0 Is HUGE: Shadow, Duelist & Conquerors of Wraeclast","url":"https://www.youtube.com/watch?v=7PVC21M9jd8","note":"Quick overview of the new class, ascendancies and league.","section":"Reveal reactions and breakdowns","done":false},{"id":"r28","title":"Path of Exile 2's Massive Reveals For Exilecon (Maybe...): The Path to 1.0","url":"https://www.youtube.com/watch?v=6TM_iP5_zfA","note":"Pre-ExileCon speculation, uploaded Nov 1. Useful for a 'what they predicted vs what we got' angle.","section":"Before the reveal (speculation)","done":false},{"id":"r29","title":"Path of Exile 2 ACTUALLY Signaled Something Much Bigger...","url":"https://www.youtube.com/watch?v=BujYVNxKCng","note":"Pre-reveal video on what the 1.0 build-up was hinting at.","section":"Before the reveal (speculation)","done":false},{"id":"r30","title":"RECAP EXILECON - CE QUI ARRIVE EN 1.0 (French)","url":"https://www.youtube.com/watch?v=XXKNa_juqGI","note":"French recap of the reveal: the league, the Shadow, unique and passive tree reworks.","section":"Other languages","done":false},{"id":"r31","title":"Exilecon - PoE 1 & 2 : le resume de toutes les annonces ! (French)","url":"https://www.youtube.com/watch?v=2z33zmDnq3U","note":"French summary covering both PoE1 3.30 and PoE2 1.0.","section":"Other languages","done":false},{"id":"r32","title":"Path of Exile 2 ujawnilo wersje 1.0 - PELNE INFO Z EXILECONU (Polish)","url":"https://www.youtube.com/watch?v=Z2BKCSW7bic","note":"Polish full-info recap of the ExileCon reveal.","section":"Other languages","done":false},{"id":"r33","title":"Shadow vs Duelist w Path of Exile 2 1.0 - ktora klasa na start? (Polish)","url":"https://www.youtube.com/watch?v=euT31KFYBLk","note":"Polish comparison of the two new classes for league start.","section":"Other languages","done":false},{"id":"r34","title":"PoE2 1.0 dev Q&A, all 48 items summarised (Japanese)","url":"https://www.youtube.com/watch?v=oefrCUPg3W0","note":"Japanese rundown of the dev Q&A, including Shadow stealth and traps.","section":"Other languages","done":false},{"id":"r35","title":"Mein Erster Eindruck nach der Keynote (German)","url":"https://www.youtube.com/watch?v=1tr1bJn-Qnk","note":"German first impression of the Conquerors of Wraeclast reveal.","section":"Other languages","done":false}];
+    async function seedReactList() {
+      try {
+        var flagRef = doc(db, 'config', 'seeds');
+        var flag = await getDoc(flagRef);
+        if (flag.exists() && flag.data().poe2Reacts) return;
+        var ref = doc(db, 'pipeline', 'todo-poe2-1-0-reacts');
+        if (!(await getDoc(ref)).exists()) {
+          await setDoc(ref, {
+            title: 'PoE2 1.0 Reacts (ExileCon 2026)', status: 'Idea', doFast: false,
+            notes: 'Open the next video, react, hit ✓ Done - the next one moves up. Add or remove videos under "Show full list".',
+            upload: '', filename: '', driveFileId: '', pendingDelete: false,
+            order: -1, createdAt: serverTimestamp(), checklist: REACT_SEED,
+          });
+        }
+        await setDoc(flagRef, { poe2Reacts: true }, { merge: true });
+      } catch (e) {
+        console.error('[seed] react list not created:', e && e.message ? e.message : e);
+      }
     }
 
     // Idea adopts the video's row (title + appended notes), the idea row
@@ -3126,6 +3349,7 @@
     // ---------- boot ----------
 
     function boot() {
+      seedReactList();
       onSnapshot(collection(db, 'pipeline'), function (snapshot) {
         state.rows = snapshot.docs
           .map(function (d) {

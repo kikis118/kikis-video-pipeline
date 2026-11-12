@@ -81,6 +81,20 @@ happens later on the streaming-PC app's own side. Don't "fix" this into a real
 `deleteDoc` for pipeline rows — the two-sided delete is deliberate so the UI
 never has to wait on a Drive API round-trip.
 
+## To-Do checklists (added 2026-11-12)
+
+An `Idea` row can carry `checklist: [{id, title, url, note, section, done, doneAt}]`
+on its own `pipeline` doc (no new collection, no rule change). `renderChecklist`
+shows a progress bar + "Next up" (first unticked item, with a ✓ Done button)
+collapsed, and the full sectioned list with add/remove when expanded. Writes
+replace the whole array, rebuilt from the latest `state.rows` at click time.
+Add-form drafts live in `checklistDrafts` so live re-renders don't wipe typing.
+
+`seedReactList()` (called from `boot()`) creates the "PoE2 1.0 Reacts" row once,
+at the fixed doc id `todo-poe2-1-0-reacts`, then sets `config/seeds.poe2Reacts`
+so deleting that row later does not bring it back. The streaming-PC app only
+reads `config/settings`, so `config/seeds` is invisible to it.
+
 ## "24/7 Stream" panel (renamed 2026-09-15, was "Rerun Status")
 
 Same `#rerunPanel`/`renderRerunPanel()` this file already had - just
