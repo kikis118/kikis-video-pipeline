@@ -83,10 +83,14 @@ never has to wait on a Drive API round-trip.
 
 ## To-Do checklists (added 2026-11-12)
 
-An `Idea` row can carry `checklist: [{id, title, url, note, section, done, doneAt}]`
-on its own `pipeline` doc (no new collection, no rule change). `renderChecklist`
-shows a progress bar + a "Show list" toggle
-collapsed, and the full sectioned checklist with add/remove when expanded. Writes
+An `Idea` row can carry `checklist: [{id, title, url, channel, note, section, done,
+doneAt, recording}]` on its own `pipeline` doc (no new collection, no rule change).
+`renderChecklist` shows a progress bar + a "Show list" toggle collapsed, and the
+full sectioned list when expanded: per item a big "recorded" checkbox, channel tag
+("OFFICIAL" when the channel is "Path of Exile"), the visible URL, Copy link, and a
+"Recording now" toggle (ticking recorded clears it). Pasting a YouTube link in the
+add form fills title + channel via YouTube oEmbed (CORS allows this origin).
+`SEED_CHANNELS` backfills channel names for rows seeded before `channel` existed. Writes
 replace the whole array, rebuilt from the latest `state.rows` at click time.
 Add-form drafts live in `checklistDrafts` so live re-renders don't wipe typing.
 

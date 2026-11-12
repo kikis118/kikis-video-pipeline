@@ -590,17 +590,31 @@
     color: var(--text); font-size: 13px; font-weight: 600; padding: 8px 12px;
   }
   .cl-toggle:hover { background: rgba(124, 158, 255, 0.22); }
-  .cl-toggle .chev { color: var(--accent); font-size: 14px; width: 12px; transition: transform .15s; }
-  .cl-toggle.open .chev { transform: rotate(90deg); }
+  .cl-toggle .chev { color: var(--accent); font-size: 14px; width: 12px; }
   .cl-toggle .sub { margin-left: auto; color: var(--muted); font-weight: 500; font-size: 12px; }
   .cl-section { font-size: 11px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: .5px; margin-top: 6px; }
-  .cl-item { display: flex; align-items: flex-start; gap: 8px; padding: 3px 4px; border-radius: 2px; }
+  .cl-item { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; padding: 6px 6px 6px 2px; border-radius: 3px; }
+  .cl-item .body { flex: 1 1 240px; }
+  .cl-btns { flex: none; display: flex; gap: 6px; align-items: center; margin-left: auto; }
   .cl-item:hover { background: rgba(255, 255, 255, 0.04); }
-  .cl-item input[type=checkbox] { margin-top: 2px; width: 15px; height: 15px; accent-color: #6fdc8c; cursor: pointer; flex: none; }
+  .cl-check { flex: none; display: flex; align-items: center; justify-content: center; width: 44px; height: 44px; border-radius: 4px; cursor: pointer; }
+  .cl-check:hover { background: rgba(111, 220, 140, 0.15); }
+  .cl-check input { width: 22px; height: 22px; margin: 0; accent-color: #6fdc8c; cursor: pointer; }
+  .cl-url { font-size: 11.5px; color: var(--accent); word-break: break-all; cursor: text; user-select: text; }
+  .cl-copy { flex: none; font-size: 12px; font-weight: 600; padding: 6px 12px; border-radius: 4px; cursor: pointer; white-space: nowrap; background: transparent; color: var(--text); border: 1px solid var(--border); }
+  .cl-copy:hover { border-color: var(--accent); color: var(--accent); }
+  .cl-copy.copied { border-color: #6fdc8c; color: #6fdc8c; }
   .cl-item .body { flex: 1; min-width: 0; font-size: 13px; line-height: 1.35; }
   .cl-item a { color: var(--text); text-decoration: none; }
   .cl-item a:hover { color: var(--accent); text-decoration: underline; }
   .cl-item .note { color: var(--muted); font-size: 11.5px; }
+  .cl-ch { display: inline-block; font-size: 10.5px; font-weight: 700; color: var(--text); background: rgba(255, 255, 255, 0.08); border: 1px solid var(--border); border-radius: 3px; padding: 0 6px; margin-right: 6px; vertical-align: 1px; }
+  .cl-ch.official { color: #10131c; background: #f0c55a; border-color: #f0c55a; }
+  .cl-rec { flex: none; font-size: 12px; font-weight: 700; padding: 6px 14px; border-radius: 16px; cursor: pointer; white-space: nowrap; background: transparent; color: var(--muted); border: 1px solid var(--border); }
+  .cl-rec:hover { color: #ff6b6b; border-color: #ff6b6b; }
+  .cl-rec.on { background: #ff4d4d; color: #fff; border-color: #ff4d4d; animation: clRecPulse 1.6s ease-in-out infinite; }
+  @keyframes clRecPulse { 50% { box-shadow: 0 0 0 4px rgba(255, 77, 77, 0.25); } }
+  .cl-item.recording { background: rgba(255, 77, 77, 0.08); outline: 1px solid rgba(255, 77, 77, 0.5); }
   .cl-item.done .body { opacity: .45; }
   .cl-item.done a { text-decoration: line-through; }
   .cl-item .del { background: none; border: none; color: var(--muted); font-size: 15px; line-height: 1; padding: 0 4px; cursor: pointer; opacity: 0; }
@@ -1604,9 +1618,25 @@
     }
     function setChecklistDone(rowId, itemId, done) {
       saveChecklist(rowId, latestChecklist(rowId).map(function (i) {
-        if (i.id === itemId) { i.done = done; i.doneAt = done ? Date.now() : null; }
+        if (i.id === itemId) { i.done = done; i.doneAt = done ? Date.now() : null; if (done) i.recording = false; }
         return i;
       }));
+    }
+    function setChecklistRecording(rowId, itemId, on) {
+      saveChecklist(rowId, latestChecklist(rowId).map(function (i) {
+        if (i.id === itemId) { i.recording = on; if (on) i.done = false; }
+        return i;
+      }));
+    }
+    // Channel names for the seeded react list, looked up via YouTube oEmbed on
+    // 2026-11-12 - fallback for rows seeded before `channel` was stored per item.
+    var SEED_CHANNELS = {"https://www.youtube.com/shorts/47sBGPjQIG0":"Timesaver PoE 2","https://www.youtube.com/shorts/HgrUA7yg9yM":"Pure Vista Gaming","https://www.youtube.com/shorts/GOtHBcoPQ7c":"Hackverso","https://www.youtube.com/watch?v=xWVAifF2Ty4":"LugoHQ","https://www.youtube.com/watch?v=yul3Bt_irNY":"Path of Exile","https://www.youtube.com/watch?v=lOP0IFfKK9g":"Destin","https://www.youtube.com/watch?v=2UNC9EkMWHY":"Path of Exile","https://www.youtube.com/watch?v=U4X6Jh-XmvA":"Jazzarus","https://www.youtube.com/watch?v=cU2jEa1mqXE":"Kingdom Twelve","https://www.youtube.com/watch?v=rDgmYvmQGQs":"Master T","https://www.youtube.com/watch?v=LZEpKCqNnCQ":"Scorpius","https://www.youtube.com/watch?v=wJ2tIXvSuhU":"P4wnyhof","https://www.youtube.com/watch?v=-EAz-Cd-m1g":"CHRIX","https://www.youtube.com/watch?v=yBeJ6zpV-as":"P4wnyhof","https://www.youtube.com/watch?v=Zqs8wpoY-n4":"Rurikhan","https://www.youtube.com/watch?v=uhzvMZYXovw":"787prada","https://www.youtube.com/watch?v=2MrL16g_HUk":"Wolfyowns","https://www.youtube.com/watch?v=3XI-ca9cawQ":"Kingdom Twelve","https://www.youtube.com/watch?v=H71kSdiYU9M":"Octta","https://www.youtube.com/watch?v=TuY-0haonQY":"Diztoh","https://www.youtube.com/watch?v=rf_Nr-GNm14":"LugoHQ","https://www.youtube.com/watch?v=uPpW3L-LH94":"Quin69TV","https://www.youtube.com/watch?v=ZqRf6Pn7CsM":"Talkative Tri","https://www.youtube.com/watch?v=jz54CmwietQ":"Spud the King – Builds & Guides","https://www.youtube.com/watch?v=vqoT-QAQPgI":"aer0","https://www.youtube.com/watch?v=AaPsThmOvto":"Jazzarus","https://www.youtube.com/watch?v=7PVC21M9jd8":"Jazzarus","https://www.youtube.com/watch?v=6TM_iP5_zfA":"Jorgen","https://www.youtube.com/watch?v=BujYVNxKCng":"Talkative Tri","https://www.youtube.com/watch?v=XXKNa_juqGI":"Talion","https://www.youtube.com/watch?v=2z33zmDnq3U":"Nomnom","https://www.youtube.com/watch?v=Z2BKCSW7bic":"Kondyss","https://www.youtube.com/watch?v=euT31KFYBLk":"Kondyss","https://www.youtube.com/watch?v=oefrCUPg3W0":"セージ Ch.【ゲーム攻略】","https://www.youtube.com/watch?v=1tr1bJn-Qnk":"Lowepe"};
+    function channelOf(item) { return item.channel || SEED_CHANNELS[item.url] || ''; }
+    function youtubeChannelLookup(url) {
+      if (!/^https?:\/\/(www\.|m\.)?(youtube\.com|youtu\.be)\//i.test(url)) return Promise.resolve(null);
+      return fetch('https://www.youtube.com/oembed?format=json&url=' + encodeURIComponent(url))
+        .then(function (r) { return r.ok ? r.json() : null; })
+        .catch(function () { return null; });
     }
     function checklistLink(item) {
       var a = document.createElement(item.url ? 'a' : 'span');
@@ -1631,9 +1661,10 @@
 
       var tog = document.createElement('button');
       tog.className = 'cl-toggle' + (open ? ' open' : '');
-      tog.innerHTML = '<span class="chev">▶</span><span></span><span class="sub"></span>';
+      tog.innerHTML = '<span class="chev">' + (open ? '▾' : '▸') + '</span><span></span><span class="sub"></span>';
       tog.children[1].textContent = open ? 'Hide list' : 'Show list';
-      tog.children[2].textContent = items.length + ' item' + (items.length === 1 ? '' : 's') + ' · ' + done + ' done';
+      var recCount = items.filter(function (i) { return i.recording && !i.done; }).length;
+      tog.children[2].textContent = (recCount ? '● ' + recCount + ' recording now · ' : '') + items.length + ' item' + (items.length === 1 ? '' : 's') + ' · ' + done + ' recorded';
       tog.onclick = function () { expandedChecklists[row.id] = !open; renderFolders(); };
       wrap.appendChild(tog);
       if (!open) return wrap;
@@ -1646,13 +1677,47 @@
         wrap.appendChild(h);
         items.filter(function (i) { return (i.section || 'Other') === s; }).forEach(function (item) {
           var it = document.createElement('div');
-          it.className = 'cl-item' + (item.done ? ' done' : '');
+          var recording = !!item.recording && !item.done;
+          it.className = 'cl-item' + (item.done ? ' done' : '') + (recording ? ' recording' : '');
           var cb = document.createElement('input');
-          cb.type = 'checkbox'; cb.checked = !!item.done;
+          cb.type = 'checkbox'; cb.checked = !!item.done; cb.title = 'Recorded';
           cb.onchange = function () { setChecklistDone(row.id, item.id, cb.checked); };
           var body = document.createElement('div'); body.className = 'body';
           body.appendChild(checklistLink(item));
-          if (item.note) { var n = document.createElement('div'); n.className = 'note'; n.textContent = item.note; body.appendChild(n); }
+          var ch = channelOf(item);
+          if (ch || item.note) {
+            var n = document.createElement('div'); n.className = 'note';
+            if (ch) {
+              var tag = document.createElement('span');
+              var official = ch === 'Path of Exile';
+              tag.className = 'cl-ch' + (official ? ' official' : '');
+              tag.textContent = official ? 'OFFICIAL · Path of Exile' : ch;
+              n.appendChild(tag);
+            }
+            if (item.note) n.appendChild(document.createTextNode(item.note));
+            body.appendChild(n);
+          }
+          var copy = null;
+          if (item.url) {
+            var urlLine = document.createElement('div');
+            urlLine.className = 'cl-url';
+            urlLine.textContent = item.url;
+            body.appendChild(urlLine);
+            copy = document.createElement('button');
+            copy.className = 'cl-copy';
+            copy.textContent = '⧉ Copy link';
+            copy.onclick = function () {
+              var done = function () { copy.textContent = '✓ Copied'; copy.classList.add('copied'); setTimeout(function () { copy.textContent = '⧉ Copy link'; copy.classList.remove('copied'); }, 1500); };
+              if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(item.url).then(done, function () { window.prompt('Copy this link:', item.url); });
+              else window.prompt('Copy this link:', item.url);
+            };
+          }
+          var rec = document.createElement('button');
+          rec.className = 'cl-rec' + (recording ? ' on' : '');
+          rec.textContent = recording ? '● Recording now' : '● Record';
+          if (item.done) rec.style.visibility = 'hidden';
+          rec.title = recording ? 'Click to stop marking this as recording' : 'Mark as recording now';
+          rec.onclick = function () { setChecklistRecording(row.id, item.id, !recording); };
           var del = document.createElement('button');
           del.className = 'del'; del.textContent = '×'; del.title = 'Remove from list';
           del.onclick = function () {
@@ -1660,7 +1725,14 @@
               saveChecklist(row.id, latestChecklist(row.id).filter(function (i) { return i.id !== item.id; }));
             }
           };
-          it.appendChild(cb); it.appendChild(body); it.appendChild(del);
+          // Big click target around the checkbox, not just the 22px box itself.
+          var check = document.createElement('label');
+          check.className = 'cl-check'; check.title = 'Recorded';
+          check.appendChild(cb);
+          var btns = document.createElement('div'); btns.className = 'cl-btns';
+          if (copy) btns.appendChild(copy);
+          btns.appendChild(rec); btns.appendChild(del);
+          it.appendChild(check); it.appendChild(body); it.appendChild(btns);
           wrap.appendChild(it);
         });
       });
@@ -1684,8 +1756,26 @@
         inp.onkeydown = function (e) { if (e.key === 'Enter') addBtn.click(); };
         return inp;
       }
-      var urlIn = field('url', 'Paste a link (YouTube etc.)', 'url');
+      var urlIn = field('url', 'Paste a YouTube link (title + channel fill in)', 'url');
       var titleIn = field('title', 'Title');
+      // Pasting a YouTube link fills in the title (if empty) and the channel.
+      var lookupTimer = null;
+      urlIn.addEventListener('input', function () {
+        draft.channel = '';
+        clearTimeout(lookupTimer);
+        var u = draft.url.trim();
+        lookupTimer = setTimeout(function () {
+          youtubeChannelLookup(u).then(function (d) {
+            if (!d || draft.url.trim() !== u) return;
+            draft.channel = d.author_name || '';
+            if (!draft.title.trim() && d.title) {
+              draft.title = d.title;
+              var tf = document.querySelector('[data-cl-field="' + row.id + ':title"]');
+              if (tf) tf.value = d.title;
+            }
+          });
+        }, 300);
+      });
       var secIn = field('section', 'Section (optional)');
       secIn.setAttribute('list', dlId);
       var addBtn = document.createElement('button');
@@ -1694,8 +1784,8 @@
         var url = draft.url.trim(), t = draft.title.trim();
         if (!url && !t) { urlIn.focus(); return; }
         var list = latestChecklist(row.id);
-        list.push({ id: 'i' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6), title: t || url, url: url, note: '', section: draft.section.trim() || 'Added', done: false });
-        checklistDrafts[row.id] = { url: '', title: '', section: draft.section };
+        list.push({ id: 'i' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6), title: t || url, url: url, channel: draft.channel || '', note: '', section: draft.section.trim() || 'Added', done: false });
+        checklistDrafts[row.id] = { url: '', title: '', section: draft.section, channel: '' };
         checklistFocus = row.id + ':url';
         saveChecklist(row.id, list);
       };
@@ -1715,7 +1805,7 @@
     // folder, Nov 12 2026) as a To-Do row with a checklist. Fixed doc id so two
     // browsers loading at once can't create it twice; config/seeds remembers it
     // was done, so deleting the row later doesn't bring it back.
-    var REACT_SEED = [{"id":"r01","title":"PoE 2 Infernalist MASSIVE Rework","url":"https://www.youtube.com/shorts/47sBGPjQIG0","note":"Short on the 1.0 Infernalist rework: new minions and upgraded abilities.","section":"Minion-focused","done":false},{"id":"r02","title":"Path of Exile 2: What's New - the Shadow Is Real, and the Duelist Gets a Squire","url":"https://www.youtube.com/shorts/HgrUA7yg9yM","note":"Short on the Shadow's stealth, Shades and Darkness, plus the Duelist's new squire.","section":"Minion-focused","done":false},{"id":"r03","title":"PoE 2's New Classes: Shadow Traps and the Knight's Squire","url":"https://www.youtube.com/shorts/GOtHBcoPQ7c","note":"Short on how Shadow traps fire in order, and the Knight's squire.","section":"Minion-focused","done":false},{"id":"r04","title":"PoE 2 1.0 Changes EVERYTHING! New Passive Tree & Skills Revealed!","url":"https://www.youtube.com/watch?v=xWVAifF2Ty4","note":"Updated passive tree, new skills and the ascendancy reworks shown at ExileCon.","section":"Minion-focused","done":false},{"id":"r05","title":"Exilecon 2026: Full Keynote Presentation","url":"https://www.youtube.com/watch?v=yul3Bt_irNY","note":"GGG's 2-hour keynote on the future of Path of Exile 1 and 2.","section":"Official ExileCon streams and interviews","done":false},{"id":"r06","title":"Path of Exile: Jonathan Rogers & Mark Roberts ExileCon Roundtable","url":"https://www.youtube.com/watch?v=lOP0IFfKK9g","note":"Creator and media roundtable with the game directors on the upcoming 1.0 release.","section":"Official ExileCon streams and interviews","done":false},{"id":"r07","title":"ExileCon2026: GGG Founders Roundtable","url":"https://www.youtube.com/watch?v=2UNC9EkMWHY","note":"Kripparian puts audience questions to Chris Wilson, Jonathan Rogers, Erik Olofsson and Mark Roberts.","section":"Official ExileCon streams and interviews","done":false},{"id":"r08","title":"The PoE 2 Developer Interview Everyone Needs to See!","url":"https://www.youtube.com/watch?v=U4X6Jh-XmvA","note":"Jonathan Rogers and Mark on where the game goes next, ahead of 1.0.","section":"Official ExileCon streams and interviews","done":false},{"id":"r09","title":"Huge Path of Exile 2 Features GGG Didn't Mention in the Main Reveal (ExileCon Q&A)","url":"https://www.youtube.com/watch?v=cU2jEa1mqXE","note":"Reaction to the dev Q&A, covering features that were not shown on the main stage.","section":"Q&A and stuff that came out after the reveal","done":false},{"id":"r10","title":"12 Hidden PoE 2 Changes From Exilecon 2026","url":"https://www.youtube.com/watch?v=rDgmYvmQGQs","note":"Changes cut from the presentation but discussed in the interviews held at the event.","section":"Q&A and stuff that came out after the reveal","done":false},{"id":"r11","title":"POE2 1.0 is MASSIVE - Full ExileCon Reveal Breakdown","url":"https://www.youtube.com/watch?v=LZEpKCqNnCQ","note":"Breakdown of the reveal and the dev Q&A without watching the full broadcast.","section":"Q&A and stuff that came out after the reveal","done":false},{"id":"r12","title":"ExileCon 2026 Q&A: I Played the Shadow and Duelist, Ask Me Anything","url":"https://www.youtube.com/watch?v=wJ2tIXvSuhU","note":"Hands-on answers about both new classes from someone who played them before launch.","section":"Q&A and stuff that came out after the reveal","done":false},{"id":"r13","title":"Path of Exile 2: New Classes","url":"https://www.youtube.com/watch?v=-EAz-Cd-m1g","note":"How Shadow and Duelist play, based on the ExileCon developer panel.","section":"Q&A and stuff that came out after the reveal","done":false},{"id":"r14","title":"I played the Duelist For 5 Hours. He's gonna break PoE 2 1.0!","url":"https://www.youtube.com/watch?v=yBeJ6zpV-as","note":"Five hours on the Knight ascendancy, including the return of Cyclone.","section":"Q&A and stuff that came out after the reveal","done":false},{"id":"r15","title":"ExileCon 2026 Keynote Blind Reaction","url":"https://www.youtube.com/watch?v=Zqs8wpoY-n4","note":"Fully blind live reaction to the whole keynote.","section":"Reveal reactions and breakdowns","done":false},{"id":"r16","title":"My notes and initial reaction of the ExileCon 1.0 reveal","url":"https://www.youtube.com/watch?v=uhzvMZYXovw","note":"Reaction with notes and resources in the description. Nov 7.","section":"Reveal reactions and breakdowns","done":false},{"id":"r17","title":"Exilecon 2026 Live Reaction - Path of Exile 2","url":"https://www.youtube.com/watch?v=2MrL16g_HUk","note":"Live reaction to the stream and the 1.0 features.","section":"Reveal reactions and breakdowns","done":false},{"id":"r18","title":"GGG Just Dropped the Most Insane Keynote in ARPG History...","url":"https://www.youtube.com/watch?v=3XI-ca9cawQ","note":"Full live watch-along of the keynote.","section":"Reveal reactions and breakdowns","done":false},{"id":"r19","title":"POE 2 1.0 IS GOING TO BE INSANE!!","url":"https://www.youtube.com/watch?v=H71kSdiYU9M","note":"Hype reaction to the ExileCon announcements.","section":"Reveal reactions and breakdowns","done":false},{"id":"r20","title":"PoE 2 Conquerors of Wraeclast FULL Reveal Reaction","url":"https://www.youtube.com/watch?v=TuY-0haonQY","note":"Reaction to the league showcase: armies, strongholds and castle sieges.","section":"Reveal reactions and breakdowns","done":false},{"id":"r21","title":"Path of Exile 2's NEW 1.0 League Is MASSIVE!","url":"https://www.youtube.com/watch?v=rf_Nr-GNm14","note":"Overview of the Conquerors of Wraeclast league mechanic and its army battles.","section":"Reveal reactions and breakdowns","done":false},{"id":"r22","title":"This League Mechanic Goes Hard - Quin DEEP DIVES the PoE2 1.0 Reveal","url":"https://www.youtube.com/watch?v=uPpW3L-LH94","note":"Long deep dive with timestamps, streamed Nov 11.","section":"Reveal reactions and breakdowns","done":false},{"id":"r23","title":"PoE2 Just Dropped a MASSIVE Bombshell (1.0)","url":"https://www.youtube.com/watch?v=ZqRf6Pn7CsM","note":"Creator who was on the ground at ExileCon in Auckland, hosting a panel and playing.","section":"Reveal reactions and breakdowns","done":false},{"id":"r24","title":"ONLY the POE 2 1.0 Changes That Actually Matter","url":"https://www.youtube.com/watch?v=jz54CmwietQ","note":"Shadow, Duelist, the league, crafting changes and revamped uniques, filtered down.","section":"Reveal reactions and breakdowns","done":false},{"id":"r25","title":"The Most HYPE Changes to PoE2 From ExileCon","url":"https://www.youtube.com/watch?v=vqoT-QAQPgI","note":"Day 1 breakdown of the biggest 1.0 changes.","section":"Reveal reactions and breakdowns","done":false},{"id":"r26","title":"EVERYTHING Revealed for Path of Exile 2's 1.0 Release!","url":"https://www.youtube.com/watch?v=AaPsThmOvto","note":"Full rundown of the Dec 11 release content.","section":"Reveal reactions and breakdowns","done":false},{"id":"r27","title":"Path of Exile 2 1.0 Is HUGE: Shadow, Duelist & Conquerors of Wraeclast","url":"https://www.youtube.com/watch?v=7PVC21M9jd8","note":"Quick overview of the new class, ascendancies and league.","section":"Reveal reactions and breakdowns","done":false},{"id":"r28","title":"Path of Exile 2's Massive Reveals For Exilecon (Maybe...): The Path to 1.0","url":"https://www.youtube.com/watch?v=6TM_iP5_zfA","note":"Pre-ExileCon speculation, uploaded Nov 1. Useful for a 'what they predicted vs what we got' angle.","section":"Before the reveal (speculation)","done":false},{"id":"r29","title":"Path of Exile 2 ACTUALLY Signaled Something Much Bigger...","url":"https://www.youtube.com/watch?v=BujYVNxKCng","note":"Pre-reveal video on what the 1.0 build-up was hinting at.","section":"Before the reveal (speculation)","done":false},{"id":"r30","title":"RECAP EXILECON - CE QUI ARRIVE EN 1.0 (French)","url":"https://www.youtube.com/watch?v=XXKNa_juqGI","note":"French recap of the reveal: the league, the Shadow, unique and passive tree reworks.","section":"Other languages","done":false},{"id":"r31","title":"Exilecon - PoE 1 & 2 : le resume de toutes les annonces ! (French)","url":"https://www.youtube.com/watch?v=2z33zmDnq3U","note":"French summary covering both PoE1 3.30 and PoE2 1.0.","section":"Other languages","done":false},{"id":"r32","title":"Path of Exile 2 ujawnilo wersje 1.0 - PELNE INFO Z EXILECONU (Polish)","url":"https://www.youtube.com/watch?v=Z2BKCSW7bic","note":"Polish full-info recap of the ExileCon reveal.","section":"Other languages","done":false},{"id":"r33","title":"Shadow vs Duelist w Path of Exile 2 1.0 - ktora klasa na start? (Polish)","url":"https://www.youtube.com/watch?v=euT31KFYBLk","note":"Polish comparison of the two new classes for league start.","section":"Other languages","done":false},{"id":"r34","title":"PoE2 1.0 dev Q&A, all 48 items summarised (Japanese)","url":"https://www.youtube.com/watch?v=oefrCUPg3W0","note":"Japanese rundown of the dev Q&A, including Shadow stealth and traps.","section":"Other languages","done":false},{"id":"r35","title":"Mein Erster Eindruck nach der Keynote (German)","url":"https://www.youtube.com/watch?v=1tr1bJn-Qnk","note":"German first impression of the Conquerors of Wraeclast reveal.","section":"Other languages","done":false}];
+    var REACT_SEED = [{"id":"r01","title":"PoE 2 Infernalist MASSIVE Rework","url":"https://www.youtube.com/shorts/47sBGPjQIG0","note":"Short on the 1.0 Infernalist rework: new minions and upgraded abilities.","section":"Minion-focused","done":false,"channel":"Timesaver PoE 2"},{"id":"r02","title":"Path of Exile 2: What's New - the Shadow Is Real, and the Duelist Gets a Squire","url":"https://www.youtube.com/shorts/HgrUA7yg9yM","note":"Short on the Shadow's stealth, Shades and Darkness, plus the Duelist's new squire.","section":"Minion-focused","done":false,"channel":"Pure Vista Gaming"},{"id":"r03","title":"PoE 2's New Classes: Shadow Traps and the Knight's Squire","url":"https://www.youtube.com/shorts/GOtHBcoPQ7c","note":"Short on how Shadow traps fire in order, and the Knight's squire.","section":"Minion-focused","done":false,"channel":"Hackverso"},{"id":"r04","title":"PoE 2 1.0 Changes EVERYTHING! New Passive Tree & Skills Revealed!","url":"https://www.youtube.com/watch?v=xWVAifF2Ty4","note":"Updated passive tree, new skills and the ascendancy reworks shown at ExileCon.","section":"Minion-focused","done":false,"channel":"LugoHQ"},{"id":"r05","title":"Exilecon 2026: Full Keynote Presentation","url":"https://www.youtube.com/watch?v=yul3Bt_irNY","note":"GGG's 2-hour keynote on the future of Path of Exile 1 and 2.","section":"Official ExileCon streams and interviews","done":false,"channel":"Path of Exile"},{"id":"r06","title":"Path of Exile: Jonathan Rogers & Mark Roberts ExileCon Roundtable","url":"https://www.youtube.com/watch?v=lOP0IFfKK9g","note":"Creator and media roundtable with the game directors on the upcoming 1.0 release.","section":"Official ExileCon streams and interviews","done":false,"channel":"Destin"},{"id":"r07","title":"ExileCon2026: GGG Founders Roundtable","url":"https://www.youtube.com/watch?v=2UNC9EkMWHY","note":"Kripparian puts audience questions to Chris Wilson, Jonathan Rogers, Erik Olofsson and Mark Roberts.","section":"Official ExileCon streams and interviews","done":false,"channel":"Path of Exile"},{"id":"r08","title":"The PoE 2 Developer Interview Everyone Needs to See!","url":"https://www.youtube.com/watch?v=U4X6Jh-XmvA","note":"Jonathan Rogers and Mark on where the game goes next, ahead of 1.0.","section":"Official ExileCon streams and interviews","done":false,"channel":"Jazzarus"},{"id":"r09","title":"Huge Path of Exile 2 Features GGG Didn't Mention in the Main Reveal (ExileCon Q&A)","url":"https://www.youtube.com/watch?v=cU2jEa1mqXE","note":"Reaction to the dev Q&A, covering features that were not shown on the main stage.","section":"Q&A and stuff that came out after the reveal","done":false,"channel":"Kingdom Twelve"},{"id":"r10","title":"12 Hidden PoE 2 Changes From Exilecon 2026","url":"https://www.youtube.com/watch?v=rDgmYvmQGQs","note":"Changes cut from the presentation but discussed in the interviews held at the event.","section":"Q&A and stuff that came out after the reveal","done":false,"channel":"Master T"},{"id":"r11","title":"POE2 1.0 is MASSIVE - Full ExileCon Reveal Breakdown","url":"https://www.youtube.com/watch?v=LZEpKCqNnCQ","note":"Breakdown of the reveal and the dev Q&A without watching the full broadcast.","section":"Q&A and stuff that came out after the reveal","done":false,"channel":"Scorpius"},{"id":"r12","title":"ExileCon 2026 Q&A: I Played the Shadow and Duelist, Ask Me Anything","url":"https://www.youtube.com/watch?v=wJ2tIXvSuhU","note":"Hands-on answers about both new classes from someone who played them before launch.","section":"Q&A and stuff that came out after the reveal","done":false,"channel":"P4wnyhof"},{"id":"r13","title":"Path of Exile 2: New Classes","url":"https://www.youtube.com/watch?v=-EAz-Cd-m1g","note":"How Shadow and Duelist play, based on the ExileCon developer panel.","section":"Q&A and stuff that came out after the reveal","done":false,"channel":"CHRIX"},{"id":"r14","title":"I played the Duelist For 5 Hours. He's gonna break PoE 2 1.0!","url":"https://www.youtube.com/watch?v=yBeJ6zpV-as","note":"Five hours on the Knight ascendancy, including the return of Cyclone.","section":"Q&A and stuff that came out after the reveal","done":false,"channel":"P4wnyhof"},{"id":"r15","title":"ExileCon 2026 Keynote Blind Reaction","url":"https://www.youtube.com/watch?v=Zqs8wpoY-n4","note":"Fully blind live reaction to the whole keynote.","section":"Reveal reactions and breakdowns","done":false,"channel":"Rurikhan"},{"id":"r16","title":"My notes and initial reaction of the ExileCon 1.0 reveal","url":"https://www.youtube.com/watch?v=uhzvMZYXovw","note":"Reaction with notes and resources in the description. Nov 7.","section":"Reveal reactions and breakdowns","done":false,"channel":"787prada"},{"id":"r17","title":"Exilecon 2026 Live Reaction - Path of Exile 2","url":"https://www.youtube.com/watch?v=2MrL16g_HUk","note":"Live reaction to the stream and the 1.0 features.","section":"Reveal reactions and breakdowns","done":false,"channel":"Wolfyowns"},{"id":"r18","title":"GGG Just Dropped the Most Insane Keynote in ARPG History...","url":"https://www.youtube.com/watch?v=3XI-ca9cawQ","note":"Full live watch-along of the keynote.","section":"Reveal reactions and breakdowns","done":false,"channel":"Kingdom Twelve"},{"id":"r19","title":"POE 2 1.0 IS GOING TO BE INSANE!!","url":"https://www.youtube.com/watch?v=H71kSdiYU9M","note":"Hype reaction to the ExileCon announcements.","section":"Reveal reactions and breakdowns","done":false,"channel":"Octta"},{"id":"r20","title":"PoE 2 Conquerors of Wraeclast FULL Reveal Reaction","url":"https://www.youtube.com/watch?v=TuY-0haonQY","note":"Reaction to the league showcase: armies, strongholds and castle sieges.","section":"Reveal reactions and breakdowns","done":false,"channel":"Diztoh"},{"id":"r21","title":"Path of Exile 2's NEW 1.0 League Is MASSIVE!","url":"https://www.youtube.com/watch?v=rf_Nr-GNm14","note":"Overview of the Conquerors of Wraeclast league mechanic and its army battles.","section":"Reveal reactions and breakdowns","done":false,"channel":"LugoHQ"},{"id":"r22","title":"This League Mechanic Goes Hard - Quin DEEP DIVES the PoE2 1.0 Reveal","url":"https://www.youtube.com/watch?v=uPpW3L-LH94","note":"Long deep dive with timestamps, streamed Nov 11.","section":"Reveal reactions and breakdowns","done":false,"channel":"Quin69TV"},{"id":"r23","title":"PoE2 Just Dropped a MASSIVE Bombshell (1.0)","url":"https://www.youtube.com/watch?v=ZqRf6Pn7CsM","note":"Creator who was on the ground at ExileCon in Auckland, hosting a panel and playing.","section":"Reveal reactions and breakdowns","done":false,"channel":"Talkative Tri"},{"id":"r24","title":"ONLY the POE 2 1.0 Changes That Actually Matter","url":"https://www.youtube.com/watch?v=jz54CmwietQ","note":"Shadow, Duelist, the league, crafting changes and revamped uniques, filtered down.","section":"Reveal reactions and breakdowns","done":false,"channel":"Spud the King – Builds & Guides"},{"id":"r25","title":"The Most HYPE Changes to PoE2 From ExileCon","url":"https://www.youtube.com/watch?v=vqoT-QAQPgI","note":"Day 1 breakdown of the biggest 1.0 changes.","section":"Reveal reactions and breakdowns","done":false,"channel":"aer0"},{"id":"r26","title":"EVERYTHING Revealed for Path of Exile 2's 1.0 Release!","url":"https://www.youtube.com/watch?v=AaPsThmOvto","note":"Full rundown of the Dec 11 release content.","section":"Reveal reactions and breakdowns","done":false,"channel":"Jazzarus"},{"id":"r27","title":"Path of Exile 2 1.0 Is HUGE: Shadow, Duelist & Conquerors of Wraeclast","url":"https://www.youtube.com/watch?v=7PVC21M9jd8","note":"Quick overview of the new class, ascendancies and league.","section":"Reveal reactions and breakdowns","done":false,"channel":"Jazzarus"},{"id":"r28","title":"Path of Exile 2's Massive Reveals For Exilecon (Maybe...): The Path to 1.0","url":"https://www.youtube.com/watch?v=6TM_iP5_zfA","note":"Pre-ExileCon speculation, uploaded Nov 1. Useful for a 'what they predicted vs what we got' angle.","section":"Before the reveal (speculation)","done":false,"channel":"Jorgen"},{"id":"r29","title":"Path of Exile 2 ACTUALLY Signaled Something Much Bigger...","url":"https://www.youtube.com/watch?v=BujYVNxKCng","note":"Pre-reveal video on what the 1.0 build-up was hinting at.","section":"Before the reveal (speculation)","done":false,"channel":"Talkative Tri"},{"id":"r30","title":"RECAP EXILECON - CE QUI ARRIVE EN 1.0 (French)","url":"https://www.youtube.com/watch?v=XXKNa_juqGI","note":"French recap of the reveal: the league, the Shadow, unique and passive tree reworks.","section":"Other languages","done":false,"channel":"Talion"},{"id":"r31","title":"Exilecon - PoE 1 & 2 : le resume de toutes les annonces ! (French)","url":"https://www.youtube.com/watch?v=2z33zmDnq3U","note":"French summary covering both PoE1 3.30 and PoE2 1.0.","section":"Other languages","done":false,"channel":"Nomnom"},{"id":"r32","title":"Path of Exile 2 ujawnilo wersje 1.0 - PELNE INFO Z EXILECONU (Polish)","url":"https://www.youtube.com/watch?v=Z2BKCSW7bic","note":"Polish full-info recap of the ExileCon reveal.","section":"Other languages","done":false,"channel":"Kondyss"},{"id":"r33","title":"Shadow vs Duelist w Path of Exile 2 1.0 - ktora klasa na start? (Polish)","url":"https://www.youtube.com/watch?v=euT31KFYBLk","note":"Polish comparison of the two new classes for league start.","section":"Other languages","done":false,"channel":"Kondyss"},{"id":"r34","title":"PoE2 1.0 dev Q&A, all 48 items summarised (Japanese)","url":"https://www.youtube.com/watch?v=oefrCUPg3W0","note":"Japanese rundown of the dev Q&A, including Shadow stealth and traps.","section":"Other languages","done":false,"channel":"セージ Ch.【ゲーム攻略】"},{"id":"r35","title":"Mein Erster Eindruck nach der Keynote (German)","url":"https://www.youtube.com/watch?v=1tr1bJn-Qnk","note":"German first impression of the Conquerors of Wraeclast reveal.","section":"Other languages","done":false,"channel":"Lowepe"}];
     async function seedReactList() {
       try {
         var flagRef = doc(db, 'config', 'seeds');
