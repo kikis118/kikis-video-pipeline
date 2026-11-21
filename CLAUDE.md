@@ -282,13 +282,15 @@ to `index.html`. Still no build step.
   scripts" = scripts/index.json. Per-script title overrides and the "Script recorded" tick live in
   Firestore `config/script-status` `{scripts:{slug:{title, recorded, recordedBy, recordedAt}}}`
   (setDoc merge) - NOT in the published JSON, so re-publishing never resets a rename or a tick.
-- **Notes / fixes on scripts** (script.html, Google sign-in + allowlist like the board) live in
-  Firestore `config/scriptnotes-<slug>` = `{notes:[{id, sec, secTitle, bucket, quote, type
-  (note|fix|question), text, by, at, resolved}]}`, written with `runTransaction`. They are
-  deliberately separate from `scripts/<slug>.json`, which Publish overwrites - the user asked that
-  re-publishing never touches Ghazzy's comments. Notes anchor by `quote` (the bullet's text); if a
-  re-publish changes that bullet the note is shown at the end of its section with the old wording.
-  Pros/cons/key points render as tinted boxes (`li.fmt-pro/con/key`), label before ':' bolded.
+- **Editing + notes on scripts** (script.html; Google sign-in + allowlist like the board): the
+  reading view has NO buttons - double-click (double-tap on phones) a line to edit it in place or
+  switch to "add a note". Stored in Firestore `config/scriptnotes-<slug>` `{notes:[...]}`, type
+  `edit` (quote = published text, text = new text; newest per line shown, dotted underline, original
+  in the tooltip; saving the original text removes it) or `note` (quiet italic line under the
+  bullet, ✓ done on hover). Deliberately separate from `scripts/<slug>.json`, which Publish
+  overwrites - the user asked that re-publishing never touches Ghazzy's edits/comments. Anchored by
+  `quote`; if a re-publish changes that line they show at the end of the section. No usernames are
+  shown (tooltip only), no section times, pros/cons are a faint text tint ("Your take" keeps its box).
 - **To-Do rows** get a `scriptSlug` field (no rule change): the "📄 Attach script…"
   select lists `scripts/index.json` (fetched once at boot by `loadPublishedScripts`) and
   a "📄 Script" link appears next to the title.

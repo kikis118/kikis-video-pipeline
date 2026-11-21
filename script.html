@@ -48,39 +48,31 @@ details.more summary{cursor:pointer;font-size:13px}
 
 /* Talking-point formatting - same rules as the shorts tool's Video Studio (studio.js lineKind/fmtInline).
    Pros/cons/key points are subtle tinted boxes, in the same spirit as the "Your take" box. */
-li.fmt-pro,li.fmt-con,li.fmt-key{list-style:none;margin:8px 0 8px -20px;padding:7px 12px 7px 36px;border-radius:7px;border:1px solid;border-left-width:3px}
-li.fmt-pro::before,li.fmt-con::before{position:absolute;left:10px;top:8px;width:17px;height:17px;border-radius:50%;font:700 13px/17px system-ui;text-align:center}
-li.fmt-pro{background:#13241a;border-color:#244a33;border-left-color:#4fc47f;color:#cdeed8}
-li.fmt-pro::before{content:"+";background:#2b6b45;color:#dfffea}
-li.fmt-con{background:#2a1517;border-color:#4d2629;border-left-color:#e0645f;color:#f3d0cf}
-li.fmt-con::before{content:"−";background:#7a2e2c;color:#ffe3e2}
-li.fmt-key{background:#2a2414;border-color:#5a4a20;border-left-color:#e0b84a;color:#f5e2b0;padding-left:12px}
-li.fmt-pro b.lbl{color:#7fe0a5}li.fmt-con b.lbl{color:#ff9d98}
+/* Faint, in-flow tints - readable first. "Your take" keeps its box. */
+li.fmt-pro{color:#cfe8d7}li.fmt-pro::marker{color:#5fbf86}
+li.fmt-con{color:#efd2d1}li.fmt-con::marker{color:#d9736e}
+li.fmt-pro b.lbl{color:#8fd3aa;font-weight:600}li.fmt-con b.lbl{color:#e8a3a0;font-weight:600}
+li.fmt-key{color:#f2e3bd}li.fmt-key b.lbl{color:#e8c46a;font-weight:600}
 li.fmt-quote{font-style:italic;color:#b9bfcc;border-left:2px solid #4a5068;padding-left:10px;list-style:none;margin-left:-12px}
 mark{background:#6b5726;color:#fff;padding:0 3px;border-radius:2px}
 
-/* Notes / fixes (Firestore, separate from the script) */
-.notebar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:9px 14px;margin:0 0 14px;font-size:14px;color:var(--muted)}
-.notebar b{color:var(--text)}
-.ncount{background:#3a3014;color:#f0c96a;border-radius:10px;padding:0 8px;font-size:12px;font-weight:700}
-.add-pt{position:absolute;right:-30px;top:2px;opacity:.3;border:none;background:none;padding:2px 4px;font-size:14px}
-li:hover>.add-pt,.add-pt:focus{opacity:.8}.add-pt:hover{opacity:1}
-@media (max-width:700px){.add-pt{position:static;opacity:.55;margin-left:4px;padding:0 2px}}
-.add-sec{margin-top:10px;font-size:13px;color:#f0c96a;border-color:#5a4a20;background:#1f1b10}
-.notes{margin:4px 0 8px}
-.note{background:#1c1a12;border:1px solid #3d3519;border-radius:8px;padding:7px 10px;margin:6px 0;font-size:14px;color:#e9e2c8;list-style:none}
-.note.fix{background:#21151a;border-color:#4a2530}.note.question{background:#141c27;border-color:#24364d}
-.note.resolved{opacity:.45}
-.note .nh{display:flex;gap:8px;align-items:center;font-size:12px;color:var(--muted);margin-bottom:2px}
-.note .tag{font-weight:700;text-transform:uppercase;letter-spacing:.4px;font-size:11px;color:#f0c96a}
-.note.fix .tag{color:#ff9d98}.note.question .tag{color:#8fb7ff}
-.note .nh .sp{flex:1}.note .nh button{padding:1px 7px;font-size:11px}
-.note .q{font-size:12px;color:var(--muted);font-style:italic;margin-bottom:3px}
-.note .nt{white-space:pre-wrap}
-.composer{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:8px;margin:6px 0;list-style:none}
-.composer textarea{width:100%;min-height:64px;cursor:text;margin:6px 0;resize:vertical}
-.composer .row{display:flex;gap:6px;align-items:center}
-.hide-resolved .note.resolved{display:none}
+/* Editing + notes: double-click a line. No buttons in the reading view. */
+.can-note li[data-key]{cursor:text;border-radius:4px;transition:background .15s}
+.can-note li[data-key]:hover{background:#ffffff08}
+li.was-edited{text-decoration:underline dotted #59607a;text-underline-offset:4px;text-decoration-thickness:1px}
+li.editing{list-style:none;margin-left:-20px}
+.editbox textarea{width:100%;min-height:58px;background:#11141c;color:var(--text);border:1px solid #3a4260;border-radius:6px;padding:7px 9px;font:inherit;font-size:15px;line-height:1.5;resize:vertical;cursor:text}
+.editbox .erow{font-size:12.5px;color:var(--muted);margin:3px 0 8px}
+.editbox .erow a{color:var(--muted);text-decoration:none;cursor:pointer}.editbox .erow a:hover{color:var(--text)}
+.editbox .erow a.go{color:var(--accent)}
+.nline{font-size:13px;color:#a7aec0;font-style:italic;margin:2px 0 4px;list-style:none}
+.nline b{font-style:normal;color:#c9cfdc;font-weight:600}
+.nline .rs{visibility:hidden;margin-left:6px;color:var(--muted);cursor:pointer;font-style:normal}
+.nline:hover .rs{visibility:visible}
+.nline.resolved{opacity:.45;text-decoration:line-through}
+.hint{color:var(--muted);font-size:13px;margin:-14px 0 18px}
+.hint button{padding:2px 9px;font-size:12px}
+.hide-resolved .nline.resolved{display:none}
 h2.lh{font-size:15px;text-transform:uppercase;letter-spacing:.6px;color:var(--muted);margin:26px 0 8px}
 .idea,.sitem{display:flex;gap:10px;align-items:center;flex-wrap:wrap;background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:11px 14px;margin:8px 0}
 .idea .it{font-weight:600;flex:1;min-width:200px}.idea .in{flex-basis:100%;color:var(--muted);font-size:13px;white-space:pre-wrap;margin-top:-4px}
@@ -88,18 +80,23 @@ h2.lh{font-size:15px;text-transform:uppercase;letter-spacing:.6px;color:var(--mu
 .sitem a.t{font-weight:650;font-size:17px;color:var(--text);text-decoration:none;flex:1;min-width:200px}.sitem a.t:hover{color:var(--accent)}
 .sitem .d{flex-basis:100%;color:var(--muted);font-size:13px;margin-top:-6px}
 .sitem.rec{opacity:.6}.sitem.rec a.t{text-decoration:line-through;text-decoration-color:#4fc47f}
-.recbox{display:inline-flex;gap:6px;align-items:center;font-size:13px;color:#7fe0a5;cursor:pointer;white-space:nowrap}
-.recbox input{width:16px;height:16px;accent-color:#4fc47f;cursor:pointer}
+.recbtn{display:inline-flex;gap:7px;align-items:center;font-size:14px;font-weight:600;padding:7px 14px;border-radius:999px;border:1px solid #3a4260;background:#1a1f2d;color:#c9cfdc;cursor:pointer;white-space:nowrap}
+.recbtn:hover{border-color:#4fc47f;color:#dff5e7}
+.recbtn.on{background:#173322;border-color:#3f9a64;color:#9fe8bd}
+.recbtn .bx{width:18px;height:18px;border-radius:5px;border:2px solid currentColor;display:inline-flex;align-items:center;justify-content:center;font-size:13px;line-height:1}
+.recbtn.on .bx{background:#3f9a64;border-color:#3f9a64;color:#fff}
+.reccheck{color:#4fc47f;font-size:22px;font-weight:700;width:24px;text-align:center;flex:none}
+.sitem .reccheck.off{color:transparent}
 .ed{border:none;background:none;padding:2px 6px;opacity:.5;font-size:14px}.ed:hover{opacity:1}
-body:not(.can-edit) .ed,body:not(.can-edit) .recbox,body:not(.can-edit) .addidea{display:none}
+body:not(.can-edit) .ed,body:not(.can-edit) .recbtn,body:not(.can-edit) .addidea{display:none}
 .addidea{display:flex;gap:6px;flex-wrap:wrap;margin:6px 0 4px}.addidea input{flex:1;min-width:180px;background:var(--card);color:var(--text);border:1px solid var(--border);border-radius:6px;padding:7px 10px;font:inherit;font-size:14px}
 .h1row{display:flex;align-items:center;gap:8px;flex-wrap:wrap}.h1row h1{margin:0}
 .recline{margin:4px 0 18px}
-@media print{body{background:#fff;color:#000}.controls,.top,.notebar,.add-pt,.add-sec,.notes{display:none}details.sec{border-color:#ccc;background:#fff}.take{background:#fff8e6}
+@media print{body{background:#fff;color:#000}.controls,.top,.notebar,.hint,.recline{display:none}details.sec{border-color:#ccc;background:#fff}.take{background:#fff8e6}
   li.fmt-pro{background:#eefaf2;color:#0a5a2a}li.fmt-con{background:#fdeeee;color:#8a1f1a}li.fmt-key{background:#fff3c4;color:#000}mark{background:#fff3c4;color:#000}}
 </style>
 </head>
-<body class="hide-resolved">
+<body>
 <div class="wrap" id="app"><div class="empty">Loading…</div></div>
 <script>
 const esc = (s) => String(s == null ? '' : s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -124,7 +121,6 @@ function fmt(t) {
 const slug = new URLSearchParams(location.search).get('s');
 let SC = null;        // the published script
 let NOTES = [];       // notes from Firestore (window.notesApi)
-const OPEN = {};      // open composers: key -> true
 
 async function getJson(path) {
   const r = await fetch(path, { cache: 'no-store' });
@@ -171,81 +167,123 @@ async function showList() {
     ${ideasHtml}
     ${api.state === 'ready' ? '<div style="margin-top:6px;font-size:13px"><a href="./?view=todo">Checklists, Do Fast and deleting ideas → board to-do page</a></div>' : ''}
     <h2 class="lh">📝 Finished video scripts</h2>
-    ${scripts.map((x) => `<div class="sitem ${x.st.recorded ? 'rec' : ''}"><a class="t" href="?s=${encodeURIComponent(x.slug)}">${esc(titleOf(x.slug, x.title))}</a>
+    ${scripts.map((x) => `<div class="sitem ${x.st.recorded ? 'rec' : ''}"><span class="reccheck ${x.st.recorded ? '' : 'off'}">✓</span><a class="t" href="?s=${encodeURIComponent(x.slug)}">${esc(titleOf(x.slug, x.title))}</a>
         <button class="ed" data-rename-script="${esc(x.slug)}" data-cur="${esc(titleOf(x.slug, x.title))}" title="Rename">✎</button>
-        <label class="recbox"><input type="checkbox" data-recorded="${esc(x.slug)}" ${x.st.recorded ? 'checked' : ''}> Script recorded</label>
-        <div class="d">${x.sections} sections · updated ${esc(x.updated)}${x.st.recorded ? ` · ✓ recorded${x.st.recordedBy ? ' by ' + esc(who(x.st.recordedBy)) : ''}` : ''}</div></div>`).join('') || '<div class="empty">Nothing published yet.</div>'}`;
+        <button class="recbtn ${x.st.recorded ? 'on' : ''}" data-recorded="${esc(x.slug)}" data-on="${x.st.recorded ? 1 : 0}"><span class="bx">${x.st.recorded ? '✓' : ''}</span>${x.st.recorded ? 'Script recorded' : 'Mark as recorded'}</button>
+        <div class="d">${x.sections} sections · updated ${esc(x.updated)}${x.st.recorded ? ' · recorded' : ''}</div></div>`).join('') || '<div class="empty">Nothing published yet.</div>'}`;
 }
 
-// ---------- notes rendering (data comes from the Firestore module below)
+// ---------- notes + edits (data comes from the Firestore module below)
+// Double-click a line -> edit it in place (stored as an 'edit' note: quote = published text,
+// text = new text; the newest edit is shown instead of the published line) or leave a note.
+// All of it lives in Firestore config/scriptnotes-<slug>, never in the published JSON.
 const who = (e) => String(e || '').split('@')[0];
-const when = (n) => n.at ? new Date(n.at).toLocaleString([], { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }) : '';
-function noteHtml(n, showQuote) {
-  const mine = window.notesApi && window.notesApi.email === n.by;
-  return `<div class="note ${esc(n.type)} ${n.resolved ? 'resolved' : ''}">
-    <div class="nh"><span class="tag">${esc(n.type === 'fix' ? 'Fix' : n.type === 'question' ? 'Question' : 'Note')}</span>
-      <span>${esc(who(n.by))} · ${esc(when(n))}${n.resolved ? ' · resolved' : ''}</span><span class="sp"></span>
-      <button data-resolve="${esc(n.id)}">${n.resolved ? '↺ Reopen' : '✓ Resolve'}</button>${mine ? `<button data-del="${esc(n.id)}" title="Delete">✕</button>` : ''}</div>
-    ${showQuote && n.quote ? `<div class="q">on: “${esc(n.quote)}” (this point changed since)</div>` : ''}
-    <div class="nt">${esc(n.text)}</div></div>`;
+let EDITING = null;   // {key, mode: 'edit' | 'note'}
+const editOf = (si, t) => NOTES.filter((n) => n.type === 'edit' && n.sec === si && n.quote === t).pop();
+function noteLine(n, quote) {
+  return `<div class="nline ${n.resolved ? 'resolved' : ''}" title="${esc(who(n.by))}">— ${esc(n.text)}${quote ? ` <span style="opacity:.7">(on “${esc(quote)}”)</span>` : ''}<span class="rs" data-resolve="${esc(n.id)}">${n.resolved ? 'reopen' : '✓ done'}</span></div>`;
 }
-function composerHtml(key) {
-  return `<div class="composer" data-comp="${esc(key)}"><div class="row"><select data-ctype>
-      <option value="note">Note</option><option value="fix">Fix</option><option value="question">Question</option></select>
-      <span style="color:var(--muted);font-size:12px">Notes stay on this page - publishing a new version never removes them.</span></div>
-    <textarea data-ctext placeholder="What should change, or what do you want to say?"></textarea>
-    <div class="row"><button data-csave="${esc(key)}">Save</button><button data-ccancel="${esc(key)}">Cancel</button></div></div>`;
+function editorHtml(key, original, shown) {
+  const mode = EDITING.mode, edited = shown !== original;
+  return `<div class="editbox"><textarea data-etext placeholder="${mode === 'note' ? 'Your note on this line…' : ''}">${mode === 'edit' ? esc(shown) : ''}</textarea>
+    <div class="erow">${mode === 'edit'
+      ? `<a class="go" data-esave="${key}">Save</a> · <a data-emode="note">add a note instead</a>${edited ? ' · <a data-erevert="' + key + '">back to original</a>' : ''} · <a data-ecancel>cancel</a> <span style="opacity:.6">(Enter saves, Esc cancels)</span>`
+      : `<a class="go" data-nsave="${key}">Add note</a> · <a data-emode="edit">edit the line instead</a> · <a data-ecancel>cancel</a>`}</div></div>`;
 }
 function point(t, si, bucket, k) {
   const key = `${si}|${bucket}|${k}`;
-  const here = NOTES.filter((n) => n.sec === si && n.quote === t);
-  return `<li class="${lineKind(t)}" data-key="${key}">${fmt(t)}<button class="add-pt" data-add="${key}" title="Add a note or fix on this point">💬</button>
-    ${here.length || OPEN[key] ? `<div class="notes">${here.map((n) => noteHtml(n)).join('')}${OPEN[key] ? composerHtml(key) : ''}</div>` : ''}</li>`;
+  const ed = editOf(si, t), shown = ed ? ed.text : t;
+  const notes = NOTES.filter((n) => n.type !== 'edit' && n.sec === si && n.quote === t);
+  if (EDITING && EDITING.key === key) return `<li class="editing" data-key="${key}">${editorHtml(key, t, shown)}${notes.map((n) => noteLine(n)).join('')}</li>`;
+  const tip = ed ? ` title="Edited - was: ${esc(t)}"` : '';
+  return `<li class="${lineKind(shown)}${ed ? ' was-edited' : ''}" data-key="${key}"${tip}>${fmt(shown)}${notes.map((n) => noteLine(n)).join('')}</li>`;
 }
 
 function render() {
   const sc = SC;
   const total = sc.sections.reduce((a, s) => a + (+s.minutes || 0), 0);
-  const mmss = (m) => { const s = Math.round(m * 60); return Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0'); };
   const meta = [sc.channel, total ? `~${Math.round(total)} min` : '', sc.tiers && sc.tiers.length ? 'Tiers: ' + sc.tiers.join(' / ') : '', 'updated ' + sc.updated].filter(Boolean).join(' · ');
-  const openNotes = NOTES.filter((n) => !n.resolved).length;
-  const api = window.notesApi;
-  const bar = !api ? `<div class="notebar">💬 Notes &amp; fixes: <span id="nstatus">connecting…</span></div>`
-    : api.state === 'signedout' ? `<div class="notebar">💬 Want to leave a note or a fix? <button data-signin>Sign in with Google</button></div>`
-    : api.state === 'denied' ? `<div class="notebar">💬 Your Google account isn't on the allowlist for notes - ask Kikis.</div>`
-    : api.state === 'error' ? `<div class="notebar">💬 Notes unavailable right now (offline?).</div>`
-    : `<div class="notebar">💬 <b>${openNotes}</b> open note${openNotes === 1 ? '' : 's'} · hover any point and click 💬 to comment on it
-        <span style="flex:1"></span><label><input type="checkbox" data-showres ${document.body.classList.contains('hide-resolved') ? '' : 'checked'}> show resolved</label>
-        <span>${esc(who(api.email))}</span></div>`;
+  const api = window.notesApi || {};
+  const hint = api.state === 'ready' ? 'Double-click any line to edit it or leave a note.'
+    : api.state === 'signedout' ? 'Want to tweak a line or leave a note? <button data-signin>Sign in with Google</button>'
+    : api.state === 'denied' ? "This Google account can't edit here - ask Kikis." : '';
   const keep = window.scrollY;
   const openState = [...document.querySelectorAll('details.sec')].map((d) => d.open);
   app.innerHTML = `<div class="top"><a href="script.html">← All scripts</a><span style="flex:1"></span><a href="./">Pipeline board</a></div>
     <div class="h1row"><h1>${esc(titleOf(slug, sc.title))}</h1><button class="ed" data-rename-script="${esc(slug)}" data-cur="${esc(titleOf(slug, sc.title))}" title="Rename">✎</button></div>
     <div class="meta">${esc(meta)}</div>
-    <div class="recline"><label class="recbox"><input type="checkbox" data-recorded="${esc(slug)}" ${statusOf(slug).recorded ? 'checked' : ''}> Script recorded</label>${statusOf(slug).recorded ? ` <span style="color:var(--muted);font-size:13px">✓ by ${esc(who(statusOf(slug).recordedBy))}</span>` : ''}</div>${bar}
+    <div class="recline">${`<button class="recbtn ${statusOf(slug).recorded ? 'on' : ''}" data-recorded="${esc(slug)}" data-on="${statusOf(slug).recorded ? 1 : 0}"><span class="bx">${statusOf(slug).recorded ? '✓' : ''}</span>${statusOf(slug).recorded ? 'Script recorded' : 'Mark as recorded'}</button>`}</div>
+    ${hint ? `<div class="hint">${hint}</div>` : ''}
     <div class="controls"><button id="bOpen">Expand all</button><button id="bClose">Collapse all</button></div>
     ${sc.sections.map((s, i) => {
       const texts = new Set([...s.points, ...s.prompts, ...s.deeper]);
-      const secNotes = NOTES.filter((n) => n.sec === i && (!n.quote || !texts.has(n.quote)));
-      const cnt = NOTES.filter((n) => n.sec === i && !n.resolved).length;
-      const skey = `${i}|section|0`;
-      return `<details class="sec" ${openState[i] === false ? '' : 'open'}><summary><span class="num">${i + 1}</span><span class="stitle">${esc(s.title)}</span>${cnt ? `<span class="ncount">💬 ${cnt}</span>` : ''}${s.minutes ? `<span class="mins">${mmss(s.minutes)}</span>` : ''}</summary>
+      // notes/edits whose line was changed or removed in a later publish
+      const orphans = NOTES.filter((n) => n.sec === i && n.quote && !texts.has(n.quote));
+      return `<details class="sec" ${openState[i] === false ? '' : 'open'}><summary><span class="num">${i + 1}</span><span class="stitle">${esc(s.title)}</span></summary>
       ${s.subtitle ? `<div class="sub">${esc(s.subtitle)}</div>` : ''}
       <div class="body">
         ${s.points.length ? `<ul>${s.points.map((t, k) => point(t, i, 'points', k)).join('')}</ul>` : ''}
         ${s.prompts.length ? `<div class="take"><b>Your take</b><ul>${s.prompts.map((t, k) => point(t, i, 'prompts', k)).join('')}</ul></div>` : ''}
         ${s.deeper.length ? `<details class="more"><summary>If you want more (${s.deeper.length})</summary><ul>${s.deeper.map((t, k) => point(t, i, 'deeper', k)).join('')}</ul></details>` : ''}
-        ${secNotes.length || OPEN[skey] ? `<div class="notes">${secNotes.map((n) => noteHtml(n, true)).join('')}${OPEN[skey] ? composerHtml(skey) : ''}</div>` : ''}
-        <button class="add-sec" data-add="${skey}">💬 Add a note / fix to this section</button>
+        ${orphans.map((n) => n.type === 'edit'
+          ? `<div class="nline">— edited a line that has since changed: “${esc(n.quote)}” → “${esc(n.text)}”<span class="rs" data-del="${esc(n.id)}">✓ done</span></div>`
+          : noteLine(n, n.quote)).join('')}
       </div></details>`;
     }).join('')}`;
   window.scrollTo(0, keep);
   const all = (open) => document.querySelectorAll('details.sec').forEach((d) => { d.open = open; });
   document.getElementById('bOpen').onclick = () => all(true);
   document.getElementById('bClose').onclick = () => all(false);
+  const ta = document.querySelector('.editbox textarea');
+  if (ta && document.activeElement !== ta) { ta.focus(); ta.setSelectionRange(ta.value.length, ta.value.length); }
 }
-window.renderScript = () => { if (slug) { if (SC) { document.title = titleOf(slug, SC.title); render(); } } else showList(); };
-window.setNotes = (list) => { NOTES = list; if (SC && !document.querySelector('.composer textarea:focus')) render(); };
+window.renderScript = () => { if (slug) { if (SC) { document.title = titleOf(slug, SC.title); if (!EDITING) render(); } } else showList(); };
+window.setNotes = (list) => { NOTES = list; if (SC && !EDITING) render(); };
+
+function lineAt(key) {
+  const [si, bucket, k] = key.split('|');
+  return { si: +si, s: SC.sections[+si], text: SC.sections[+si][bucket][+k] };
+}
+function openEditor(li) {
+  const api = window.notesApi || {};
+  if (api.state === 'signedout') { if (confirm('Sign in with Google to edit or leave notes?')) api.signIn(); return; }
+  if (api.state !== 'ready') return;
+  const d = li.closest('details.more'); if (d) d.open = true;
+  window.getSelection().removeAllRanges();
+  EDITING = { key: li.dataset.key, mode: 'edit' };
+  render();
+}
+const closeEditor = () => { EDITING = null; render(); };
+function saveEdit() {
+  const api = window.notesApi, { si, s, text } = lineAt(EDITING.key);
+  const v = document.querySelector('.editbox textarea').value.replace(/\s+/g, ' ').trim();
+  if (!v) return;
+  api.setEdit(si, s.title, text, v).then(closeEditor).catch((err) => alert('Could not save: ' + err.message));
+}
+function saveNote() {
+  const api = window.notesApi, { si, s, text } = lineAt(EDITING.key);
+  const v = document.querySelector('.editbox textarea').value.trim();
+  if (!v) return;
+  api.add({ sec: si, secTitle: s.title, quote: text, type: 'note', text: v }).then(closeEditor).catch((err) => alert('Could not save: ' + err.message));
+}
+
+// double-click (and double-tap on phones) a line to edit it
+app.addEventListener('dblclick', (e) => {
+  const li = e.target.closest('li[data-key]');
+  if (li && !li.classList.contains('editing') && !e.target.closest('a,button,textarea,input')) openEditor(li);
+});
+let lastTap = { t: 0, key: '' };
+app.addEventListener('touchend', (e) => {
+  const li = e.target.closest('li[data-key]'); if (!li || li.classList.contains('editing')) return;
+  const now = Date.now();
+  if (lastTap.key === li.dataset.key && now - lastTap.t < 350) { e.preventDefault(); openEditor(li); lastTap = { t: 0, key: '' }; }
+  else lastTap = { t: now, key: li.dataset.key };
+});
+app.addEventListener('keydown', (e) => {
+  if (!EDITING || !e.target.matches('.editbox textarea')) return;
+  if (e.key === 'Escape') { e.preventDefault(); closeEditor(); }
+  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); EDITING.mode === 'edit' ? saveEdit() : saveNote(); }
+});
 
 app.addEventListener('click', (e) => {
   const t = e.target, api = window.notesApi;
@@ -262,28 +300,17 @@ app.addEventListener('click', (e) => {
     if (!ti.value.trim()) return ti.focus();
     api.addIdea(ti.value.trim(), no.value.trim()).then(() => { ti.value = ''; no.value = ''; }).catch((err) => alert(err.message)); return;
   }
-  if (t.matches('[data-add]') && (!api || api.state !== 'ready')) { e.preventDefault(); if (api && api.state === 'signedout') { if (confirm('Sign in with Google to leave notes?')) api.signIn(); } else alert(api && api.state === 'denied' ? "This Google account isn't on the allowlist - ask Kikis." : 'Still connecting - try again in a second.'); return; }
-  if (t.matches('[data-add]')) { e.preventDefault(); OPEN[t.dataset.add] = true; render(); const c = document.querySelector(`[data-comp="${t.dataset.add}"] textarea`); if (c) c.focus(); return; }
-  if (t.matches('[data-ccancel]')) { delete OPEN[t.dataset.ccancel]; render(); return; }
-  if (t.matches('[data-csave]')) {
-    const key = t.dataset.csave, box = t.closest('.composer');
-    const text = box.querySelector('[data-ctext]').value.trim(); if (!text) return;
-    const [si, bucket, k] = key.split('|'); const s = SC.sections[+si];
-    const quote = bucket === 'section' ? '' : (s[bucket] || [])[+k] || '';
-    t.disabled = true;
-    api.add({ sec: +si, secTitle: s.title, bucket, quote, type: box.querySelector('[data-ctype]').value, text })
-      .then(() => { delete OPEN[key]; render(); }).catch((err) => { t.disabled = false; alert('Could not save: ' + err.message); });
-    return;
-  }
+  const rb = t.closest('[data-recorded]');
+  if (rb) { const on = rb.dataset.on !== '1'; api.setStatus(rb.dataset.recorded, { recorded: on, recordedAt: on ? Date.now() : 0 }).catch((err) => alert(err.message)); return; }
+  if (t.matches('[data-esave]')) return saveEdit();
+  if (t.matches('[data-nsave]')) return saveNote();
+  if (t.matches('[data-ecancel]')) return closeEditor();
+  if (t.matches('[data-emode]')) { EDITING.mode = t.dataset.emode; render(); return; }
+  if (t.matches('[data-erevert]')) { const { si, s, text } = lineAt(t.dataset.erevert); api.setEdit(si, s.title, text, text).then(closeEditor); return; }
   if (t.matches('[data-resolve]')) return api.toggleResolved(t.dataset.resolve);
-  if (t.matches('[data-del]') && confirm('Delete this note?')) return api.remove(t.dataset.del);
+  if (t.matches('[data-del]')) return api.remove(t.dataset.del);
 });
 app.addEventListener('change', (e) => {
-  if (e.target.matches('[data-recorded]')) {
-    const api = window.notesApi, on = e.target.checked;
-    api.setStatus(e.target.dataset.recorded, { recorded: on, recordedBy: on ? api.email : '', recordedAt: on ? Date.now() : 0 }).catch((err) => alert(err.message));
-  }
-  if (e.target.matches('[data-showres]')) document.body.classList.toggle('hide-resolved', !e.target.checked);
 });
 
 async function showScript() {
@@ -333,6 +360,10 @@ try {
     add: (n) => mutate((list) => [...list, Object.assign({ id: 'n' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6), by: auth.currentUser.email, at: Date.now(), resolved: false }, n)]),
     toggleResolved: (id) => mutate((list) => list.map((n) => n.id === id ? Object.assign({}, n, { resolved: !n.resolved, resolvedBy: auth.currentUser.email }) : n)),
     remove: (id) => mutate((list) => list.filter((n) => n.id !== id)),
+    setEdit: (sec, secTitle, quote, text) => mutate((list) => {
+      const rest = list.filter((n) => !(n.type === 'edit' && n.sec === sec && n.quote === quote));
+      return text === quote ? rest : [...rest, { id: 'e' + Date.now().toString(36), type: 'edit', sec, secTitle, quote, text, by: auth.currentUser.email, at: Date.now() }];
+    }),
     // merge:true deep-merges the nested map, so one script's change never touches the others
     setStatus: (sl, patch) => setDoc(statusRef, { scripts: { [sl]: patch } }, { merge: true }),
     renameIdea: (id, title) => updateDoc(doc(db, 'pipeline', id), { title }),
