@@ -2,7 +2,7 @@
  "title": "Demon Magus & Infernalist in PoE 1.0 Full Launch - My Exilecon Playtest Thoughts",
  "tiers": null,
  "channel": "GhazzyTV",
- "updated": "2026-11-21 19:33",
+ "updated": "2026-11-21 20:28",
  "sections": [
   {
    "title": "Intro",
@@ -98,5 +98,279 @@
    "prompts": [],
    "deeper": []
   }
- ]
+ ],
+ "tooltips": {
+  "Demon Magus": {
+   "name": "Demon Magus",
+   "base": "",
+   "rarity": "New",
+   "lines": [],
+   "icon": "",
+   "category": "New in 1.0",
+   "url": ""
+  },
+  "Infernalist": {
+   "name": "Infernalist",
+   "base": "Ascendancy",
+   "rarity": "Ascendancy",
+   "lines": [
+    {
+     "cls": "property",
+     "text": "Notables:"
+    },
+    {
+     "cls": "explicitMod",
+     "text": "Bringer of Flame"
+    },
+    {
+     "cls": "explicitMod",
+     "text": "Beidat's Gaze"
+    },
+    {
+     "cls": "explicitMod",
+     "text": "Loyal Hellhound"
+    },
+    {
+     "cls": "explicitMod",
+     "text": "Beidat's Hand"
+    },
+    {
+     "cls": "explicitMod",
+     "text": "Beidat's Will"
+    },
+    {
+     "cls": "explicitMod",
+     "text": "Altered Flesh"
+    },
+    {
+     "cls": "explicitMod",
+     "text": "Demonic Possession"
+    },
+    {
+     "cls": "explicitMod",
+     "text": "Mastered Darkness"
+    },
+    {
+     "cls": "explicitMod",
+     "text": "Pyromantic Pact"
+    },
+    {
+     "cls": "explicitMod",
+     "text": "Grinning Immolation"
+    },
+    {
+     "cls": "explicitMod",
+     "text": "Seething Body"
+    }
+   ],
+   "icon": "",
+   "category": "Ascendancy",
+   "url": "https://poe2db.tw/us/Infernalist"
+  },
+  "Infernal Hounds": {
+   "name": "Summon Infernal Hound",
+   "base": "Minion",
+   "rarity": "Gem",
+   "lines": [
+    {
+     "cls": "property",
+     "text": "Companion, Persistent, Fire"
+    },
+    {
+     "cls": "property",
+     "text": "Level: (1—20)"
+    },
+    {
+     "cls": "requirements",
+     "text": "Requires: Level (1—90)"
+    },
+    {
+     "cls": "secDescrText",
+     "text": "Activate to summon a Reviving Infernal Hound which Ignites enemies near it."
+    },
+    {
+     "cls": "explicitMod",
+     "text": "Minions Ignite Enemies within a radius of 2.5 metres as though dealt Base Fire Damage equal to 20% of Minion's Maximum Life"
+    }
+   ],
+   "icon": "",
+   "category": "Ascendancy skill · Infernalist",
+   "url": "https://poe2db.tw/us/Summon_Infernal_Hound"
+  },
+  "Acolyte of Chayula": {
+   "name": "Acolyte of Chayula",
+   "base": "Ascendancy",
+   "rarity": "Ascendancy",
+   "lines": [
+    {
+     "cls": "property",
+     "text": "Notables:"
+    },
+    {
+     "cls": "explicitMod",
+     "text": "Inner Turmoil"
+    },
+    {
+     "cls": "explicitMod",
+     "text": "Archon of Chayula"
+    },
+    {
+     "cls": "explicitMod",
+     "text": "Unravelling"
+    },
+    {
+     "cls": "explicitMod",
+     "text": "Sap of Nightmares"
+    },
+    {
+     "cls": "explicitMod",
+     "text": "Chayula's Gift"
+    },
+    {
+     "cls": "explicitMod",
+     "text": "Waking Dream"
+    },
+    {
+     "cls": "explicitMod",
+     "text": "Lucid Dreaming"
+    },
+    {
+     "cls": "explicitMod",
+     "text": "Embrace the Darkness"
+    },
+    {
+     "cls": "explicitMod",
+     "text": "Grasp of the Void"
+    },
+    {
+     "cls": "explicitMod",
+     "text": "Deepening Shadows"
+    }
+   ],
+   "icon": "",
+   "category": "Ascendancy",
+   "url": "https://poe2db.tw/us/Acolyte_of_Chayula"
+  }
+ },
+ "newtips": {
+  "Demon Magus": {
+   "term": "Demon Magus",
+   "summary": "The Demon Magus is a new Infernalist ascendancy meta gem that summons a reviving demon minion which casts spells you socket into it, with spell costs paid by you and scaling damage based on socketed skill variety.",
+   "changes": [
+    "New Infernalist ascendancy skill: Demon Magus meta gem summons a Reviving Demon Magus that casts socketed Spells",
+    "Cost of Spells cast by the minion are paid by you",
+    "Spells cast by the minion cost 50% less",
+    "Minion deals 15% more Damage per different socketed Skill",
+    "Quality grants Minions 0-20% more Maximum Life",
+    "Requires Level 90, gem level 20 (Max)",
+    "You can socket multiple spells as well as supports of your choosing into it"
+   ],
+   "lines": [
+    "Demon Magus | Minion / Companion, Persistent, Meta / Level: 20 (Max) / Requires: Level 90 / Summon a Reviving Demon Magus which casts socketed Spells. / Cost of Spells cast by Minion are paid by you / Spells cast by Minion cost 50% less / Minion deals 15% more Damage per different socketed Skill / Additional Effects from Quality: / Minions have 0(0-20)% more Maximum Life / Place one or more Skill Gems into this Meta Gem's sockets in the Skills Panel. The socketed skills will be incorporated into the Meta Gem's effect."
+   ],
+   "image": "scripts/img/demon_magus_yap/nt-demon_magus-magus.jpg",
+   "sources": [
+    {
+     "label": "ExileCon keynote @ 3:01:18 (on screen)",
+     "url": "https://www.twitch.tv/videos/2921352507?t=3h1m18s",
+     "ts": "3:01:18"
+    },
+    {
+     "label": "ExileCon keynote @ 3:01:27 (on screen)",
+     "url": "https://www.twitch.tv/videos/2921352507?t=3h1m27s",
+     "ts": "3:01:27"
+    },
+    {
+     "label": "ExileCon keynote @ 3:00:55 (said)",
+     "url": "https://www.twitch.tv/videos/2921352507?t=3h0m55s",
+     "ts": "3:00:55"
+    },
+    {
+     "label": "ExileCon keynote @ 3:02:42 (said)",
+     "url": "https://www.twitch.tv/videos/2921352507?t=3h2m42s",
+     "ts": "3:02:42"
+    }
+   ],
+   "frame_url": null
+  },
+  "Infernalist": {
+   "term": "Infernalist",
+   "summary": "The Infernalist ascendancy gains a new Demon Magus node that binds a scourge demon to your will and supports socketing multiple gems.",
+   "changes": [
+    "New ascendancy notable: Demon Magus, which binds a scourge demon to your will after allocation",
+    "Demon Magus allows socketing multiple gems (per the keynote)"
+   ],
+   "lines": [],
+   "image": null,
+   "sources": [
+    {
+     "label": "ExileCon keynote @ 3:00:52 (said)",
+     "url": "https://www.twitch.tv/videos/2921352507?t=3h0m52s",
+     "ts": "3:00:52"
+    }
+   ],
+   "frame_url": null
+  },
+  "Infernal Hounds": {
+   "term": "Infernal Hounds",
+   "summary": "Infernal Hounds now summon three at once and gain a Command skill, Instability, letting one hound charge, leap and explode for large Fire damage on a target.",
+   "changes": [
+    "You now get three Infernal Hounds instead of one",
+    "Added a Command skill: Instability, which commands one hound to charge at a target, leap at it and explode",
+    "Explosion deals 1632 to 2447 Fire damage at level 20",
+    "Explosion radius is 1.9 metres",
+    "Command has a cast time of 1.00s",
+    "Tooltip now notes the hound can be Commanded to explode on a target"
+   ],
+   "lines": [
+    "SUMMON INFERNAL HOUND | Minion / Persistent, Command, Fire",
+    "LEVEL: 20 (MAX)",
+    "REQUIRES: LEVEL 90",
+    "Summon a Reviving Infernal Hound which Ignites enemies near it. Can be Commanded to explode on a target.",
+    "MINION INFO | COMMAND: INSTABILITY",
+    "CAST TIME: 1.00s",
+    "Activate to Command one of your Infernal Hounds to charge at a target, leap at it and explode, dealing a large amount of Fire damage.",
+    "DEALS 1632 TO 2447 FIRE DAMAGE",
+    "EXPLOSION RADIUS IS 1.9 METRES"
+   ],
+   "image": "scripts/img/demon_magus_yap/nt-infernal_hounds-hound.jpg",
+   "sources": [
+    {
+     "label": "ExileCon keynote @ 3:01:29 (on screen)",
+     "url": "https://www.twitch.tv/videos/2921352507?t=3h1m29s",
+     "ts": "3:01:29"
+    },
+    {
+     "label": "ExileCon keynote @ 3:01:09 (said)",
+     "url": "https://www.twitch.tv/videos/2921352507?t=3h1m9s",
+     "ts": "3:01:09"
+    }
+   ],
+   "frame_url": "https://www.twitch.tv/videos/2921352507?t=3h1m29s"
+  },
+  "Acolyte of Chayula": {
+   "term": "Acolyte of Chayula",
+   "summary": "The Acolyte of Chayula has been totally reworked: it gains a Herald of Chayula skill where non-Herald Attack Hits inflict Decay and Attack Killing Blows consume Decay to trigger Chaos explosions scaling with Decay, and the old Darkness mechanic has been moved to a keystone on the main passive tree and replaced with a summonable companion similar to Demon Magus.",
+   "changes": [
+    "Acolyte of Chayula has been totally reworked",
+    "Gains Herald of Chayula: non-Herald Attack Hits inflict Decay",
+    "Attack Killing Blows on targets with Decay trigger an explosion of Chaos damage scaling with the amount of Decay on the target, not Weapon damage",
+    "Explodes for 13 Chaos Damage per Decay, radius 2.8 metres, 50% more Damage with Hits for blasts originating from a Unique Enemy",
+    "Old Darkness mechanic completely moved into a keystone on the main passive tree",
+    "Replaced with the ability to summon a companion, similar to Demon Magus"
+   ],
+   "lines": [
+    "Herald of Chayula | Herald of Chayula / Buff / Attack, Persistent, AoE, Trigger, Chaos, Herald, Payoff / Level: 20 (Max) / Requires: Level 90 / Requires: Any Martial Weapon / Your non-Herald Attack Hits inflict Decay. Attack Killing Blows Consume Decay to Trigger an explosion of Chaos damage which scales with the amount of Decay on the target, but not your Weapon's damage. Using this Skill Consumes Decay to explode a target and any targets Hit with Decay. / Buff, Active, Explosion / Non-Herald Attack Hits inflict 10 Decay / Killing Blows with Attacks on Targets with Decay Trigger an Explosion / Buff, Active, Explosion / Critical Hit Chance: 5.00% / Attack Damage: 100% / Can't be Evaded / Cannot Inflict Decay / Explodes for 13 Chaos Damage per Decay / Explosion Damage is not based on Weapon Damage / Explosion radius is 2.8 metres / 50% more Damage with Hits for blasts originating from a Unique Enemy"
+   ],
+   "image": "scripts/img/demon_magus_yap/nt-acolyte_of_chayula-10961.jpg",
+   "sources": [
+    {
+     "label": "ExileCon keynote @ 3:02:33 (said)",
+     "url": "https://www.twitch.tv/videos/2921352507?t=3h2m33s",
+     "ts": "3:02:33"
+    }
+   ],
+   "frame_url": "https://www.twitch.tv/videos/2921352507?t=3h2m41s"
+  }
+ }
 }
