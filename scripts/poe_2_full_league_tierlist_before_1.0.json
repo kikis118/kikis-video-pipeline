@@ -8,7 +8,7 @@
   "D"
  ],
  "channel": "GhazzyTV",
- "updated": "2026-11-21 18:05",
+ "updated": "2026-11-21 18:12",
  "sections": [
   {
    "title": "Intro",
@@ -27,29 +27,23 @@
    "subtitle": null,
    "minutes": 1.25,
    "points": [
-    "The league mechanic itself - fun to engage with, not just profitable.",
-    "Loot and economy - did it feel rewarding, could you progress.",
+    "The league mechanic itself - fun to engage with",
+    "Loot and economy - did it feel rewarding? Issues?",
     "The patch around it - balance, endgame, how the game felt that season.",
     "Staying power - did people keep playing, did it get better or fall off.",
     "Worth saying: every one of these mechanics is now core, so you're ranking stuff that's still in your game."
    ],
-   "prompts": [
-    "Your own background: played since the 0.1 launch, did the 0.1 subathon."
-   ],
-   "deeper": [
-    "0.1 subathon was one minute per sub until Christmas.",
-    "There was a GhazzyTV meetup after the 0.1 subathon."
-   ]
+   "prompts": [],
+   "deeper": []
   },
   {
    "title": "0.1 - Early Access launch",
    "subtitle": "6 December 2024 - no challenge league",
    "minutes": 2,
    "points": [
-    "No challenge league - everyone was on Early Access Standard. Rank it as a league or as 'the launch'?",
+    "No challenge league - everyone was on Early Access Standard",
     "What we had: 3 acts (plus Cruel), 6 classes, ~50 areas, ~175 skills.",
-    "The hype: over a million Early Access copies sold.",
-    "Your Demon Magus wish started here - 'screaming for it since 0.1'."
+    "Over a million Early Access copies sold."
    ],
    "prompts": [
     "Was 0.1 the most fun you had despite being the least finished?",
@@ -70,10 +64,7 @@
     "The Huntress (Amazon, Ritualist) and spears; new Smith of Kitava, Tactician and Lich ascendancies.",
     "100+ new uniques, 100+ new supports, 8 new endgame maps."
    ],
-   "prompts": [
-    "Does a league without a real mechanic even deserve a tier?",
-    "Huntress / spear launch - how did the class feel?"
-   ],
+   "prompts": [],
    "deeper": [
     "Ran ~20.5 weeks.",
     "Private leagues arrived during 0.2 (0.2.0h)."
@@ -109,10 +100,11 @@
     "You build the temple yourself - pick rooms, place them next to rooms that level them up; Royal Architect and Atziri at the top.",
     "Vaal crafting: corruption benches, Architect's Orb, Vaal Cultivation Orb, transcendent limbs.",
     "The Druid (Oracle, Shaman) and Talismans - shapeshifting into animal forms.",
-    "Tavern Talk take: big drop-off early over the economy, then the temple endgame won back the people who stayed."
+    "Tavern Talk take: big drop-off early over the economy, then the temple endgame won back the people who stayed.",
+    "Abyss went core in 0.4 and got its own Atlas passive tree"
    ],
    "prompts": [
-    "Agree with that take - slow start, great endgame?",
+    "Agree with - slow start, great endgame?",
     "Longest league of the lot - earned it or overstayed?"
    ],
    "deeper": [
@@ -129,13 +121,13 @@
    "points": [
     "A Remnant in every area - slot runeshapes to pick the item you want, then fight waves of risen monsters for it.",
     "More runes = more waves and harder mods, but better items; Remnants roll 2-10 slots.",
-    "Verisium and Runeforging - and Runic Ward, a defence that kicks in at 1 life.",
+    "Verisium and Runeforging - and Runic Ward",
     "Runeforging also upgrades low-level uniques so they stay usable late.",
     "Shipped with the 'Origins of Divinity' endgame overhaul - Delirium, Breach, Ritual and Expedition all reworked."
    ],
    "prompts": [
     "Deterministic crafting - did it make loot feel worse or better?",
-    "Runic Ward - did it change how you built characters?"
+    "Runic ward - was it a big addition to the game or just another mechanic that you half ignore?"
    ],
    "deeper": [
     "23 Kalguuran skills, 13 Alloys, Fluxes, Ancient and Mythical runes all come out of Remnants.",
@@ -164,14 +156,13 @@
    "subtitle": null,
    "minutes": 2,
    "points": [
-    "Reveal the final board; call out the biggest gap between tiers.",
     "1.0 league is Conquerors of Wraeclast - troops, castles, sieges, three factions, 100 castles on one shared Atlas.",
-    "Your ExileCon reaction: 'straight up my alley' - RTS and risk woven into PoE.",
-    "Your 1.0 start: Infernalist, triple Hellhounds / Demon Magus - then Shadow."
+    "You said on Exilecon, your reaction was: 'straight up my alley' - RTS and risk woven into PoE - why?",
+    "Your 1.0 start: Infernalist? Demon Magus?",
+    "1.0 also adds Acts 5-6, the Shadow and Duelist, ~110 effectively new uniques, a 70-node Atlas tree."
    ],
    "prompts": [
-    "Which past mechanic should 1.0 learn the most from?",
-    "Where would Conquerors land if it plays like the keynote?"
+    "Which past mechanic should 1.0 learn the most from?"
    ],
    "deeper": [
     "1.0 also adds Acts 5-6, the Shadow and Duelist, ~110 effectively new uniques, a 70-node Atlas tree."
