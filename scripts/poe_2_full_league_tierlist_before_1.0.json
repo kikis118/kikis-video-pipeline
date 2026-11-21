@@ -8,20 +8,20 @@
   "D"
  ],
  "channel": "GhazzyTV",
- "updated": "2026-11-21 18:32",
+ "updated": "2026-11-21 18:58",
  "sections": [
   {
    "title": "Intro",
    "subtitle": null,
    "minutes": 0.75,
    "points": [
-    "1.0 drops 11 December - before it does, every PoE 2 league so far, ranked.",
-    "Two years of Early Access: the launch, four challenge leagues and an event league.",
-    "Hook: tease the most controversial placement before revealing anything."
+    "1.0 lands 11 December - so before it does, I'm ranking every PoE 2 league so far.",
+    "Two years of Early Access: the launch, four challenge leagues and one event league.",
+    "Hook: tease the most controversial placement up front - don't reveal it yet."
    ],
    "prompts": [],
    "deeper": [
-    "For scale: 578k on Steam at Early Access launch - and 1.0 goes free-to-play."
+    "For scale: 578k players on Steam at the Early Access launch - and 1.0 goes free-to-play."
    ]
   },
   {
@@ -43,11 +43,10 @@
    "subtitle": "6 December 2024 - no challenge league",
    "minutes": 2,
    "points": [
-    "No challenge league - everyone was on Early Access Standard",
-    "What we had: 3 acts (plus Cruel), 6 classes, ~50 areas, ~175 skills.",
-    "Over a million Early Access copies sold.",
-    "Steam peak 578,569 players in Dec 2024 - over a million Early Access keys sold.",
-    "So many players GGG's support team was buried in an 'enormous' ticket backlog.",
+    "No challenge league - everyone just played Early Access Standard.",
+    "Three acts plus Cruel, six classes, about 50 areas.",
+    "Huge launch: over a million copies sold, a 578k Steam peak.",
+    "So busy GGG's support team drowned in tickets.",
     "+ Common praise: act bosses really good, some called it the best ARPG launch ever,  and the feel of combat's amazing.",
     "-  Common complaints: ruthless loot, slow movement, and a bare endgame."
    ],
@@ -66,21 +65,20 @@
    "subtitle": "4 April - 26 August 2025",
    "minutes": 2.25,
    "points": [
-    "First seasonal league - but officially not a 'full league': everything shipped straight into core, nothing exclusive.",
-    "Azmerian Wisps - they flee, you chase, monsters they touch get stronger and more rewarding.",
-    "12 Rogue Exiles that use and drop their own uniques, plus 4 unique Strongboxes.",
-    "The Huntress (Amazon, Ritualist) and spears; new Smith of Kitava, Tactician and Lich ascendancies.",
-    "100+ new uniques, 100+ new supports, 8 new endgame maps.",
-    "+ Common praise: the Huntress hype - nearly 240k players came back on launch day, after the count had dropped 'off a cliff'.",
-    "-  Common complaints: an avalanche of nerfs, slow and punishing campaign, relentless monsters, gutted endgame loot.",
-    "Steam recent reviews crashed to 'Mostly Negative' - 2,300+ negative reviews on 7 April alone.",
-    "GGG admitted 'gameplay is feeling too slow' and rushed 0.2.0e (11 April): slower monsters, minion buffs, a new spear skill."
+    "The first real league - though nothing was exclusive, it all went straight into core.",
+    "The mechanic: Azmerian Wisps - you chase them, and every monster they touch gets juiced.",
+    "Plus Rogue Exiles that drop their own uniques, and unique Strongboxes.",
+    "The big draw: the Huntress and spears.",
+    "+ Common praise: the Huntress hype pulled almost 240k players back on day one.",
+    "- Common complaints: nerfs everywhere, a slow punishing campaign, relentless monsters, gutted endgame loot.",
+    "It got review-bombed to 'Mostly Negative' - GGG admitted it felt too slow and hotfixed within a week."
    ],
    "prompts": [],
    "deeper": [
-    "Ran ~20.5 weeks.",
-    "Huntress / spears felt unsatisfying to many - parry and spear throw were buffed in the first hotfix.",
-    "Expedition, Simulacrum and early Corrupted Nexus nodes were called badly overtuned."
+    "Ran about 20 weeks.",
+    "Also new: Smith of Kitava, Tactician and Lich ascendancies; 100+ uniques, 100+ supports, 8 maps.",
+    "Spears felt unsatisfying to many - parry and spear throw got buffed in that first hotfix.",
+    "Expedition, Simulacrum and early Corrupted Nexus were called badly overtuned."
    ]
   },
   {
@@ -88,13 +86,12 @@
    "subtitle": "The Third Edict - 29 August - 9 December 2025",
    "minutes": 2.5,
    "points": [
-    "PoE 2's first proper 'full league'.",
-    "Fissures near packs - kill them, Abyssals climb out with necromantic mods, close the Abyss for a trove; sometimes it opens the Abyssal Depths.",
-    "Bones and the Well of Souls: hidden Desecrated mods, reveal and pick one of three. Also juiced waystones.",
-    "The patch was massive: Act 4 (non-linear, eight islands), Cruel removed for three interludes to 65.",
-    "Plus a support gem overhaul, an essence rework and a full balance pass.",
-    "+ Common praise: Act 4, the interludes and removing Cruel - reception called 'overwhelmingly positive', with a big player-count jump.",
-    "-  Common complaints: endgame freezes in big Abyss pulls, sudden deaths to stacked Abyssal elite mods, near-worthless uniques, endgame left 'dry'."
+    "PoE 2's first proper full league.",
+    "The mechanic: Abyss fissures - kill the pack, Abyssals climb out, close it for a trove. Sometimes it opens the Abyssal Depths.",
+    "The crafting hook: bones and desecrated mods - reveal at the Well of Souls and pick one of three.",
+    "And the patch around it was massive: Act 4, interludes instead of Cruel, a support gem overhaul.",
+    "+ Common praise: Act 4, the interludes and Cruel being gone - reception was overwhelmingly positive.",
+    "- Common complaints: freezes in big Abyss pulls, sudden deaths to stacked elite mods, worthless uniques, a dry endgame."
    ],
    "prompts": [
     "Was desecration the best crafting addition PoE 2 has had?",
@@ -113,14 +110,13 @@
    "subtitle": "The Last of the Druids - 12 December 2025 - 25 May 2026",
    "minutes": 2.5,
    "points": [
-    "Vaal structures across Wraeclast - sacrifice nearby monsters to power devices that take you to Atziri's Temple.",
-    "You build the temple yourself - pick rooms, place them next to rooms that level them up; Royal Architect and Atziri at the top.",
-    "Vaal crafting: corruption benches, Architect's Orb, Vaal Cultivation Orb, transcendent limbs.",
-    "The Druid (Oracle, Shaman) and Talismans - shapeshifting into animal forms.",
-    "Tavern Talk take: big drop-off early over the economy, then the temple endgame won back the people who stayed.",
-    "+ Common praise: the Druid - shapeshifting, the Wyvern - and fast GGG fixes that doubled temple rewards a week in.",
-    "-  Common complaints: temples took too long for too little, confusing pathing, losing rooms after the Architect, early crashes.",
-    "January hotfix nerfed 'snake' temples making hundreds of Divines per run - players who built late felt screwed, streamers warned of league abandonment.",
+    "The mechanic: Vaal structures - sacrifice monsters to power your way into Atziri's Temple.",
+    "You build the temple yourself - rooms level up the rooms next to them, Atziri waits at the top.",
+    "Came with the Druid - shapeshifting, Talismans, the Wyvern.",
+    "+ Common praise: the Druid, and GGG doubling temple rewards within a week.",
+    "- Common complaints: temples were slow for little reward, confusing to path, and you lost rooms after the Architect.",
+    "The January hotfix killed the 'snake' temples making hundreds of Divines - late builders felt robbed.",
+    "Tavern Talk's take: a rough start, then the temple endgame won back the people who stayed.",
     "Abyss went core in 0.4 and got its own Atlas passive tree"
    ],
    "prompts": [
@@ -134,7 +130,8 @@
     "Moved to core in 0.5.",
     "GGG's own words a week in: temple rewards 'simply don't scale enough to make temples worth doing'.",
     "NeverSink: Vaal Cultivation Orb prices 'plummeted' from abuse - part of the hotfix was reverted on 5 Jan.",
-    "Forum takes ranged from 'a much worse Sanctum' to '0.3 was a much better experience'."
+    "Forum takes ranged from 'a much worse Sanctum' to '0.3 was a much better experience'.",
+    "Vaal crafting: corruption benches, Architect's Orb, Vaal Cultivation Orb, transcendent limbs."
    ]
   },
   {
@@ -142,14 +139,12 @@
    "subtitle": "Return of the Ancients - 29 May 2026 - early December 2026",
    "minutes": 2.5,
    "points": [
-    "A Remnant in every area - slot runeshapes to pick the item you want, then fight waves of risen monsters for it.",
-    "More runes = more waves and harder mods, but better items; Remnants roll 2-10 slots.",
+    "The mechanic: a Remnant in every area - pick the item you want with runeshapes, then survive the waves for it.",
+    "More runes means more waves and nastier mods - but better items.",
     "Verisium and Runeforging - and Runic Ward",
-    "Runeforging also upgrades low-level uniques so they stay usable late.",
-    "Shipped with the 'Origins of Divinity' endgame overhaul - Delirium, Breach, Ritual and Expedition all reworked.",
-    "+ Common praise: the endgame rework - questlines, the Arbiter fights - and Runes of Aldur being fun; one forum post: 'damn near a home run'.",
-    "-  Common complaints: crashes, disconnects and stutter; harsh death penalty in juiced maps; Runic Ward upgrades bricking items.",
-    "GGG called it 'the biggest single update for either PoE 2 or its predecessor' - and the last big one before 1.0."
+    "And it shipped with the full endgame overhaul - GGG called it their biggest update ever.",
+    "+ Common praise: the endgame rework, the Arbiter fights, Remnants being fun - 'damn near a home run'.",
+    "- Common complaints: crashes and stutter, a brutal death penalty in juiced maps, Runic Ward bricking items."
    ],
    "prompts": [
     "Deterministic crafting - did it make loot feel worse or better?",
@@ -159,7 +154,8 @@
     "23 Kalguuran skills, 13 Alloys, Fluxes, Ancient and Mythical runes all come out of Remnants.",
     "Moved to core in 0.5.5; still running until just before 1.0.",
     "Players said they played this league more than any since launch.",
-    "Replaying the campaign on new characters still called tedious; Delirium's goals felt unclear."
+    "Replaying the campaign on new characters still called tedious; Delirium's goals felt unclear.",
+    "Runeforging also upgrades low-level uniques so they stay usable late."
    ]
   },
   {
@@ -167,23 +163,24 @@
    "subtitle": "4 September 2026 - runs alongside Runes of Aldur",
    "minutes": 1.5,
    "points": [
-    "Event league - Ritual in every campaign area, with levelling rewards instead of endgame ones.",
-    "Boss rituals chain: beat the boss and it carries into the next ritual's waves; spend the tribute on uniques.",
-    "Sacred Blooms bring back the Viridian Wildwood and wisps on your Atlas.",
-    "Trial of Chaos finally lets you leave mid-run.",
-    "+ Common praise: Ritual in the campaign makes levelling fun and generous - the event 'looks quite fun'.",
-    "-  Common complaints: announced as a one-month event, then quietly made to run until 1.0 - no announcement, already-thin trade market.",
-    "Plus a run of reported bugs - leap-skill support links, a Telzaro soft-lock."
+    "An event league: Ritual in every campaign area, with levelling rewards.",
+    "Boss rituals chain - beat a boss and it joins the next ritual's waves; tribute buys uniques.",
+    "+ Common praise: it makes levelling genuinely fun and generous.",
+    "- Common complaints: sold as a one-month event, then quietly extended to 1.0 - plus a run of bugs."
    ],
    "prompts": [],
-   "deeper": []
+   "deeper": [
+    "Sacred Blooms bring back the Viridian Wildwood and wisps on your Atlas.",
+    "Trial of Chaos finally lets you leave mid-run."
+   ]
   },
   {
    "title": "The full board - and what 1.0 needs to learn",
    "subtitle": null,
    "minutes": 2,
    "points": [
-    "1.0 league is Conquerors of Wraeclast - troops, castles, sieges, three factions, 100 castles on one shared Atlas.",
+    "Reveal the full board - call out the biggest gap between tiers.",
+    "1.0's league is Conquerors of Wraeclast - armies, castles, sieges, three factions on one shared Atlas.",
     "You said on Exilecon, your reaction was: 'straight up my alley' - RTS into PoE - why?",
     "Your 1.0 start: Infernalist? Demon Magus?",
     "1.0 also adds Acts 5-6, the Shadow and Duelist, ~110 effectively new uniques, a 70-node Atlas tree."
@@ -201,7 +198,7 @@
    "subtitle": null,
    "minutes": 0.5,
    "points": [
-    "Ask: where would you put each league - drop your tier list in the comments.",
+    "Ask: where would you put each league? Drop your tier list in the comments.",
     "Plug the 1.0 launch subathon."
    ],
    "prompts": [],
