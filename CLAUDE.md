@@ -281,4 +281,8 @@ to `index.html`. Still no build step.
 - `tierlist-poe2-leagues.html` is the 3.30 page made generic: cards are `{id, n, sub, tint,
   img?}`, `EMBLEMS` holds hand-drawn SVG watermarks per league id, live sync to
   `config/tierlist-poe2-leagues`. New preset = copy it, change `DEFAULT_CARDS`, `KEY`, title,
-  doc id. Official wiki league logos weren't embedded: poe2wiki is behind bot protection.
+  doc id. Card backgrounds are official key art in `tierlist-art/<card id>.jpg` (720px crops from the GGG
+  press kits - pathofexile2.com/edict, /druids, /ancients each link a ~550 MB PressKit.zip; only the
+  needed PNGs were pulled via HTTP range reads - plus the Huntress panel from /hunt and the Hooded
+  Mentor key art from the user's 1.0 asset folder). `ART[id]` is looked up in `paint()` so boards
+  already saved in Firestore without `img` still get the art; the SVG emblem shrinks to a corner mark.

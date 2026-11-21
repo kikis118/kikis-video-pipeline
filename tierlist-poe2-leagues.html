@@ -40,6 +40,14 @@ body:not(.present) #bMode{opacity:1}
 .card .logo{position:absolute;z-index:1;right:-4%;top:50%;height:150%;transform:translateY(-50%) rotate(-8deg);opacity:.22;pointer-events:none;color:var(--glow,#fff);filter:drop-shadow(0 0 6px var(--glow,#fff))}
 .card .logo2{position:absolute;z-index:1;left:-6%;top:50%;height:110%;transform:translateY(-50%) rotate(10deg);opacity:.07;pointer-events:none;color:#fff}
 .card .tex{position:absolute;inset:0;z-index:1;pointer-events:none;opacity:.4;background:repeating-linear-gradient(135deg,#ffffff0a 0 2px,#0000 2px 9px)}
+/* Cards with key art: art stays recognisable, darkened behind the text, league-coloured edge,
+   emblem shrinks to a faint corner mark. */
+.card.art::before{background:var(--tint);mix-blend-mode:multiply}
+.card.art::after{background:radial-gradient(ellipse 60% 70% at 50% 55%,#0007 0,#0000 100%),linear-gradient(#0000 45%,#0009)}
+.card.art{box-shadow:inset 4px 0 0 var(--glow),0 3px 8px #0009;filter:brightness(1.55) saturate(1.15)}
+.card.art .n{text-shadow:0 2px 0 #000a,0 3px 14px #000,0 0 30px #000c}
+.card.art .logo{height:70%;right:3%;top:8%;transform:none;opacity:.35}
+.card.art .a{color:var(--glow)}
 .card.emb .a{color:var(--glow)}
 .card .txt{position:absolute;inset:0;z-index:2;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:0 10px;text-align:center}
 .card .n{color:#fff;text-transform:uppercase;line-height:.95;white-space:nowrap;text-shadow:0 2px 0 #0006,0 4px 12px #000c}
@@ -103,8 +111,11 @@ const DEFAULT_CARDS=[
  ['fotv','Fate of the Vaal','0.4 · Dec 2025','#ff5a4a'],
  ['roa','Runes of Aldur','0.5 · May 2026','#4aa8ff'],
  ['fr','Forbidden Rites','0.5.5 event · Sep 2026','#b06bff'],
-].map(([id,n,sub,tint])=>({id,n,sub,tint}));
+].map(([id,n,sub,tint])=>({id,n,sub,tint,img:'tierlist-art/'+id+'.jpg'}));
 const DEFAULT_BUILDS=DEFAULT_CARDS;
+/* Official key art (tierlist-art/, cropped from GGG press kits + the 1.0 asset pack). Looked up by
+   card id so boards already saved in Firestore (cards stored without img) get the art too. */
+const ART=Object.fromEntries(DEFAULT_CARDS.map(c=>[c.id,c.img]));
 const TIER_COLORS=['#ff7f7f','#ffbf7f','#ffdf7f','#ffff7f','#bfff7f','#7fff7f','#7fffff','#7fbfff','#bf7fbf','#cfcfcf'];
 const DEFAULT_TIERS=[['S','#ff7f7f'],['A','#ffbf7f'],['B','#ffdf7f'],['C','#ffff7f'],['D','#bfff7f']];
 const KEY='poe2-league-tierlist-v1';
@@ -127,12 +138,13 @@ const EMBLEMS={
 };
 const svg=(id,cls)=>EMBLEMS[id]?`<svg class="${cls}" viewBox="0 0 100 100" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round">${EMBLEMS[id]}</svg>`:'';
 function paint(d,b){
-  const t=b.tint||'#7b4dff';
-  d.style.backgroundImage=b.img?`url("${b.img}")`:`radial-gradient(circle at 80% 50%,${t}99,#0000 58%),radial-gradient(circle at 12% 20%,${t}55,#0000 50%),linear-gradient(135deg,#2a2233,#0e0b12)`;
-  d.style.setProperty('--tint',b.img?t:'#ffffff');
+  const t=b.tint||'#7b4dff', img=b.img||ART[b.id];
+  d.style.backgroundImage=img?`url("${img}")`:`radial-gradient(circle at 80% 50%,${t}99,#0000 58%),radial-gradient(circle at 12% 20%,${t}55,#0000 50%),linear-gradient(135deg,#2a2233,#0e0b12)`;
+  d.style.backgroundPosition='center';
+  d.style.setProperty('--tint',img?`color-mix(in srgb,${t} 22%,#fff)`:'#ffffff');
   d.style.setProperty('--glow',t);
-  d.classList.toggle('emb',!b.img);
-  d.innerHTML=(b.img?'':'<div class="tex"></div>'+svg(b.id,'logo')+svg(b.id,'logo2'))+'<div class="txt"><div class="n heavy"></div><div class="a heavy"></div></div>';
+  d.classList.toggle('emb',!img); d.classList.toggle('art',!!img);
+  d.innerHTML=(img?svg(b.id,'logo'):'<div class="tex"></div>'+svg(b.id,'logo')+svg(b.id,'logo2'))+'<div class="txt"><div class="n heavy"></div><div class="a heavy"></div></div>';
   d.querySelector('.n').textContent=b.n;
   d.querySelector('.a').textContent=b.sub||'';
   fit(d);
