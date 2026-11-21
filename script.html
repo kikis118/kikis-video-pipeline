@@ -63,10 +63,10 @@ mark{background:#6b5726;color:#fff;padding:0 3px;border-radius:2px}
 .notebar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:9px 14px;margin:0 0 14px;font-size:14px;color:var(--muted)}
 .notebar b{color:var(--text)}
 .ncount{background:#3a3014;color:#f0c96a;border-radius:10px;padding:0 8px;font-size:12px;font-weight:700}
-.add-pt{position:absolute;right:-30px;top:2px;opacity:0;border:none;background:none;padding:2px 4px;font-size:14px}
-li:hover>.add-pt,.add-pt:focus{opacity:.7}.add-pt:hover{opacity:1}
-body:not(.can-note) .add-pt,body:not(.can-note) .add-sec{display:none}
-.add-sec{margin-top:8px;font-size:12px;color:var(--muted)}
+.add-pt{position:absolute;right:-30px;top:2px;opacity:.3;border:none;background:none;padding:2px 4px;font-size:14px}
+li:hover>.add-pt,.add-pt:focus{opacity:.8}.add-pt:hover{opacity:1}
+@media (max-width:700px){.add-pt{position:static;opacity:.55;margin-left:4px;padding:0 2px}}
+.add-sec{margin-top:10px;font-size:13px;color:#f0c96a;border-color:#5a4a20;background:#1f1b10}
 .notes{margin:4px 0 8px}
 .note{background:#1c1a12;border:1px solid #3d3519;border-radius:8px;padding:7px 10px;margin:6px 0;font-size:14px;color:#e9e2c8;list-style:none}
 .note.fix{background:#21151a;border-color:#4a2530}.note.question{background:#141c27;border-color:#24364d}
@@ -81,6 +81,20 @@ body:not(.can-note) .add-pt,body:not(.can-note) .add-sec{display:none}
 .composer textarea{width:100%;min-height:64px;cursor:text;margin:6px 0;resize:vertical}
 .composer .row{display:flex;gap:6px;align-items:center}
 .hide-resolved .note.resolved{display:none}
+h2.lh{font-size:15px;text-transform:uppercase;letter-spacing:.6px;color:var(--muted);margin:26px 0 8px}
+.idea,.sitem{display:flex;gap:10px;align-items:center;flex-wrap:wrap;background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:11px 14px;margin:8px 0}
+.idea .it{font-weight:600;flex:1;min-width:200px}.idea .in{flex-basis:100%;color:var(--muted);font-size:13px;white-space:pre-wrap;margin-top:-4px}
+.idea .fast{color:#ff9d98;font-size:12px;font-weight:700}.idea .cl{color:var(--muted);font-size:12px}
+.sitem a.t{font-weight:650;font-size:17px;color:var(--text);text-decoration:none;flex:1;min-width:200px}.sitem a.t:hover{color:var(--accent)}
+.sitem .d{flex-basis:100%;color:var(--muted);font-size:13px;margin-top:-6px}
+.sitem.rec{opacity:.6}.sitem.rec a.t{text-decoration:line-through;text-decoration-color:#4fc47f}
+.recbox{display:inline-flex;gap:6px;align-items:center;font-size:13px;color:#7fe0a5;cursor:pointer;white-space:nowrap}
+.recbox input{width:16px;height:16px;accent-color:#4fc47f;cursor:pointer}
+.ed{border:none;background:none;padding:2px 6px;opacity:.5;font-size:14px}.ed:hover{opacity:1}
+body:not(.can-edit) .ed,body:not(.can-edit) .recbox,body:not(.can-edit) .addidea{display:none}
+.addidea{display:flex;gap:6px;flex-wrap:wrap;margin:6px 0 4px}.addidea input{flex:1;min-width:180px;background:var(--card);color:var(--text);border:1px solid var(--border);border-radius:6px;padding:7px 10px;font:inherit;font-size:14px}
+.h1row{display:flex;align-items:center;gap:8px;flex-wrap:wrap}.h1row h1{margin:0}
+.recline{margin:4px 0 18px}
 @media print{body{background:#fff;color:#000}.controls,.top,.notebar,.add-pt,.add-sec,.notes{display:none}details.sec{border-color:#ccc;background:#fff}.take{background:#fff8e6}
   li.fmt-pro{background:#eefaf2;color:#0a5a2a}li.fmt-con{background:#fdeeee;color:#8a1f1a}li.fmt-key{background:#fff3c4;color:#000}mark{background:#fff3c4;color:#000}}
 </style>
@@ -118,14 +132,49 @@ async function getJson(path) {
   return r.json();
 }
 
+// Shared state from the Firestore module below (window.notesApi):
+//   status  config/script-status {scripts:{slug:{title?, recorded, recordedBy, recordedAt}}} - title
+//           overrides + "Script recorded" ticks, kept OUT of the published JSON so Publish can't undo them
+//   ideas   pipeline rows with status 'Idea' (the board's to-do videos), list page only
+let INDEX = null;
+const statusOf = (sl) => ((window.notesApi && window.notesApi.status) || {})[sl] || {};
+const titleOf = (sl, fallback) => statusOf(sl).title || fallback;
+function signBar(what) {
+  const api = window.notesApi;
+  if (!api || api.state === 'loading') return `<div class="notebar">Connecting…</div>`;
+  if (api.state === 'signedout') return `<div class="notebar">${what} <button data-signin>Sign in with Google</button></div>`;
+  if (api.state === 'denied') return `<div class="notebar">Your Google account isn't on the allowlist - ask Kikis.</div>`;
+  if (api.state === 'error') return `<div class="notebar">Can't reach the board right now (offline?) - showing published scripts only.</div>`;
+  return '';
+}
+
 async function showList() {
   document.title = 'Video Scripts';
-  let list = [];
-  try { list = await getJson('scripts/index.json'); } catch (e) {}
+  if (!INDEX) { try { INDEX = await getJson('scripts/index.json'); } catch (e) { INDEX = []; } }
+  const api = window.notesApi || {};
+  const ideas = (api.ideas || []).slice().sort((a, b) => (b.doFast ? 1 : 0) - (a.doFast ? 1 : 0) || (a.order ?? 1e9) - (b.order ?? 1e9) || (a.createdAtMs || 0) - (b.createdAtMs || 0));
+  const scripts = INDEX.map((x) => Object.assign({}, x, { st: statusOf(x.slug) })).sort((a, b) => (a.st.recorded ? 1 : 0) - (b.st.recorded ? 1 : 0));
+  const ideasHtml = api.state !== 'ready' ? '<div class="empty">Sign in to see the list of ideas.</div>'
+    : (ideas.map((r) => {
+        const cl = Array.isArray(r.checklist) ? r.checklist : null;
+        return `<div class="idea"><span class="it">${r.doFast ? '<span class="fast">★ DO FAST</span> ' : ''}${esc(r.title)}</span>
+          ${cl ? `<span class="cl">☑ ${cl.filter((i) => i.done).length}/${cl.length}</span>` : ''}
+          ${r.scriptSlug ? `<a href="?s=${encodeURIComponent(r.scriptSlug)}">📄 Script</a>` : ''}
+          <button class="ed" data-rename-idea="${esc(r.id)}" title="Rename">✎</button>
+          ${r.notes ? `<div class="in">${esc(r.notes.length > 220 ? r.notes.slice(0, 220) + '…' : r.notes)}</div>` : ''}</div>`;
+      }).join('') || '<div class="empty">No ideas yet.</div>');
   app.innerHTML = `<div class="top"><a href="./">← Pipeline board</a></div><h1>Video scripts</h1>
-    <div class="meta">Talking points for upcoming videos - published from the editor's Video Studio.</div>
-    <div class="list">${list.map((s) => `<a class="item" href="?s=${encodeURIComponent(s.slug)}"><div class="t">${esc(s.title)}</div>
-      <div class="d">${s.sections} sections · updated ${esc(s.updated)}</div></a>`).join('') || '<div class="empty">Nothing published yet.</div>'}</div>`;
+    <div class="meta">Ideas for upcoming videos, and the finished talking-point scripts.</div>
+    ${signBar('Sign in to see the ideas list and tick off recorded scripts.')}
+    <h2 class="lh">💡 List of ideas</h2>
+    <div class="addidea"><input id="newIdea" placeholder="New video idea…"><input id="newIdeaNotes" placeholder="Notes (optional)"><button data-addidea>+ Add idea</button></div>
+    ${ideasHtml}
+    ${api.state === 'ready' ? '<div style="margin-top:6px;font-size:13px"><a href="./?view=todo">Checklists, Do Fast and deleting ideas → board to-do page</a></div>' : ''}
+    <h2 class="lh">📝 Finished video scripts</h2>
+    ${scripts.map((x) => `<div class="sitem ${x.st.recorded ? 'rec' : ''}"><a class="t" href="?s=${encodeURIComponent(x.slug)}">${esc(titleOf(x.slug, x.title))}</a>
+        <button class="ed" data-rename-script="${esc(x.slug)}" data-cur="${esc(titleOf(x.slug, x.title))}" title="Rename">✎</button>
+        <label class="recbox"><input type="checkbox" data-recorded="${esc(x.slug)}" ${x.st.recorded ? 'checked' : ''}> Script recorded</label>
+        <div class="d">${x.sections} sections · updated ${esc(x.updated)}${x.st.recorded ? ` · ✓ recorded${x.st.recordedBy ? ' by ' + esc(who(x.st.recordedBy)) : ''}` : ''}</div></div>`).join('') || '<div class="empty">Nothing published yet.</div>'}`;
 }
 
 // ---------- notes rendering (data comes from the Firestore module below)
@@ -171,7 +220,9 @@ function render() {
   const keep = window.scrollY;
   const openState = [...document.querySelectorAll('details.sec')].map((d) => d.open);
   app.innerHTML = `<div class="top"><a href="script.html">← All scripts</a><span style="flex:1"></span><a href="./">Pipeline board</a></div>
-    <h1>${esc(sc.title)}</h1><div class="meta">${esc(meta)}</div>${bar}
+    <div class="h1row"><h1>${esc(titleOf(slug, sc.title))}</h1><button class="ed" data-rename-script="${esc(slug)}" data-cur="${esc(titleOf(slug, sc.title))}" title="Rename">✎</button></div>
+    <div class="meta">${esc(meta)}</div>
+    <div class="recline"><label class="recbox"><input type="checkbox" data-recorded="${esc(slug)}" ${statusOf(slug).recorded ? 'checked' : ''}> Script recorded</label>${statusOf(slug).recorded ? ` <span style="color:var(--muted);font-size:13px">✓ by ${esc(who(statusOf(slug).recordedBy))}</span>` : ''}</div>${bar}
     <div class="controls"><button id="bOpen">Expand all</button><button id="bClose">Collapse all</button></div>
     ${sc.sections.map((s, i) => {
       const texts = new Set([...s.points, ...s.prompts, ...s.deeper]);
@@ -185,7 +236,7 @@ function render() {
         ${s.prompts.length ? `<div class="take"><b>Your take</b><ul>${s.prompts.map((t, k) => point(t, i, 'prompts', k)).join('')}</ul></div>` : ''}
         ${s.deeper.length ? `<details class="more"><summary>If you want more (${s.deeper.length})</summary><ul>${s.deeper.map((t, k) => point(t, i, 'deeper', k)).join('')}</ul></details>` : ''}
         ${secNotes.length || OPEN[skey] ? `<div class="notes">${secNotes.map((n) => noteHtml(n, true)).join('')}${OPEN[skey] ? composerHtml(skey) : ''}</div>` : ''}
-        <button class="add-sec" data-add="${skey}">💬 Note on this section</button>
+        <button class="add-sec" data-add="${skey}">💬 Add a note / fix to this section</button>
       </div></details>`;
     }).join('')}`;
   window.scrollTo(0, keep);
@@ -193,12 +244,25 @@ function render() {
   document.getElementById('bOpen').onclick = () => all(true);
   document.getElementById('bClose').onclick = () => all(false);
 }
-window.renderScript = () => { if (SC) render(); };
+window.renderScript = () => { if (slug) { if (SC) { document.title = titleOf(slug, SC.title); render(); } } else showList(); };
 window.setNotes = (list) => { NOTES = list; if (SC && !document.querySelector('.composer textarea:focus')) render(); };
 
 app.addEventListener('click', (e) => {
   const t = e.target, api = window.notesApi;
   if (t.matches('[data-signin]')) return api && api.signIn();
+  if (t.matches('[data-rename-script]')) {
+    const v = prompt('Script title:', t.dataset.cur); if (v && v.trim()) api.setStatus(t.dataset.renameScript, { title: v.trim() }).catch((err) => alert(err.message)); return;
+  }
+  if (t.matches('[data-rename-idea]')) {
+    const r = (api.ideas || []).find((x) => x.id === t.dataset.renameIdea); const v = r && prompt('Idea title:', r.title);
+    if (v && v.trim()) api.renameIdea(r.id, v.trim()).catch((err) => alert(err.message)); return;
+  }
+  if (t.matches('[data-addidea]')) {
+    const ti = document.getElementById('newIdea'), no = document.getElementById('newIdeaNotes');
+    if (!ti.value.trim()) return ti.focus();
+    api.addIdea(ti.value.trim(), no.value.trim()).then(() => { ti.value = ''; no.value = ''; }).catch((err) => alert(err.message)); return;
+  }
+  if (t.matches('[data-add]') && (!api || api.state !== 'ready')) { e.preventDefault(); if (api && api.state === 'signedout') { if (confirm('Sign in with Google to leave notes?')) api.signIn(); } else alert(api && api.state === 'denied' ? "This Google account isn't on the allowlist - ask Kikis." : 'Still connecting - try again in a second.'); return; }
   if (t.matches('[data-add]')) { e.preventDefault(); OPEN[t.dataset.add] = true; render(); const c = document.querySelector(`[data-comp="${t.dataset.add}"] textarea`); if (c) c.focus(); return; }
   if (t.matches('[data-ccancel]')) { delete OPEN[t.dataset.ccancel]; render(); return; }
   if (t.matches('[data-csave]')) {
@@ -215,13 +279,17 @@ app.addEventListener('click', (e) => {
   if (t.matches('[data-del]') && confirm('Delete this note?')) return api.remove(t.dataset.del);
 });
 app.addEventListener('change', (e) => {
+  if (e.target.matches('[data-recorded]')) {
+    const api = window.notesApi, on = e.target.checked;
+    api.setStatus(e.target.dataset.recorded, { recorded: on, recordedBy: on ? api.email : '', recordedAt: on ? Date.now() : 0 }).catch((err) => alert(err.message));
+  }
   if (e.target.matches('[data-showres]')) document.body.classList.toggle('hide-resolved', !e.target.checked);
 });
 
 async function showScript() {
   try { SC = await getJson('scripts/' + encodeURIComponent(slug) + '.json'); }
   catch (e) { app.innerHTML = `<div class="top"><a href="script.html">← All scripts</a></div><div class="empty">Script "${esc(slug)}" ${esc(e.message)}.</div>`; return; }
-  document.title = SC.title;
+  document.title = titleOf(slug, SC.title);
   render();
 }
 
@@ -230,48 +298,66 @@ slug ? showScript() : showList();
 
 <!-- Notes: Google sign-in + Firestore, same project, sign-in and allowlist as the pipeline board. -->
 <script type="module">
+// Google sign-in + Firestore, same project / sign-in / allowlist as the pipeline board.
 const slug = new URLSearchParams(location.search).get('s');
-if (slug) {
-  const set = (state, extra = {}) => { window.notesApi = Object.assign(window.notesApi || {}, { state }, extra); document.body.classList.toggle('can-note', state === 'ready'); window.renderScript(); };
-  try {
-    const V = 'https://www.gstatic.com/firebasejs/10.13.2/';
-    const { initializeApp } = await import(V + 'firebase-app.js');
-    const { getFirestore, doc, onSnapshot, runTransaction } = await import(V + 'firebase-firestore.js');
-    const { getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged } = await import(V + 'firebase-auth.js');
-    // Public web config (same as index.html) - access is gated by Firestore rules + allowlist.
-    const app = initializeApp({
-      apiKey: 'AIzaSyCHyVL3XBiqnKRqK1gRIml0EYDnB3A8d6U',
-      authDomain: 'ghazzy-video-pipeline-8ecd4.firebaseapp.com',
-      projectId: 'ghazzy-video-pipeline-8ecd4',
-      storageBucket: 'ghazzy-video-pipeline-8ecd4.firebasestorage.app',
-      messagingSenderId: '889310513985',
-      appId: '1:889310513985:web:faac82e551a72345d86fc0',
-    });
-    const db = getFirestore(app), auth = getAuth(app);
-    const ref = doc(db, 'config', 'scriptnotes-' + slug);
-    const mutate = (fn) => runTransaction(db, async (tx) => {
-      const snap = await tx.get(ref);
-      tx.set(ref, { notes: fn(snap.exists() ? (snap.data().notes || []) : []) });
-    });
-    window.notesApi = {
-      state: 'loading',
-      signIn: () => signInWithPopup(auth, new GoogleAuthProvider()).catch((e) => alert(e.message)),
-      add: (n) => mutate((list) => [...list, Object.assign({ id: 'n' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6), by: auth.currentUser.email, at: Date.now(), resolved: false }, n)]),
-      toggleResolved: (id) => mutate((list) => list.map((n) => n.id === id ? Object.assign({}, n, { resolved: !n.resolved, resolvedBy: auth.currentUser.email }) : n)),
-      remove: (id) => mutate((list) => list.filter((n) => n.id !== id)),
-    };
-    let unsub = null;
-    onAuthStateChanged(auth, (user) => {
-      if (unsub) { unsub(); unsub = null; }
-      if (!user) { window.setNotes([]); return set('signedout'); }
-      set('loading', { email: user.email });
-      unsub = onSnapshot(ref, (snap) => { set('ready'); window.setNotes(snap.exists() ? (snap.data().notes || []) : []); },
-        (err) => set(String(err.message).includes('insufficient permissions') ? 'denied' : 'error'));
-    });
-  } catch (err) {
-    console.error('[notes]', err);
-    window.notesApi = { state: 'error' }; window.renderScript();
-  }
+const api = window.notesApi = { state: 'loading', status: {}, ideas: [] };
+const set = (state, extra = {}) => {
+  Object.assign(api, { state }, extra);
+  document.body.classList.toggle('can-note', state === 'ready' && !!slug);
+  document.body.classList.toggle('can-edit', state === 'ready');
+  window.renderScript();
+};
+try {
+  const V = 'https://www.gstatic.com/firebasejs/10.13.2/';
+  const { initializeApp } = await import(V + 'firebase-app.js');
+  const { getFirestore, doc, collection, query, where, onSnapshot, runTransaction, setDoc, updateDoc, addDoc, serverTimestamp } = await import(V + 'firebase-firestore.js');
+  const { getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged } = await import(V + 'firebase-auth.js');
+  // Public web config (same as index.html) - access is gated by Firestore rules + allowlist.
+  const app = initializeApp({
+    apiKey: 'AIzaSyCHyVL3XBiqnKRqK1gRIml0EYDnB3A8d6U',
+    authDomain: 'ghazzy-video-pipeline-8ecd4.firebaseapp.com',
+    projectId: 'ghazzy-video-pipeline-8ecd4',
+    storageBucket: 'ghazzy-video-pipeline-8ecd4.firebasestorage.app',
+    messagingSenderId: '889310513985',
+    appId: '1:889310513985:web:faac82e551a72345d86fc0',
+  });
+  const db = getFirestore(app), auth = getAuth(app);
+  const notesRef = slug && doc(db, 'config', 'scriptnotes-' + slug);
+  const statusRef = doc(db, 'config', 'script-status');
+  const mutate = (fn) => runTransaction(db, async (tx) => {
+    const snap = await tx.get(notesRef);
+    tx.set(notesRef, { notes: fn(snap.exists() ? (snap.data().notes || []) : []) });
+  });
+  Object.assign(api, {
+    signIn: () => signInWithPopup(auth, new GoogleAuthProvider()).catch((e) => alert(e.message)),
+    add: (n) => mutate((list) => [...list, Object.assign({ id: 'n' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6), by: auth.currentUser.email, at: Date.now(), resolved: false }, n)]),
+    toggleResolved: (id) => mutate((list) => list.map((n) => n.id === id ? Object.assign({}, n, { resolved: !n.resolved, resolvedBy: auth.currentUser.email }) : n)),
+    remove: (id) => mutate((list) => list.filter((n) => n.id !== id)),
+    // merge:true deep-merges the nested map, so one script's change never touches the others
+    setStatus: (sl, patch) => setDoc(statusRef, { scripts: { [sl]: patch } }, { merge: true }),
+    renameIdea: (id, title) => updateDoc(doc(db, 'pipeline', id), { title }),
+    // same fields as the board's "+ Add To-Do Video" form
+    addIdea: (title, notes) => addDoc(collection(db, 'pipeline'), { title, status: 'Idea', doFast: false, notes, upload: '', filename: '', driveFileId: '', pendingDelete: false, createdAt: serverTimestamp() }),
+  });
+  let unsubs = [];
+  onAuthStateChanged(auth, (user) => {
+    unsubs.forEach((u) => u()); unsubs = [];
+    if (!user) { api.status = {}; api.ideas = []; if (window.setNotes) window.setNotes([]); return set('signedout'); }
+    set('loading', { email: user.email });
+    const fail = (err) => set(String(err.message).includes('insufficient permissions') ? 'denied' : 'error');
+    unsubs.push(onSnapshot(statusRef, (snap) => { api.status = snap.exists() ? (snap.data().scripts || {}) : {}; set('ready'); }, fail));
+    if (slug) {
+      unsubs.push(onSnapshot(notesRef, (snap) => { set('ready'); window.setNotes(snap.exists() ? (snap.data().notes || []) : []); }, fail));
+    } else {
+      unsubs.push(onSnapshot(query(collection(db, 'pipeline'), where('status', '==', 'Idea')), (snap) => {
+        api.ideas = snap.docs.map((d) => Object.assign({ id: d.id }, d.data(), { createdAtMs: d.data().createdAt && d.data().createdAt.toMillis ? d.data().createdAt.toMillis() : 0 })).filter((r) => !r.pendingDelete && !r.parentId);
+        set('ready');
+      }, fail));
+    }
+  });
+} catch (err) {
+  console.error('[script page]', err);
+  set('error');
 }
 </script>
 </body>

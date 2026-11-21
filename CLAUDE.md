@@ -276,6 +276,12 @@ to `index.html`. Still no build step.
 - `script.html` renders talking-point formatting with the same rules as the shorts tool's
   studio.js (`+ ` green, `- ` red, `! ` amber, `> ` quote, `**bold**`, `==highlight==`) - keep the
   two `lineKind`/`fmt` functions in sync.
+- **script.html list page = ideas + finished scripts.** "💡 List of ideas" is the board's to-do rows
+  (pipeline `status=='Idea'`, live, add/rename here; checklists/Do Fast/delete still on
+  `./?view=todo`, which the menu no longer links - only this page does). "📝 Finished video
+  scripts" = scripts/index.json. Per-script title overrides and the "Script recorded" tick live in
+  Firestore `config/script-status` `{scripts:{slug:{title, recorded, recordedBy, recordedAt}}}`
+  (setDoc merge) - NOT in the published JSON, so re-publishing never resets a rename or a tick.
 - **Notes / fixes on scripts** (script.html, Google sign-in + allowlist like the board) live in
   Firestore `config/scriptnotes-<slug>` = `{notes:[{id, sec, secTitle, bucket, quote, type
   (note|fix|question), text, by, at, resolved}]}`, written with `runTransaction`. They are
@@ -287,8 +293,8 @@ to `index.html`. Still no build step.
   select lists `scripts/index.json` (fetched once at boot by `loadPublishedScripts`) and
   a "📄 Script" link appears next to the title.
 - **Header (simplified 2026-11-21):** one **📋 To-Do Videos ▾** dropdown (`#assetsMenu`) holds
-  everything video-related - To-do list (`?view=todo`), Video scripts (`script.html`), Tierlist
-  (`tierlist-blank.html`). Shorts / 24/7 Stream / Config are plain links to `?view=shorts|stream|config`.
+  everything video-related - Video scripts (`script.html`, which includes the ideas list) and
+  Open tierlist (`tierlist-blank.html`). Shorts / 24/7 Stream / Config are plain links to `?view=shorts|stream|config`.
   `?view=` makes index.html show only that panel full-page (`VIEW_PANELS`, `body[data-view]` CSS);
   no view = the folder board. The old toggle functions still exist but nothing in the header
   calls them. + Create Folder / Show Archived Folders live in `.folders-toolbar` above the folders.
