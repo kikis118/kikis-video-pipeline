@@ -8,7 +8,7 @@
   "D"
  ],
  "channel": "GhazzyTV",
- "updated": "2026-11-21 20:02",
+ "updated": "2026-11-21 20:05",
  "sections": [
   {
    "title": "Intro",
@@ -117,8 +117,7 @@
     "- Common complaints: temples were slow for little reward, confusing to path, and you lost rooms after the Architect.",
     "The January hotfix killed the 'snake' temples making hundreds of Divines - late builders felt robbed.",
     "Tavern Talk's take: a rough start, then the temple endgame won back the people who stayed.",
-    "Abyss went core in 0.4 and got its own Atlas passive tree",
-    "![Atziri's Splendour tooltip](scripts/img/poe_2_full_league_tierlist_before_1.0/20261121-194046-tooltip-atziris_splendour.png) [poe2db](https://poe2db.tw/us/Atziris_Splendour)"
+    "Abyss went core in 0.4 and got its own Atlas passive tree"
    ],
    "prompts": [
     "Agree with - slow start, great endgame?",
@@ -205,139 +204,5 @@
    "prompts": [],
    "deeper": []
   }
- ],
- "tooltips": {
-  "Atziri's Splendour": {
-   "name": "Atziri's Splendour",
-   "base": "Sacrificial Regalia",
-   "rarity": "Unique",
-   "lines": [
-    {
-     "cls": "property",
-     "text": "Vaal Body Armours"
-    },
-    {
-     "cls": "property",
-     "text": "Quality: +20%"
-    },
-    {
-     "cls": "property",
-     "text": "Armour: 273"
-    },
-    {
-     "cls": "property",
-     "text": "Evasion Rating: 248"
-    },
-    {
-     "cls": "property",
-     "text": "Energy Shield: 76"
-    },
-    {
-     "cls": "property",
-     "text": "Base Movement Speed: -0.03"
-    },
-    {
-     "cls": "requirements",
-     "text": "Requires: Level 65"
-    },
-    {
-     "cls": "implicitMod",
-     "text": "+1 to Level of all Corrupted Skill Gems"
-    },
-    {
-     "cls": "explicitMod",
-     "text": "Only Soul Cores can be Socketed in this item"
-    },
-    {
-     "cls": "explicitMod",
-     "text": "Has no Attribute Requirements"
-    },
-    {
-     "cls": "explicitMod",
-     "text": "(80—120)% increased Armour, Evasion and Energy Shield"
-    },
-    {
-     "cls": "explicitMod",
-     "text": "+(10—20)% to all Elemental Resistances"
-    },
-    {
-     "cls": "explicitMod",
-     "text": "Skills from Corrupted Gems have 50% of Mana Costs Converted to Life Costs"
-    },
-    {
-     "cls": "explicitMod",
-     "text": "This item gains bonuses from Socketed Soul Cores as though it was also a [Random socketable equipment type]"
-    },
-    {
-     "cls": "explicitMod",
-     "text": "Has 6 Augment Sockets (Hidden)"
-    }
-   ],
-   "icon": "https://cdn.poe2db.tw/image/Art/2DItems/Armours/BodyArmours/Uniques/AtzirisSplendour.webp",
-   "category": "Unique",
-   "url": "https://poe2db.tw/us/Atziris_Splendour"
-  },
-  "Vaal Cultivation Orb": {
-   "name": "Vaal Cultivation Orb",
-   "base": "",
-   "rarity": "Currency",
-   "lines": [
-    {
-     "cls": "property",
-     "text": "Stackable Currency"
-    },
-    {
-     "cls": "property",
-     "text": "Stack Size: 1 / 10"
-    },
-    {
-     "cls": "explicitMod",
-     "text": "Replaces up to 2 modifiers on a Corrupted Vaal Unique\n\nReplaces other Uniques with a Corrupted Unique of the same Item Class"
-    }
-   ],
-   "icon": "https://cdn.poe2db.tw/image/Art/2DItems/Currency/IncursionCraftingOrbs/IncursionHistoricVaalOrb.webp",
-   "category": "Currency",
-   "url": "https://poe2db.tw/us/Vaal_Cultivation_Orb"
-  },
-  "Architect's Orb": {
-   "name": "Architect's Orb",
-   "base": "",
-   "rarity": "Currency",
-   "lines": [
-    {
-     "cls": "property",
-     "text": "Stackable Currency"
-    },
-    {
-     "cls": "property",
-     "text": "Stack Size: 1 / 10"
-    },
-    {
-     "cls": "explicitMod",
-     "text": "Modifies a Corrupted Equipment or Jewel item unpredictably or destroys it"
-    }
-   ],
-   "icon": "https://cdn.poe2db.tw/image/Art/2DItems/Currency/IncursionCraftingOrbs/IncursionGreaterVaalOrb.webp",
-   "category": "Currency",
-   "url": "https://poe2db.tw/us/Architects_Orb"
-  },
-  "Verisium": {
-   "name": "Verisium",
-   "base": "",
-   "rarity": "Currency",
-   "lines": [
-    {
-     "cls": "property",
-     "text": "Stackable Currency"
-    },
-    {
-     "cls": "property",
-     "text": "Stack Size: 1 / 1000"
-    }
-   ],
-   "icon": "https://cdn.poe2db.tw/image/Art/2DItems/Currency/Expedition2/RefinedVerisium.webp",
-   "category": "Currency",
-   "url": "https://poe2db.tw/us/Verisium"
-  }
- }
+ ]
 }
