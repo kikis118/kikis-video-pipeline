@@ -393,7 +393,7 @@
   }
   .badge.pending { background: #4a3d1a; color: var(--warn); }
 
-  /* "Video assets" dropdown: Studio panel (studio.js) + tierlist template pages */
+  /* "Video assets" dropdown: published scripts (script.html) + tierlist template pages */
   .assets-menu-wrap { position: relative; }
   button.secondary.assets-nav-btn { background: #1d2f4a; color: #9cc6ff; border: 1px solid #2d4a73; }
   .assets-menu {
@@ -405,6 +405,7 @@
   .assets-menu a { display: block; padding: 7px 14px; color: var(--text); text-decoration: none; font-size: 13px; }
   .assets-menu a:hover { background: var(--card); }
   .assets-menu-label { padding: 8px 14px 3px; font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.4px; }
+  .script-attach-select { width: auto; margin-top: 0; max-width: 220px; }
   .idea-doc-link { font-size: 12px; color: var(--good); text-decoration: none; margin-left: 6px; white-space: nowrap; }
 
   /* Read-only status view for the separate 24/7 rerun-channel project
@@ -686,10 +687,8 @@
     <div class="assets-menu-wrap">
       <button class="secondary assets-nav-btn" onclick="toggleAssetsMenu(event)">&#127902; Video assets &#9662;</button>
       <div class="assets-menu" id="assetsMenu">
-        <div class="assets-menu-label">Studio (DeepSeek, runs on this PC)</div>
-        <a href="#" onclick="openStudio('brainstorm'); return false;">&#129504; Brainstorm</a>
-        <a href="#" onclick="openStudio('script'); return false;">&#128221; Script &amp; B-roll</a>
-        <a href="#" onclick="openStudio('finder'); return false;">&#127918; Gameplay finder</a>
+        <div class="assets-menu-label">Video scripts</div>
+        <a href="script.html" target="_blank">&#128221; All published scripts</a>
         <div class="assets-menu-label">Tierlist templates</div>
         <a href="tierlist-poe2-leagues.html" target="_blank">PoE 2 Leagues (before 1.0)</a>
         <a href="tierlist.html" target="_blank">PoE 3.30 Minion Builds</a>
@@ -724,9 +723,6 @@
     <h2>24/7 Stream <span class="idea-notes">(read-only - reported by the rerun-channel PC, separate from the main streaming PC above)</span></h2>
     <div id="rerunPanelBody"></div>
   </div>
-
-  <!-- Video Studio (studio.js): brainstorm -> script -> b-roll, engine = shorts tool on this PC -->
-  <div id="studioPanel"><div id="stHead"></div><div id="stBody"></div></div>
 
   <div id="configPanel">
     <h2>Bot Config <span class="idea-notes">(changes apply within a few minutes - the streaming-PC app re-checks periodically)</span></h2>
@@ -785,7 +781,6 @@
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
-  <script type="module" src="studio.js"></script>
   <script type="module">
     import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.13.2/firebase-app.js';
     import {
@@ -793,7 +788,7 @@
       onSnapshot, serverTimestamp,
     } from 'https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore.js';
     import {
-      getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged, reauthenticateWithPopup,
+      getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged,
     } from 'https://www.gstatic.com/firebasejs/10.13.2/firebase-auth.js';
 
     // Not a secret - Firebase web config is meant to be public; the real
@@ -1029,7 +1024,6 @@
       renderTodoNavDot();
       renderTodoPanel();
       renderShortsPanel();
-      window.dispatchEvent(new Event('pipeline-rows')); // studio.js re-renders from this
     }
 
     // ---------- folders ----------
@@ -1557,12 +1551,12 @@
         count.textContent = clDone + ' / ' + clItems.length + ' done';
         top.appendChild(count);
       }
-      if (row.studio && row.studio.docUrl) {
+      if (row.scriptSlug) {
         var docLink = document.createElement('a');
         docLink.className = 'idea-doc-link';
-        docLink.href = row.studio.docUrl;
+        docLink.href = 'script.html?s=' + encodeURIComponent(row.scriptSlug);
         docLink.target = '_blank';
-        docLink.textContent = '📄 Script doc';
+        docLink.textContent = '📄 Script';
         top.appendChild(docLink);
       }
       el.appendChild(top);
@@ -1582,12 +1576,30 @@
         actions.appendChild(clBtn);
       }
 
-      var studioBtn = document.createElement('button');
-      studioBtn.className = 'secondary';
-      studioBtn.textContent = row.studio && row.studio.scriptJson ? '🎬 Script & B-roll ✎' : '🎬 Script & B-roll';
-      studioBtn.title = 'Open this video in the Video Studio (script, Google Doc, gameplay b-roll)';
-      studioBtn.onclick = function () { window.openStudio('script', row.id); };
-      actions.appendChild(studioBtn);
+      // Scripts are written in the shorts tool's Video Studio (on the editor's PC) and
+      // published to scripts/ in this repo; here you only pick which one this video uses.
+      var scriptSel = document.createElement('select');
+      scriptSel.className = 'move-folder-select script-attach-select';
+      scriptSel.title = 'Link a published script (written in the shorts tool → Video Studio → Publish)';
+      var noneOpt = document.createElement('option');
+      noneOpt.value = '';
+      noneOpt.textContent = row.scriptSlug ? '📄 Script: none' : '📄 Attach script…';
+      scriptSel.appendChild(noneOpt);
+      (publishedScripts || []).forEach(function (sc) {
+        var o = document.createElement('option');
+        o.value = sc.slug;
+        o.textContent = '📄 ' + sc.title;
+        scriptSel.appendChild(o);
+      });
+      if (row.scriptSlug && !(publishedScripts || []).some(function (sc) { return sc.slug === row.scriptSlug; })) {
+        var missing = document.createElement('option');
+        missing.value = row.scriptSlug;
+        missing.textContent = '📄 ' + row.scriptSlug;
+        scriptSel.appendChild(missing);
+      }
+      scriptSel.value = row.scriptSlug || '';
+      scriptSel.onchange = function () { updateDoc(doc(db, 'pipeline', row.id), { scriptSlug: scriptSel.value }).catch(onError); };
+      actions.appendChild(scriptSel);
 
       var flagBtn = document.createElement('button');
       flagBtn.className = 'flag-btn' + (row.doFast ? ' active' : '');
@@ -3468,8 +3480,19 @@
 
     // ---------- boot ----------
 
+    // Published scripts (scripts/index.json in this repo, pushed by the shorts tool's
+    // Video Studio). Static file next to this page - no Firestore involved.
+    var publishedScripts = null;
+    function loadPublishedScripts() {
+      fetch('scripts/index.json', { cache: 'no-store' })
+        .then(function (r) { return r.ok ? r.json() : []; })
+        .then(function (list) { publishedScripts = list; renderTodoPanel(); })
+        .catch(function () { publishedScripts = []; });
+    }
+
     function boot() {
       seedReactList();
+      loadPublishedScripts();
       onSnapshot(collection(db, 'pipeline'), function (snapshot) {
         state.rows = snapshot.docs
           .map(function (d) {
@@ -3543,14 +3566,6 @@
     window.toggleCreateFolderForm = toggleCreateFolderForm;
     window.submitCreateFolder = submitCreateFolder;
 
-    // Bridge for studio.js (Video Studio panel) - a separate file so this one doesn't
-    // grow another 800 lines; it reuses this page's Firebase app, auth and live rows.
-    window.pipelineApp = {
-      db: db, auth: auth, doc: doc, getDoc: getDoc, setDoc: setDoc, addDoc: addDoc, updateDoc: updateDoc,
-      collection: collection, serverTimestamp: serverTimestamp, onError: onError,
-      GoogleAuthProvider: GoogleAuthProvider, reauthenticateWithPopup: reauthenticateWithPopup,
-      getRows: function () { return state.rows; },
-    };
     window.toggleAssetsMenu = function (ev) {
       ev.stopPropagation();
       document.getElementById('assetsMenu').classList.toggle('open');

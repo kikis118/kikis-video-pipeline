@@ -258,35 +258,26 @@ of responsibility, as far as this file's own comments describe it:
   writes back (there's no rerun equivalent of the Force-Close/Check-Now
   buttons, deliberately).
 
-## Video assets menu + Video Studio (added 2026-11-21)
+## Video assets menu + published scripts (added 2026-11-21)
 
-No longer a one-file repo: `studio.js` (Studio panel), `tierlist.html` (3.30 builds,
-published by `publish.bat` in the work folder) and `tierlist-poe2-leagues.html` now live
-next to `index.html`. Still no build step.
+No longer a one-file repo: `script.html` + `scripts/`, `tierlist.html` (3.30 builds,
+published by `publish.bat` in the work folder) and `tierlist-poe2-leagues.html` live next
+to `index.html`. Still no build step.
 
-- **Header "🎞 Video assets ▾"** → Brainstorm / Script & B-roll / Gameplay finder (open
-  `#studioPanel`) and the tierlist pages. New video interfaces = another link in
-  `#assetsMenu`.
-- **`studio.js` is UI only.** The work runs in `../kikis-shorts-tool` (`app/studio/`, see its
-  CLAUDE.md) on the editor's PC at `http://127.0.0.1:8000`. From another device the panel
-  still reads/edits Firestore data but shows "PC engine offline". Engine URL is per-browser
-  (⚙ in the panel, localStorage `studio_engine_url_v1`). Chrome may ask to "allow access to
-  devices on your local network" the first time - that's the https→localhost call.
-- `index.html` exposes `window.pipelineApp` (db, auth, Firestore helpers, `getRows()`) and
-  fires a `pipeline-rows` event after each render; that is the whole contract with
-  studio.js.
-- **Storage, no rule change:** `pipeline/<Idea row>.studio = {root, scriptJson, brollJson,
-  docId, docUrl, updatedAt}` and `config/brainstorm.ideas`. `scriptJson`/`brollJson` are
-  JSON **strings** because Firestore rejects nested arrays (citations are `[[key, note]]`)
-  - don't "clean up" into nested objects without changing that shape.
-- **The Google Doc is the final product** Ghazzy reads; `scriptJson` is the structured copy
-  the tool reads for b-roll. "Create Google Doc" uploads HTML to Drive with conversion,
-  using an access token from `reauthenticateWithPopup` + scope
-  `https://www.googleapis.com/auth/drive.file` (only files this page creates). "Re-sync
-  from Doc" exports Markdown (Drive API, or the engine's `/doc/export` for a link-shared Doc
-  the page didn't create) and `mergeDocMarkdown` keeps citations only on unchanged bullets.
-  **Needs the Google Drive API enabled once** on GCP project `ghazzy-video-pipeline-8ecd4`;
-  the error text says so if it isn't.
+- **Scripts are written elsewhere.** Brainstorm, script writing and b-roll all live in
+  `../kikis-shorts-tool`'s **Video Studio** tab and run on the editor's PC. This repo is
+  only the finished result Ghazzy reads. (A first version put that UI here as
+  `studio.js` talking to localhost; the user moved it into the shorts tool the same day -
+  don't bring it back.)
+- **Publish** in the shorts tool writes `scripts/<slug>.json` (talking points only - no
+  sources, b-roll or notes) + updates `scripts/index.json`, then commits and pushes.
+  `script.html` lists them; `script.html?s=<slug>` renders one. GitHub Pages is public,
+  so anything published is readable by anyone with the URL.
+- **To-Do rows** get a `scriptSlug` field (no rule change): the "📄 Attach script…"
+  select lists `scripts/index.json` (fetched once at boot by `loadPublishedScripts`) and
+  a "📄 Script" link appears next to the title.
+- **Header "🎞 Video assets ▾"** = all published scripts + tierlist pages. New video
+  interfaces = another link in `#assetsMenu`.
 - `tierlist-poe2-leagues.html` is the 3.30 page made generic: cards are `{id, n, sub, tint,
   img?}`, `EMBLEMS` holds hand-drawn SVG watermarks per league id, live sync to
   `config/tierlist-poe2-leagues`. New preset = copy it, change `DEFAULT_CARDS`, `KEY`, title,
