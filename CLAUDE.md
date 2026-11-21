@@ -294,7 +294,8 @@ to `index.html`. Still no build step.
   a "📄 Script" link appears next to the title.
 - **Header (simplified 2026-11-21):** one **📋 To-Do Videos ▾** dropdown (`#assetsMenu`) holds
   everything video-related - Video scripts (`script.html`, which includes the ideas list) and
-  Open tierlist (`tierlist-blank.html`). Shorts / 24/7 Stream / Config are plain links to `?view=shorts|stream|config`.
+  Open tierlist (`tierlist-blank.html`). 24/7 Stream / Config are plain links to `?view=stream|config`; **Shorts deliberately
+  stays a same-page toggle** (`toggleShortsPanel`) - user asked to keep its old behaviour.
   `?view=` makes index.html show only that panel full-page (`VIEW_PANELS`, `body[data-view]` CSS);
   no view = the folder board. The old toggle functions still exist but nothing in the header
   calls them. + Create Folder / Show Archived Folders live in `.folders-toolbar` above the folders.
