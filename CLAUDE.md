@@ -276,6 +276,13 @@ to `index.html`. Still no build step.
 - `script.html` renders talking-point formatting with the same rules as the shorts tool's
   studio.js (`+ ` green, `- ` red, `! ` amber, `> ` quote, `**bold**`, `==highlight==`) - keep the
   two `lineKind`/`fmt` functions in sync.
+- **Notes / fixes on scripts** (script.html, Google sign-in + allowlist like the board) live in
+  Firestore `config/scriptnotes-<slug>` = `{notes:[{id, sec, secTitle, bucket, quote, type
+  (note|fix|question), text, by, at, resolved}]}`, written with `runTransaction`. They are
+  deliberately separate from `scripts/<slug>.json`, which Publish overwrites - the user asked that
+  re-publishing never touches Ghazzy's comments. Notes anchor by `quote` (the bullet's text); if a
+  re-publish changes that bullet the note is shown at the end of its section with the old wording.
+  Pros/cons/key points render as tinted boxes (`li.fmt-pro/con/key`), label before ':' bolded.
 - **To-Do rows** get a `scriptSlug` field (no rule change): the "📄 Attach script…"
   select lists `scripts/index.json` (fetched once at boot by `loadPublishedScripts`) and
   a "📄 Script" link appears next to the title.
