@@ -2,7 +2,7 @@
  "title": "Demon Magus & Infernalist in PoE 1.0 Full Launch - My Exilecon Playtest Thoughts",
  "tiers": null,
  "channel": "GhazzyTV",
- "updated": "2026-11-21 20:28",
+ "updated": "2026-11-21 20:59",
  "sections": [
   {
    "title": "Intro",
@@ -108,64 +108,6 @@
    "icon": "",
    "category": "New in 1.0",
    "url": ""
-  },
-  "Infernalist": {
-   "name": "Infernalist",
-   "base": "Ascendancy",
-   "rarity": "Ascendancy",
-   "lines": [
-    {
-     "cls": "property",
-     "text": "Notables:"
-    },
-    {
-     "cls": "explicitMod",
-     "text": "Bringer of Flame"
-    },
-    {
-     "cls": "explicitMod",
-     "text": "Beidat's Gaze"
-    },
-    {
-     "cls": "explicitMod",
-     "text": "Loyal Hellhound"
-    },
-    {
-     "cls": "explicitMod",
-     "text": "Beidat's Hand"
-    },
-    {
-     "cls": "explicitMod",
-     "text": "Beidat's Will"
-    },
-    {
-     "cls": "explicitMod",
-     "text": "Altered Flesh"
-    },
-    {
-     "cls": "explicitMod",
-     "text": "Demonic Possession"
-    },
-    {
-     "cls": "explicitMod",
-     "text": "Mastered Darkness"
-    },
-    {
-     "cls": "explicitMod",
-     "text": "Pyromantic Pact"
-    },
-    {
-     "cls": "explicitMod",
-     "text": "Grinning Immolation"
-    },
-    {
-     "cls": "explicitMod",
-     "text": "Seething Body"
-    }
-   ],
-   "icon": "",
-   "category": "Ascendancy",
-   "url": "https://poe2db.tw/us/Infernalist"
   },
   "Infernal Hounds": {
    "name": "Summon Infernal Hound",
@@ -289,24 +231,6 @@
      "label": "ExileCon keynote @ 3:02:42 (said)",
      "url": "https://www.twitch.tv/videos/2921352507?t=3h2m42s",
      "ts": "3:02:42"
-    }
-   ],
-   "frame_url": null
-  },
-  "Infernalist": {
-   "term": "Infernalist",
-   "summary": "The Infernalist ascendancy gains a new Demon Magus node that binds a scourge demon to your will and supports socketing multiple gems.",
-   "changes": [
-    "New ascendancy notable: Demon Magus, which binds a scourge demon to your will after allocation",
-    "Demon Magus allows socketing multiple gems (per the keynote)"
-   ],
-   "lines": [],
-   "image": null,
-   "sources": [
-    {
-     "label": "ExileCon keynote @ 3:00:52 (said)",
-     "url": "https://www.twitch.tv/videos/2921352507?t=3h0m52s",
-     "ts": "3:00:52"
     }
    ],
    "frame_url": null
