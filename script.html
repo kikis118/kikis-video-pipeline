@@ -159,7 +159,7 @@ async function showList() {
         const cl = Array.isArray(r.checklist) ? r.checklist : null;
         return `<div class="idea"><span class="it">${r.doFast ? '<span class="fast">★ DO FAST</span> ' : ''}${esc(r.title)}</span>
           ${cl ? `<span class="cl">☑ ${cl.filter((i) => i.done).length}/${cl.length}</span>` : ''}
-          ${r.scriptSlug ? `<a href="?s=${encodeURIComponent(r.scriptSlug)}">📄 Script</a>` : ''}
+          ${r.scriptSlug ? `<a target="_blank" rel="noopener" href="?s=${encodeURIComponent(r.scriptSlug)}">📄 Script</a>` : ''}
           <button class="ed" data-rename-idea="${esc(r.id)}" title="Rename">✎</button>
           ${r.notes ? `<div class="in">${esc(r.notes.length > 220 ? r.notes.slice(0, 220) + '…' : r.notes)}</div>` : ''}</div>`;
       }).join('') || '<div class="empty">No ideas yet.</div>');
@@ -169,9 +169,9 @@ async function showList() {
     <h2 class="lh">💡 List of ideas</h2>
     <div class="addidea"><input id="newIdea" placeholder="New video idea…"><input id="newIdeaNotes" placeholder="Notes (optional)"><button data-addidea>+ Add idea</button></div>
     ${ideasHtml}
-    ${api.state === 'ready' ? '<div style="margin-top:6px;font-size:13px"><a href="./?view=todo">Checklists, Do Fast and deleting ideas → board to-do page</a></div>' : ''}
+    ${api.state === 'ready' ? '<div style="margin-top:6px;font-size:13px"><a target="_blank" rel="noopener" href="./?view=todo">Checklists, Do Fast and deleting ideas → board to-do page</a></div>' : ''}
     <h2 class="lh">📝 Finished video scripts</h2>
-    ${scripts.map((x) => `<div class="sitem ${x.st.recorded ? 'rec' : ''}"><a class="t" href="?s=${encodeURIComponent(x.slug)}">${esc(titleOf(x.slug, x.title))}</a>
+    ${scripts.map((x) => `<div class="sitem ${x.st.recorded ? 'rec' : ''}"><a class="t" target="_blank" rel="noopener" href="?s=${encodeURIComponent(x.slug)}">${esc(titleOf(x.slug, x.title))}</a>
         <button class="ed" data-rename-script="${esc(x.slug)}" data-cur="${esc(titleOf(x.slug, x.title))}" title="Rename">✎</button>
         <label class="recbox"><input type="checkbox" data-recorded="${esc(x.slug)}" ${x.st.recorded ? 'checked' : ''}> Script recorded</label>
         <div class="d">${x.sections} sections · updated ${esc(x.updated)}${x.st.recorded ? ` · ✓ recorded${x.st.recordedBy ? ' by ' + esc(who(x.st.recordedBy)) : ''}` : ''}</div></div>`).join('') || '<div class="empty">Nothing published yet.</div>'}`;
