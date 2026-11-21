@@ -8,7 +8,7 @@
   "D"
  ],
  "channel": "GhazzyTV",
- "updated": "2026-11-21 18:20",
+ "updated": "2026-11-21 18:26",
  "sections": [
   {
    "title": "Intro",
@@ -43,14 +43,19 @@
    "points": [
     "No challenge league - everyone was on Early Access Standard",
     "What we had: 3 acts (plus Cruel), 6 classes, ~50 areas, ~175 skills.",
-    "Over a million Early Access copies sold."
+    "Over a million Early Access copies sold.",
+    "Reddit split: some called it the best ARPG launch ever, others slammed endgame and loot.",
+    "+ Common praise: act bosses,  and the feel of combat.",
+    "-  Common complaints: ruthless loot, slow movement, and a bare endgame."
    ],
    "prompts": [
     "Was 0.1 the most fun you had despite being the least finished?",
-    "What did 0.1 get right that later patches lost?"
+    "What did 0.1 get right that later patches lost?",
+    "Do you think the Reddit praise for the campaign was justified, or was it rose-tinted?"
    ],
    "deeper": [
-    "1.0 is roughly 3x faster on CPU than 0.1.0, per the keynote."
+    "Reddit threads compared 0.1 endgame to a placeholder - only maps and no pinnacle bosses.",
+    "Some argued the slow pace was intentional and good; others said it killed replayability."
    ]
   },
   {
