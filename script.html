@@ -165,7 +165,7 @@ function fmt(t) {
 // Only http(s) and our own scripts/img/ paths are allowed - nothing else becomes a link/image.
 // Exact PoE 2 tooltips embedded by Publish (sc.tooltips, from the Studio's poe2db database):
 // [[Name]] / [[shown words|Name]] tags and exact names become hoverable (tap on phones).
-let TTRX = null;
+let TTRX = null, NTRX = null, NTCANON = {};
 // names with a 'NEW in 1.0' side (sc.newtips, from the ExileCon keynote) get a small blue star
 function ttCls(n) { return 'tt' + (SC && SC.newtips && SC.newtips[String(n).replace(/&#39;/g, "'")] ? ' tt-n' : ''); }
 function tooltips(h) {
@@ -176,6 +176,12 @@ function tooltips(h) {
     const names = Object.keys(tips).filter((n) => n.length >= 5).sort((a, b) => b.length - a.length);
     TTRX = names.length ? new RegExp(`(?<![\\w'&#;])(${names.map((n) => esc(n).replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|')})(?![\\w'])`, 'g') : false;
   }
+  if (NTRX === null) {
+    const terms = Object.keys((SC && SC.newtips) || {}).filter((n) => n.length >= 5).sort((a, b) => b.length - a.length);
+    NTCANON = Object.fromEntries(terms.map((t) => [t.toLowerCase(), t]));
+    NTRX = terms.length ? new RegExp(`(?<![\\w'&#;])(${terms.map((n) => esc(n).replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|')})(?![\\w'])`, 'gi') : false;
+  }
+  if (NTRX) h = h.split(/(<[^>]+>)/).map((part) => (part.startsWith('<') ? part : part.replace(NTRX, (m) => { const c = NTCANON[m.toLowerCase()] || m; held.push(`<span class="${ttCls(c)}" data-tt="${c}">${m}</span>`); return `\u0001${held.length - 1}\u0002`; }))).join('');
   if (TTRX) h = h.split(/(<[^>]+>)/).map((part) => (part.startsWith('<') ? part : part.replace(TTRX, (m) => { held.push(`<span class="${ttCls(m)}" data-tt="${m}">${m}</span>`); return `\u0001${held.length - 1}\u0002`; }))).join('');
   return h.replace(/\u0001(\d+)\u0002/g, (m, i) => held[+i]);
 }
@@ -223,7 +229,7 @@ function showTip(el) {
   ttPop.style.top = (r.bottom + 8 + ttPop.offsetHeight > innerHeight ? Math.max(8, r.top - ttPop.offsetHeight - 8) : r.bottom + 8) + 'px';
 }
 document.addEventListener('mouseover', (e) => { const el = e.target.closest && e.target.closest('.tt[data-tt]'); if (el) showTip(el); else ttPop.style.display = 'none'; });
-document.addEventListener('click', (e) => { const el = e.target.closest && e.target.closest('.tt[data-tt]'); if (el) showTip(el); else ttPop.style.display = 'none'; });
+document.addEventListener('click', (e) => { const el = e.target.closest && e.target.closest('.tt[data-tt]'); if (el) { showTip(el); if (el.closest('summary')) e.preventDefault(); } else ttPop.style.display = 'none'; });
 document.addEventListener('scroll', () => { ttPop.style.display = 'none'; }, true);
 function links(h) {
   return h
@@ -327,7 +333,7 @@ function render() {
   const keep = window.scrollY;
   const openState = [...document.querySelectorAll('details.sec')].map((d) => d.open);
   app.innerHTML = `<div class="top"><a href="script.html">← All scripts</a><span style="flex:1"></span><a href="./">Pipeline board</a></div>
-    <div class="h1row"><h1>${esc(titleOf(slug, sc.title))}</h1><button class="ed" data-rename-script="${esc(slug)}" data-cur="${esc(titleOf(slug, sc.title))}" title="Rename">✎</button></div>
+    <div class="h1row"><h1>${tooltips(esc(titleOf(slug, sc.title)))}</h1><button class="ed" data-rename-script="${esc(slug)}" data-cur="${esc(titleOf(slug, sc.title))}" title="Rename">✎</button></div>
     <div class="meta">${esc(meta)}</div>
     <div class="recline">${`<button class="recbtn ${statusOf(slug).recorded ? 'on' : ''}" data-recorded="${esc(slug)}" data-on="${statusOf(slug).recorded ? 1 : 0}"><span class="bx">${statusOf(slug).recorded ? '✓' : ''}</span>${statusOf(slug).recorded ? 'Script recorded' : 'Mark as recorded'}</button>`}</div>
     ${hint ? `<div class="hint">${hint}</div>` : ''}
@@ -338,8 +344,8 @@ function render() {
       // An edit whose new wording is now in the published script was merged by the editor
       // (copied into the Studio + re-published) - it disappears instead of showing as a leftover.
       const orphans = NOTES.filter((n) => n.sec === i && n.quote && !texts.has(n.quote) && !(n.type === 'edit' && texts.has(n.text)));
-      return `<details class="sec" ${openState[i] === false ? '' : 'open'}><summary><span class="num">${i + 1}</span><span class="stitle">${esc(s.title)}</span></summary>
-      ${s.subtitle ? `<div class="sub">${esc(s.subtitle)}</div>` : ''}
+      return `<details class="sec" ${openState[i] === false ? '' : 'open'}><summary><span class="num">${i + 1}</span><span class="stitle">${tooltips(esc(s.title))}</span></summary>
+      ${s.subtitle ? `<div class="sub">${tooltips(esc(s.subtitle))}</div>` : ''}
       <div class="body">
         ${s.points.length ? `<ul>${s.points.map((t, k) => point(t, i, 'points', k)).join('')}</ul>` : ''}
         ${s.prompts.length ? `<div class="take"><b>Your take</b><ul>${s.prompts.map((t, k) => point(t, i, 'prompts', k)).join('')}</ul></div>` : ''}
