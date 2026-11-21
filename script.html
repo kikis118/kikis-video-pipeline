@@ -40,6 +40,13 @@ details.more summary{cursor:pointer;font-size:13px}
 .list a.item:hover{border-color:var(--accent)}
 .list .t{font-weight:650;font-size:17px}.list .d{color:var(--muted);font-size:13px}
 .empty{color:var(--muted)}
+/* Talking-point formatting - same rules as the shorts tool's Video Studio (studio.js lineKind/fmtInline) */
+li.fmt-pro{color:#6fdc98}li.fmt-pro::marker{color:#6fdc98}
+li.fmt-con{color:#ff8a8a}li.fmt-con::marker{color:#ff8a8a}
+li.fmt-key{background:#3a2f12;color:#f5d27a;border-radius:4px;padding:2px 6px;margin-left:-6px}
+li.fmt-quote{font-style:italic;color:#b9bfcc;border-left:2px solid #4a5068;padding-left:8px;list-style:none;margin-left:-8px}
+mark{background:#6b5726;color:#fff;padding:0 3px;border-radius:2px}
+@media print{li.fmt-pro{color:#0a7a3a}li.fmt-con{color:#b3261e}li.fmt-key{background:#fff3c4;color:#000}mark{background:#fff3c4;color:#000}}
 @media print{body{background:#fff;color:#000}.controls,.top{display:none}details.sec{border-color:#ccc;background:#fff}.take{background:#fff8e6}}
 </style>
 </head>
@@ -48,6 +55,22 @@ details.more summary{cursor:pointer;font-size:13px}
 <script>
 const esc = (s) => String(s == null ? '' : s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const app = document.getElementById('app');
+// + green (pro), - red (con), ! amber key point, > quote, **bold**, ==highlight==
+function lineKind(t) {
+  t = String(t || '').trimStart();
+  if (/^\+/.test(t)) return 'fmt-pro';
+  if (/^[-−–]/.test(t)) return 'fmt-con';
+  if (/^!/.test(t)) return 'fmt-key';
+  if (/^>/.test(t)) return 'fmt-quote';
+  return '';
+}
+function fmt(t) {
+  let h = esc(t);
+  if (lineKind(t) === 'fmt-quote') h = h.replace(/^\s*&gt;\s*/, '');
+  if (lineKind(t) === 'fmt-key') h = h.replace(/^\s*!\s*/, '');
+  return h.replace(/\*\*(.+?)\*\*/g, '<b>$1</b>').replace(/==(.+?)==/g, '<mark>$1</mark>');
+}
+const li = (t) => `<li class="${lineKind(t)}">${fmt(t)}</li>`;
 const slug = new URLSearchParams(location.search).get('s');
 
 async function getJson(path) {
@@ -80,9 +103,9 @@ async function showScript() {
     ${sc.sections.map((s, i) => `<details class="sec" open><summary><span class="num">${i + 1}</span><span class="stitle">${esc(s.title)}</span>${s.minutes ? `<span class="mins">${fmt(s.minutes)}</span>` : ''}</summary>
       ${s.subtitle ? `<div class="sub">${esc(s.subtitle)}</div>` : ''}
       <div class="body">
-        ${s.points.length ? `<ul>${s.points.map((p) => `<li>${esc(p)}</li>`).join('')}</ul>` : ''}
-        ${s.prompts.length ? `<div class="take"><b>Your take</b><ul>${s.prompts.map((q) => `<li>${esc(q)}</li>`).join('')}</ul></div>` : ''}
-        ${s.deeper.length ? `<details class="more"><summary>If you want more (${s.deeper.length})</summary><ul>${s.deeper.map((d) => `<li>${esc(d)}</li>`).join('')}</ul></details>` : ''}
+        ${s.points.length ? `<ul>${s.points.map(li).join('')}</ul>` : ''}
+        ${s.prompts.length ? `<div class="take"><b>Your take</b><ul>${s.prompts.map(li).join('')}</ul></div>` : ''}
+        ${s.deeper.length ? `<details class="more"><summary>If you want more (${s.deeper.length})</summary><ul>${s.deeper.map(li).join('')}</ul></details>` : ''}
       </div></details>`).join('')}`;
   const all = (open) => document.querySelectorAll('details.sec').forEach((d) => { d.open = open; });
   document.getElementById('bOpen').onclick = () => all(true);

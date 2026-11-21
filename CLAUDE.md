@@ -273,6 +273,9 @@ to `index.html`. Still no build step.
   sources, b-roll or notes) + updates `scripts/index.json`, then commits and pushes.
   `script.html` lists them; `script.html?s=<slug>` renders one. GitHub Pages is public,
   so anything published is readable by anyone with the URL.
+- `script.html` renders talking-point formatting with the same rules as the shorts tool's
+  studio.js (`+ ` green, `- ` red, `! ` amber, `> ` quote, `**bold**`, `==highlight==`) - keep the
+  two `lineKind`/`fmt` functions in sync.
 - **To-Do rows** get a `scriptSlug` field (no rule change): the "📄 Attach script…"
   select lists `scripts/index.json` (fetched once at boot by `loadPublishedScripts`) and
   a "📄 Script" link appears next to the title.
