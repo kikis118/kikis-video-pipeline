@@ -54,6 +54,11 @@ li.fmt-con{color:#efd2d1}li.fmt-con::marker{color:#d9736e}
 li.fmt-pro b.lbl{color:#8fd3aa;font-weight:600}li.fmt-con b.lbl{color:#e8a3a0;font-weight:600}
 li.fmt-key{color:#f2e3bd}li.fmt-key b.lbl{color:#e8c46a;font-weight:600}
 li.fmt-quote{font-style:italic;color:#b9bfcc;border-left:2px solid #4a5068;padding-left:10px;list-style:none;margin-left:-12px}
+li.fmt-img{list-style:none;margin-left:-20px}
+a.shot{display:block;margin:6px 0;color:var(--muted);text-decoration:none;font-size:13px}
+a.shot img{display:block;max-width:100%;max-height:520px;border-radius:8px;border:1px solid var(--border);margin-bottom:4px}
+a.shot:hover img{border-color:var(--accent)}
+.body li a:not(.shot){color:var(--accent)}
 mark{background:#6b5726;color:#fff;padding:0 3px;border-radius:2px}
 
 /* Editing + notes: double-click a line. No buttons in the reading view. */
@@ -113,6 +118,7 @@ function lineKind(t) {
   t = String(t || '').trimStart();
   if (/^\+/.test(t)) return 'fmt-pro';
   if (/^[-−–]/.test(t)) return 'fmt-con';
+  if (/^!\[/.test(t)) return 'fmt-img';
   if (/^!/.test(t)) return 'fmt-key';
   if (/^>/.test(t)) return 'fmt-quote';
   return '';
@@ -120,10 +126,18 @@ function lineKind(t) {
 function fmt(t) {
   const k = lineKind(t);
   let h = esc(String(t).trimStart());
-  if (k) h = h.replace(/^(\+|-|−|–|!|&gt;)\s*/, '');
+  if (k && k !== 'fmt-img') h = h.replace(/^(\+|-|−|–|!|&gt;)\s*/, '');
   // "+ Common praise: ..." -> the label before the colon goes bold
   if (k === 'fmt-pro' || k === 'fmt-con' || k === 'fmt-key') h = h.replace(/^([^:]{2,40}):/, '<b class="lbl">$1:</b>');
-  return h.replace(/\*\*(.+?)\*\*/g, '<b>$1</b>').replace(/==(.+?)==/g, '<mark>$1</mark>');
+  return links(h).replace(/\*\*(.+?)\*\*/g, '<b>$1</b>').replace(/==(.+?)==/g, '<mark>$1</mark>');
+}
+// ![caption](scripts/img/...) screenshots, [text](https://...) links, bare https:// links.
+// Only http(s) and our own scripts/img/ paths are allowed - nothing else becomes a link/image.
+function links(h) {
+  return h
+    .replace(/!\[([^\]]*)\]\(((?:scripts\/img\/|https?:\/\/)[^)\s]+)\)/g, (m, cap, u) => `<a class="shot" href="${u}" target="_blank" rel="noopener"><img src="${u}" alt="" loading="lazy"><span>${cap}</span></a>`)
+    .replace(/\[([^\]]+)\]\((https?:\/\/[^)\s]+)\)/g, '<a href="$2" target="_blank" rel="noopener">$1</a>')
+    .replace(/(^|\s)(https?:\/\/[^\s<]+)/g, '$1<a href="$2" target="_blank" rel="noopener">$2</a>');
 }
 const slug = new URLSearchParams(location.search).get('s');
 let SC = null;        // the published script

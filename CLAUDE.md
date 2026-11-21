@@ -294,6 +294,8 @@ to `index.html`. Still no build step.
   `quote`; if a re-publish changes that line they show at the end of the section - unless the
   edit's new text is now in the published section (editor merged it), then it's hidden. No usernames are
   shown (tooltip only), no section times, pros/cons are a faint text tint ("Your take" keeps its box).
+- script.html renders `![caption](scripts/img/<slug>/<file>)` screenshots (click = full size) and
+  `[text](https://…)` / bare https links (new tab). Only http(s) and `scripts/img/` become links/images.
 - **To-Do rows** get a `scriptSlug` field (no rule change): the "📄 Attach script…"
   select lists `scripts/index.json` (fetched once at boot by `loadPublishedScripts`) and
   a "📄 Script" link appears next to the title.
