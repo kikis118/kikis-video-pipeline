@@ -289,7 +289,8 @@ to `index.html`. Still no build step.
   in the tooltip; saving the original text removes it) or `note` (quiet italic line under the
   bullet, ✓ done on hover). Deliberately separate from `scripts/<slug>.json`, which Publish
   overwrites - the user asked that re-publishing never touches Ghazzy's edits/comments. Anchored by
-  `quote`; if a re-publish changes that line they show at the end of the section. No usernames are
+  `quote`; if a re-publish changes that line they show at the end of the section - unless the
+  edit's new text is now in the published section (editor merged it), then it's hidden. No usernames are
   shown (tooltip only), no section times, pros/cons are a faint text tint ("Your take" keeps its box).
 - **To-Do rows** get a `scriptSlug` field (no rule change): the "📄 Attach script…"
   select lists `scripts/index.json` (fetched once at boot by `loadPublishedScripts`) and

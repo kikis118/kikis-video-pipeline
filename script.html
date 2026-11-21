@@ -218,7 +218,9 @@ function render() {
     ${sc.sections.map((s, i) => {
       const texts = new Set([...s.points, ...s.prompts, ...s.deeper]);
       // notes/edits whose line was changed or removed in a later publish
-      const orphans = NOTES.filter((n) => n.sec === i && n.quote && !texts.has(n.quote));
+      // An edit whose new wording is now in the published script was merged by the editor
+      // (copied into the Studio + re-published) - it disappears instead of showing as a leftover.
+      const orphans = NOTES.filter((n) => n.sec === i && n.quote && !texts.has(n.quote) && !(n.type === 'edit' && texts.has(n.text)));
       return `<details class="sec" ${openState[i] === false ? '' : 'open'}><summary><span class="num">${i + 1}</span><span class="stitle">${esc(s.title)}</span></summary>
       ${s.subtitle ? `<div class="sub">${esc(s.subtitle)}</div>` : ''}
       <div class="body">
