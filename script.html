@@ -85,6 +85,7 @@ h2.lh{font-size:15px;text-transform:uppercase;letter-spacing:.6px;color:var(--mu
 .idea .fast{color:#ff9d98;font-size:12px;font-weight:700}.idea .cl{color:var(--muted);font-size:12px}
 .sitem a.t{font-weight:650;font-size:17px;color:var(--text);text-decoration:none;flex:1;min-width:200px}.sitem a.t:hover{color:var(--accent)}
 .sitem .d{flex-basis:100%;color:var(--muted);font-size:13px;margin-top:-6px}
+.sitem[data-href]{cursor:pointer;transition:border-color .15s,background .15s}.sitem[data-href]:hover{border-color:var(--accent)}
 .sitem.rec{border-color:#2f6b47;background:#141f19}.sitem.rec a.t{color:#9aa3b5;text-decoration:line-through;text-decoration-color:#4fc47f}
 .recbtn{display:inline-flex;gap:7px;align-items:center;font-size:14px;font-weight:600;padding:7px 14px;border-radius:999px;border:1px solid #3a4260;background:#1a1f2d;color:#c9cfdc;cursor:pointer;white-space:nowrap}
 .recbtn:hover{border-color:#4fc47f;color:#dff5e7}
@@ -177,7 +178,7 @@ async function showList() {
     ${api.state === 'ready' ? '<div style="margin-top:6px;font-size:13px"><a href="./?view=todo">Checklists, Do Fast and deleting ideas → board to-do page</a></div>' : ''}
     </div></details>
     <h2 class="lh">📝 Video scripts</h2>
-    ${scripts.map((x) => `<div class="sitem ${x.st.recorded ? 'rec' : ''}"><span class="reccheck ${x.st.recorded ? '' : 'off'}">✓</span><a class="t" href="?s=${encodeURIComponent(x.slug)}">${esc(titleOf(x.slug, x.title))}</a>
+    ${scripts.map((x) => `<div class="sitem ${x.st.recorded ? 'rec' : ''}" data-href="?s=${encodeURIComponent(x.slug)}"><span class="reccheck ${x.st.recorded ? '' : 'off'}">✓</span><a class="t" href="?s=${encodeURIComponent(x.slug)}">${esc(titleOf(x.slug, x.title))}</a>
         <button class="ed" data-rename-script="${esc(x.slug)}" data-cur="${esc(titleOf(x.slug, x.title))}" title="Rename">✎</button>
         <button class="recbtn ${x.st.recorded ? 'on' : ''}" data-recorded="${esc(x.slug)}" data-on="${x.st.recorded ? 1 : 0}"><span class="bx">${x.st.recorded ? '✓' : ''}</span>${x.st.recorded ? 'Script recorded' : 'Mark as recorded'}</button>
         <div class="d">${x.created ? 'added ' + esc(nice(x.created)) + ' · ' : ''}updated ${esc(nice(x.updated))} · ${x.sections} sections${x.st.recorded ? ' · recorded' : ''}</div></div>`).join('') || '<div class="empty">Nothing published yet.</div>'}`;
@@ -300,6 +301,9 @@ app.addEventListener('keydown', (e) => {
 app.addEventListener('click', (e) => {
   const t = e.target, api = window.notesApi;
   if (t.matches('[data-signin]')) return api && api.signIn();
+  // the whole script card opens the script (its own buttons/links still do their own thing)
+  const card = t.closest('.sitem[data-href]');
+  if (card && !t.closest('button,a,input,label')) { location.href = card.dataset.href; return; }
   if (t.matches('[data-rename-script]')) {
     const v = prompt('Script title:', t.dataset.cur); if (v && v.trim()) api.setStatus(t.dataset.renameScript, { title: v.trim() }).catch((err) => alert(err.message)); return;
   }
