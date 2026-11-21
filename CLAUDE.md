@@ -299,8 +299,8 @@ to `index.html`. Still no build step.
   `?view=` makes index.html show only that panel full-page (`VIEW_PANELS`, `body[data-view]` CSS);
   no view = the folder board. The old toggle functions still exist but nothing in the header
   calls them. + Create Folder / Show Archived Folders live in `.folders-toolbar` above the folders.
-- **New pages open in a new tab** (`target="_blank"`) - header links and script.html's links to
-  scripts / the to-do page. Back links (← Board, ← All scripts) stay same-tab. User preference.
+- **Board header links open in a new tab** (`target="_blank"`: menu items, 24/7 Stream, Config).
+  Links *inside* script.html (opening a script, ideas' script links) stay same-tab. User preference.
 - **Tierlists:** the menu opens a blank board; switching happens inside the tierlist via the
   header picker (`#presetPick`). Names + custom boards are a shared registry in Firestore
   `config/tierlist-boards`; renaming = editing the big title (`registryRename`). Custom boards are
