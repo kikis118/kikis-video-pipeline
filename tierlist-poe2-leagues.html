@@ -73,12 +73,16 @@ body:not(.present) #bMode{opacity:1}
 .editor .row{display:flex;gap:8px;margin-top:12px}
 .editor .x{position:absolute;right:16px;top:12px;cursor:pointer;color:var(--dim);font-size:24px}
 .danger{border-color:#7a2d2d;color:#ff9b9b}
+.preset-pick{background:var(--panel2);color:var(--text);border:1px solid var(--line);border-radius:8px;padding:8px 10px;font:inherit;font-size:14px;cursor:pointer}.preset-pick:hover{border-color:var(--gold)}.preset-home{color:var(--dim);text-decoration:none;font-size:14px}.preset-home:hover{color:var(--gold2)}
 </style>
 </head>
 <body>
 <div class="app">
   <header>
     <h1 id="title" class="heavy" spellcheck="false">PoE 2 Leagues before 1.0</h1>
+    <select id="presetPick" class="preset-pick edit-only" title="Switch tierlist. Rename the current one by clicking its big title."></select>
+    <button id="presetDel" class="edit-only danger" title="Delete this tierlist from the list" style="display:none">&#128465;</button>
+    <a class="preset-home edit-only" href="./">&#8592; Board</a>
     <button id="bAddTier" class="edit-only">+ Tier</button>
     <button id="bAddBuild" class="edit-only primary">+ New card</button>
     <button id="bReset" class="edit-only">Clear</button>
@@ -386,6 +390,12 @@ if(location.protocol==='https:'||location.hostname==='localhost'||location.hostn
         lastSent=json;
         setDoc(ref,{state:json,by:user.email||'',at:serverTimestamp()}).catch(fail);
       };
+      if(!window.__regSub){
+        // Shared list of tierlists (names, custom boards) - read by the picker in the header.
+        const regRef=doc(db,'config','tierlist-boards');
+        window.__regSub=onSnapshot(regRef,s=>window.applyRegistry&&window.applyRegistry(s.exists()?(s.data().boards||[]):[]),()=>{});
+        window.registrySave=boards=>setDoc(regRef,{boards,by:user.email||'',at:serverTimestamp()}).catch(fail);
+      }
       unsub=onSnapshot(ref,snap=>{
         show('live','Live');
         if(!snap.exists()){ window.syncPush(window.localState()); return; }   // first ever: seed from this browser
@@ -396,6 +406,54 @@ if(location.protocol==='https:'||location.hostname==='localhost'||location.hostn
     });
   }catch(err){ show('warn','Offline — changes stay on this PC'); console.error(err); }
 }
+</script>
+<script>
+/* Tierlist picker. Built-in boards + custom ones, names from the shared registry
+   (config/tierlist-boards, wired up in the sync module below). Rename = edit the big title. */
+(()=>{
+  const DEF=[{id:'blank',name:'Blank tierlist',page:'tierlist-blank.html'},
+             {id:'poe2-leagues',name:'PoE 2 Leagues (before 1.0)',page:'tierlist-poe2-leagues.html'},
+             {id:'3.30',name:'PoE 3.30 Minion Builds',page:'tierlist.html'}];
+  const file=location.pathname.split('/').pop()||'tierlist-blank.html';
+  const b=new URLSearchParams(location.search).get('b');
+  const cur=b||({'tierlist-poe2-leagues.html':'poe2-leagues','tierlist.html':'3.30'}[file]||'blank');
+  const sel=document.getElementById('presetPick'), del=document.getElementById('presetDel');
+  const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+  const url=x=>x.page+(x.b?'?b='+encodeURIComponent(x.b):'');
+  let boards=DEF.map(x=>({...x}));
+  if(b) boards.push({id:b,name:document.getElementById('title').textContent.trim()||'New Tierlist',page:'tierlist-blank.html',b});
+  function draw(){
+    sel.innerHTML=boards.map(x=>`<option value="${esc(x.id)}">${esc(x.name)}</option>`).join('')+'<option value="__new">+ New blank tierlist</option>';
+    sel.value=cur; del.style.display=boards.some(x=>x.id===cur&&x.b)?'':'none';
+  }
+  const push=()=>window.registrySave&&window.registrySave(boards);
+  window.applyRegistry=list=>{
+    const m=new Map(DEF.map(x=>[x.id,{...x}]));
+    if(b&&!list.some(x=>x.id===b)) m.set(b,boards.find(x=>x.id===b));
+    list.forEach(x=>m.set(x.id,{...(m.get(x.id)||{}),...x}));
+    boards=[...m.values()].filter(Boolean); draw();
+  };
+  let t=null;
+  window.registryRename=name=>{
+    const x=boards.find(y=>y.id===cur); if(!x||!name||x.name===name) return;
+    x.name=name; draw(); clearTimeout(t); t=setTimeout(push,600);
+  };
+  sel.onchange=()=>{
+    if(sel.value==='__new'){
+      const id='t'+Date.now().toString(36);
+      boards.push({id,name:'New Tierlist',page:'tierlist-blank.html',b:id}); push();
+      setTimeout(()=>location.href='tierlist-blank.html?b='+id,300); return;
+    }
+    const x=boards.find(y=>y.id===sel.value); if(x) location.href=url(x);
+  };
+  del.onclick=()=>{
+    const x=boards.find(y=>y.id===cur);
+    if(!x||!x.b||!confirm('Remove "'+x.name+'" from the tierlist list?')) return;
+    boards=boards.filter(y=>y.id!==cur); push(); setTimeout(()=>location.href='tierlist-blank.html',300);
+  };
+  document.getElementById('title').addEventListener('input',e=>window.registryRename(e.target.textContent.trim()));
+  draw();
+})();
 </script>
 </body>
 </html>

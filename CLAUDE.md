@@ -279,8 +279,19 @@ to `index.html`. Still no build step.
 - **To-Do rows** get a `scriptSlug` field (no rule change): the "📄 Attach script…"
   select lists `scripts/index.json` (fetched once at boot by `loadPublishedScripts`) and
   a "📄 Script" link appears next to the title.
-- **Header "🎞 Video assets ▾"** = all published scripts + tierlist pages. New video
-  interfaces = another link in `#assetsMenu`.
+- **Header (simplified 2026-11-21):** one **📋 To-Do Videos ▾** dropdown (`#assetsMenu`) holds
+  everything video-related - To-do list (`?view=todo`), Video scripts (`script.html`), Tierlist
+  (`tierlist-blank.html`). Shorts / 24/7 Stream / Config are plain links to `?view=shorts|stream|config`.
+  `?view=` makes index.html show only that panel full-page (`VIEW_PANELS`, `body[data-view]` CSS);
+  no view = the folder board. The old toggle functions still exist but nothing in the header
+  calls them. + Create Folder / Show Archived Folders live in `.folders-toolbar` above the folders.
+- **Tierlists:** the menu opens a blank board; switching happens inside the tierlist via the
+  header picker (`#presetPick`). Names + custom boards are a shared registry in Firestore
+  `config/tierlist-boards`; renaming = editing the big title (`registryRename`). Custom boards are
+  `tierlist-blank.html?b=<id>` (state in `config/tierlist-b-<id>`); 🗑 only removes custom ones.
+  The picker/registry code is injected by `tierlist_registry.py` (kept in the LeagueTierlist work
+  folder) into tierlist-poe2-leagues.html and the 3.30 source; `tierlist-blank.html` is regenerated
+  from the leagues page - edit the leagues page + rerun, don't hand-edit the blank one.
 - `tierlist-poe2-leagues.html` is the 3.30 page made generic: cards are `{id, n, sub, tint,
   img?}`, `EMBLEMS` holds hand-drawn SVG watermarks per league id, live sync to
   `config/tierlist-poe2-leagues`. New preset = copy it, change `DEFAULT_CARDS`, `KEY`, title,

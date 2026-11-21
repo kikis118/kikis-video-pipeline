@@ -1,0 +1,457 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tierlist</title>
+<style>
+:root{--bg:#0b0910;--panel:#141019;--panel2:#1d1824;--line:#2c2436;--text:#ece4f5;--dim:#9b8fab;--gold:#c8a25a;--gold2:#f0d28c;--cyan:#19e3ff;--w:300px}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;background:var(--bg);color:var(--text);font-family:"Segoe UI",system-ui,sans-serif;overflow:hidden;user-select:none}
+.heavy{font-family:"Segoe UI Black","Arial Black","Segoe UI",sans-serif;font-weight:900}
+.app{display:flex;flex-direction:column;height:100%}
+
+header{display:flex;align-items:center;gap:10px;padding:12px 20px;flex-wrap:wrap}
+h1{margin:0;font-size:40px;text-transform:uppercase;color:#fff;outline:none;text-shadow:0 3px 10px #000;flex:1;min-width:200px}
+button{background:var(--panel2);color:var(--text);border:1px solid var(--line);border-radius:8px;padding:9px 16px;font:inherit;font-size:15px;font-weight:600;cursor:pointer}
+button:hover{border-color:var(--gold)}
+button.primary{background:#3b2a12;border-color:var(--gold);color:var(--gold2)}
+.present .edit-only{display:none!important}
+#bMode{opacity:.35}#bMode:hover{opacity:1}
+body:not(.present) #bMode{opacity:1}
+
+.board{flex:1;overflow:auto;padding:0 20px 12px}
+.tier{display:flex;min-height:calc(var(--w)/2.9 + 16px);border:2px solid var(--line);border-bottom:none;background:var(--panel)}
+.tier:last-child{border-bottom:2px solid var(--line)}
+.label{width:140px;flex:none;display:flex;align-items:center;justify-content:center;color:#111;font-size:64px;position:relative}
+.label span{outline:none;text-align:center;line-height:1;padding:4px;word-break:break-word;max-width:100%}
+.label span.long{font-size:26px}
+.ctrl{position:absolute;bottom:4px;display:flex;gap:3px;opacity:0;transition:.15s}
+.tier:hover .ctrl{opacity:1}
+.present .ctrl{display:none}
+.ctrl b{font:13px "Segoe UI";background:#0009;color:#fff;border-radius:4px;padding:2px 6px;cursor:pointer}
+.zone{flex:1;display:flex;flex-wrap:wrap;align-content:flex-start;gap:8px;padding:8px;min-height:calc(var(--w)/2.9 + 16px)}
+
+.card{width:var(--w);height:calc(var(--w)/2.9);border-radius:8px;position:relative;overflow:hidden;cursor:grab;touch-action:none;flex:none;
+  background:#222 center 30%/cover no-repeat;box-shadow:0 3px 8px #0009;outline:1px solid #ffffff1a;outline-offset:-1px}
+.card::before{content:"";position:absolute;inset:0;background:var(--tint);mix-blend-mode:multiply}
+.card::after{content:"";position:absolute;inset:0;background:radial-gradient(ellipse at 50% 60%,#0000 0,#0006 100%),linear-gradient(#0000 40%,#0007)}
+/* League emblem watermark + texture (cards without an img) */
+.card .logo{position:absolute;z-index:1;right:-4%;top:50%;height:150%;transform:translateY(-50%) rotate(-8deg);opacity:.22;pointer-events:none;color:var(--glow,#fff);filter:drop-shadow(0 0 6px var(--glow,#fff))}
+.card .logo2{position:absolute;z-index:1;left:-6%;top:50%;height:110%;transform:translateY(-50%) rotate(10deg);opacity:.07;pointer-events:none;color:#fff}
+.card .tex{position:absolute;inset:0;z-index:1;pointer-events:none;opacity:.4;background:repeating-linear-gradient(135deg,#ffffff0a 0 2px,#0000 2px 9px)}
+/* Cards with key art: art stays recognisable, darkened behind the text, league-coloured edge,
+   emblem shrinks to a faint corner mark. */
+.card.art::before{background:var(--tint);mix-blend-mode:multiply}
+.card.art::after{background:radial-gradient(ellipse 60% 70% at 50% 55%,#0007 0,#0000 100%),linear-gradient(#0000 45%,#0009)}
+.card.art{box-shadow:inset 4px 0 0 var(--glow),0 3px 8px #0009;filter:brightness(1.55) saturate(1.15)}
+.card.art .n{text-shadow:0 2px 0 #000a,0 3px 14px #000,0 0 30px #000c}
+.card.art .logo{height:70%;right:3%;top:8%;transform:none;opacity:.35}
+.card.art .a{color:var(--glow)}
+.card.emb .a{color:var(--glow)}
+.card .txt{position:absolute;inset:0;z-index:2;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:0 10px;text-align:center}
+.card .n{color:#fff;text-transform:uppercase;line-height:.95;white-space:nowrap;text-shadow:0 2px 0 #0006,0 4px 12px #000c}
+.card .a{color:var(--cyan);text-transform:uppercase;letter-spacing:.6px;margin-top:4px;text-shadow:0 1px 5px #000}
+.card:hover{outline:2px solid var(--gold)}
+.card.ph{opacity:.2}
+.drag{position:fixed;z-index:99;pointer-events:none;transform:rotate(2deg) scale(1.06);box-shadow:0 14px 34px #000d}
+
+.poolwrap{border-top:3px solid var(--cyan);background:#0d0a11;height:30vh;min-height:60px;display:flex;position:relative;flex:none}
+.grip{position:absolute;left:0;right:0;top:-9px;height:16px;cursor:ns-resize;z-index:5;touch-action:none}
+.grip::after{content:"";position:absolute;left:50%;top:3px;width:70px;height:7px;margin-left:-35px;border-radius:4px;background:var(--cyan);opacity:.55}
+.grip:hover::after,.grip.on::after{opacity:1}
+#pool{flex:1;overflow:auto;padding:12px 20px;min-height:0}
+
+/* editor */
+.editor{position:fixed;right:0;top:0;bottom:0;width:400px;max-width:100%;background:#15111bf8;border-left:2px solid var(--gold);z-index:60;padding:20px;display:flex;flex-direction:column;gap:8px;transform:translateX(105%);transition:transform .18s;box-shadow:-10px 0 40px #000a}
+.editor.show{transform:none}
+.editor h3{margin:0;color:var(--gold2);font-size:18px;text-transform:uppercase}
+.editor label{font-size:12px;color:var(--dim);margin-top:6px;text-transform:uppercase;letter-spacing:.5px}
+.editor input,.editor select{background:var(--panel2);border:1px solid var(--line);color:var(--text);border-radius:8px;padding:10px;font:inherit;font-size:16px;width:100%}
+.editor .prev{display:flex;justify-content:center;padding:10px 0}
+.editor .prev .card{--w:350px;cursor:default}
+.editor .row{display:flex;gap:8px;margin-top:12px}
+.editor .x{position:absolute;right:16px;top:12px;cursor:pointer;color:var(--dim);font-size:24px}
+.danger{border-color:#7a2d2d;color:#ff9b9b}
+.preset-pick{background:var(--panel2);color:var(--text);border:1px solid var(--line);border-radius:8px;padding:8px 10px;font:inherit;font-size:14px;cursor:pointer}.preset-pick:hover{border-color:var(--gold)}.preset-home{color:var(--dim);text-decoration:none;font-size:14px}.preset-home:hover{color:var(--gold2)}
+</style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <h1 id="title" class="heavy" spellcheck="false">New Tierlist</h1>
+    <select id="presetPick" class="preset-pick edit-only" title="Switch tierlist. Rename the current one by clicking its big title."></select>
+    <button id="presetDel" class="edit-only danger" title="Delete this tierlist from the list" style="display:none">&#128465;</button>
+    <a class="preset-home edit-only" href="./">&#8592; Board</a>
+    <button id="bAddTier" class="edit-only">+ Tier</button>
+    <button id="bAddBuild" class="edit-only primary">+ New card</button>
+    <button id="bReset" class="edit-only">Clear</button>
+    <button id="bMode" class="primary">▶ Present</button>
+  </header>
+  <div class="board" id="board"></div>
+  <div class="poolwrap" id="poolwrap"><div class="grip" id="grip" title="Drag to resize"></div><div class="zone" id="pool"></div></div>
+</div>
+
+<div class="editor" id="editor">
+  <span class="x" id="eClose">×</span>
+  <h3 id="eHead">Edit card</h3>
+  <div class="prev" id="ePrev"></div>
+  <label>Name</label><input id="eName" placeholder="e.g. Fate of the Vaal">
+  <label>Subtitle</label><input id="eSub" placeholder="e.g. 0.4 · Dec 2025">
+  <label>Colour</label><input id="eTint" type="color" value="#7b4dff" style="height:40px;padding:2px">
+  <div class="row">
+    <button id="eSave" class="primary">Save</button>
+    <button id="eDel" class="danger">Delete</button>
+  </div>
+</div>
+
+<script>
+/* BLANK board - generated from tierlist-poe2-leagues.html (same generic template, no cards)
+   by the registry patch script; edit the leagues page and regenerate rather than editing this one.
+   Generic tierlist template: every card is {id, n: name, sub: subtitle, tint, img?}.
+   New preset = copy this file, change DEFAULT_CARDS, KEY, the title and the Firestore doc id. */
+const DEFAULT_CARDS=[
+].map(([id,n,sub,tint])=>({id,n,sub,tint,img:'tierlist-art/'+id+'.jpg'}));
+const DEFAULT_BUILDS=DEFAULT_CARDS;
+/* Official key art (tierlist-art/, cropped from GGG press kits + the 1.0 asset pack). Looked up by
+   card id so boards already saved in Firestore (cards stored without img) get the art too. */
+const ART=Object.fromEntries(DEFAULT_CARDS.map(c=>[c.id,c.img]));
+const TIER_COLORS=['#ff7f7f','#ffbf7f','#ffdf7f','#ffff7f','#bfff7f','#7fff7f','#7fffff','#7fbfff','#bf7fbf','#cfcfcf'];
+const DEFAULT_TIERS=[['S','#ff7f7f'],['A','#ffbf7f'],['B','#ffdf7f'],['C','#ffff7f'],['D','#bfff7f']];
+/* ?b=<id> = a custom board from the picker's "+ New blank tierlist"; no b = the default blank board. */
+const BOARD=new URLSearchParams(location.search).get('b');
+const KEY=BOARD?'tierlist-b-'+BOARD:'tierlist-blank-v1';
+
+let builds=[];
+const byId=id=>builds.find(b=>b.id===id);
+const $=s=>document.querySelector(s);
+const board=$('#board'), pool=$('#pool');
+const presenting=()=>document.body.classList.contains('present');
+
+/* cards */
+/* Hand-drawn league emblems (stroke = currentColor). Keyed by card id; custom cards get none. */
+const EMBLEMS={
+ ea01:'<path d="M50 6 88 20v28c0 24-17 40-38 46C29 88 12 72 12 48V20Z"/><path d="M50 22v52M32 40h36"/><circle cx="50" cy="40" r="9"/>',
+ doth:'<path d="M14 70a36 36 0 0 1 72 0"/><path d="M50 22v-12M24 33l-8-8M76 33l8-8M12 52H2M88 52h10"/><path d="M20 92 82 14"/><path d="M82 14l-14 4 10 10Z" fill="currentColor"/><path d="M6 70h88"/>',
+ rota:'<path d="M50 4 42 30l12 10-16 22 14 14-6 20"/><ellipse cx="50" cy="50" rx="34" ry="16"/><circle cx="50" cy="50" r="8" fill="currentColor"/>',
+ fotv:'<path d="M8 90h84M16 90V76h68v14M24 76V62h52v14M32 62V48h36v14M40 48V34h20v14"/><path d="M46 34V22h8v12"/><path d="M50 22V8M42 14l8-6 8 6"/>',
+ roa:'<path d="M30 92 22 22 50 6l28 16-8 70Z"/><path d="M42 30v42M42 30l14 10-14 10 16 22"/><path d="M34 24l-4-6M66 24l4-6"/>',
+ fr:'<circle cx="50" cy="50" r="40"/><circle cx="50" cy="50" r="30"/><path d="M50 20 76 65H24Z"/><path d="M50 80 24 35h52Z"/><circle cx="50" cy="6" r="3" fill="currentColor"/><circle cx="12" cy="72" r="3" fill="currentColor"/><circle cx="88" cy="72" r="3" fill="currentColor"/>',
+};
+const svg=(id,cls)=>EMBLEMS[id]?`<svg class="${cls}" viewBox="0 0 100 100" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round">${EMBLEMS[id]}</svg>`:'';
+function paint(d,b){
+  const t=b.tint||'#7b4dff', img=b.img||ART[b.id];
+  d.style.backgroundImage=img?`url("${img}")`:`radial-gradient(circle at 80% 50%,${t}99,#0000 58%),radial-gradient(circle at 12% 20%,${t}55,#0000 50%),linear-gradient(135deg,#2a2233,#0e0b12)`;
+  d.style.backgroundPosition='center';
+  d.style.setProperty('--tint',img?`color-mix(in srgb,${t} 22%,#fff)`:'#ffffff');
+  d.style.setProperty('--glow',t);
+  d.classList.toggle('emb',!img); d.classList.toggle('art',!!img);
+  d.innerHTML=(img?svg(b.id,'logo'):'<div class="tex"></div>'+svg(b.id,'logo')+svg(b.id,'logo2'))+'<div class="txt"><div class="n heavy"></div><div class="a heavy"></div></div>';
+  d.querySelector('.n').textContent=b.n;
+  d.querySelector('.a').textContent=b.sub||'';
+  fit(d);
+}
+function fit(d){
+  if(!d.isConnected) return requestAnimationFrame(()=>d.isConnected&&fit(d));
+  const n=d.querySelector('.n'), max=d.clientWidth-20; let s=d.clientWidth/8.5;
+  n.style.fontSize=s+'px';
+  while(n.scrollWidth>max&&s>10){s-=1;n.style.fontSize=s+'px';}
+  d.querySelector('.a').style.fontSize=Math.max(10,d.clientWidth/17)+'px';
+}
+function cardEl(b){const d=document.createElement('div');d.className='card';d.dataset.id=b.id;paint(d,b);return d;}
+
+/* state */
+function tierEl(label,color,ids=[]){
+  const t=document.createElement('div'); t.className='tier';
+  t.innerHTML=`<div class="label heavy" style="background:${color}"><span spellcheck="false"></span>
+    <div class="ctrl"><b data-a="up">▲</b><b data-a="down">▼</b><b data-a="col">◐</b><b data-a="del">✕</b></div></div><div class="zone"></div>`;
+  const sp=t.querySelector('span'); sp.textContent=label; sp.classList.toggle('long',label.length>3);
+  const z=t.querySelector('.zone'); ids.forEach(id=>{const b=byId(id); if(b) z.appendChild(cardEl(b));});
+  return t;
+}
+function render(s){
+  builds=s.builds&&s.builds.length?s.builds:structuredClone(DEFAULT_BUILDS);
+  if(s.title) $('#title').textContent=s.title;
+  board.innerHTML=''; pool.innerHTML='';
+  const placed=new Set();
+  s.tiers.forEach(t=>{board.appendChild(tierEl(t.label,t.color,t.ids)); t.ids.forEach(i=>placed.add(i));});
+  const order=(s.pool||[]).filter(i=>byId(i));
+  [...order,...builds.map(b=>b.id).filter(i=>!order.includes(i))].forEach(id=>{if(!placed.has(id)) pool.appendChild(cardEl(byId(id)));});
+}
+function snapshot(){
+  return {title:$('#title').textContent,builds,
+    tiers:[...board.querySelectorAll('.tier')].map(t=>({label:t.querySelector('span').textContent,color:t.querySelector('.label').style.background,ids:[...t.querySelectorAll('.card')].map(c=>c.dataset.id)})),
+    pool:[...pool.querySelectorAll('.card')].map(c=>c.dataset.id)};
+}
+/* Live sync: on the hosted page a module script (bottom of file) sets window.syncPush
+   and calls window.applyRemote. Opened from a file it stays local-only. */
+let pendingRemote=null, pushTimer=null;
+function save(){
+  const s=snapshot();
+  try{localStorage.setItem(KEY,JSON.stringify(s));}catch(e){}
+  if(window.syncPush){clearTimeout(pushTimer); pushTimer=setTimeout(()=>window.syncPush(snapshot()),250);}
+}
+window.applyRemote=s=>{
+  if(!s||!s.tiers) return;
+  if(drag||editing!==null||document.activeElement&&document.activeElement.isContentEditable){pendingRemote=s;return;}
+  pendingRemote=null; render(s);
+  try{localStorage.setItem(KEY,JSON.stringify(s));}catch(e){}
+};
+window.localState=()=>snapshot();
+function flushRemote(){ if(pendingRemote) setTimeout(()=>pendingRemote&&window.applyRemote(pendingRemote),0); }
+function fresh(){return {tiers:DEFAULT_TIERS.map(([l,c])=>({label:l,color:c,ids:[]}))};}
+function load(){try{const s=JSON.parse(localStorage.getItem(KEY)); if(s&&s.tiers) return s;}catch(e){} return fresh();}
+
+/* mode */
+function setMode(p){
+  document.body.classList.toggle('present',p);
+  $('#bMode').textContent=p?'✎ Edit':'▶ Present';
+  $('#title').contentEditable=p?'false':'true';
+  if(p) closeEditor();
+  try{localStorage.setItem(KEY+'-present',p?'1':'');}catch(e){}
+}
+$('#bMode').onclick=()=>setMode(!presenting());
+
+/* drag & drop */
+let drag=null;
+document.addEventListener('pointerdown',e=>{
+  const c=e.target.closest('.card'); if(!c||e.button!==0||c.closest('.editor')) return;
+  drag={c,x:e.clientX,y:e.clientY,started:false};
+});
+document.addEventListener('pointermove',e=>{
+  if(!drag) return;
+  if(!drag.started){
+    if(Math.hypot(e.clientX-drag.x,e.clientY-drag.y)<5) return;
+    const r=drag.c.getBoundingClientRect(); drag.ox=drag.x-r.left; drag.oy=drag.y-r.top;
+    drag.ghost=drag.c.cloneNode(true); drag.ghost.classList.add('drag');
+    drag.ghost.style.width=r.width+'px'; drag.ghost.style.height=r.height+'px';
+    document.body.appendChild(drag.ghost); drag.c.classList.add('ph'); drag.started=true;
+  }
+  drag.ghost.style.left=(e.clientX-drag.ox)+'px'; drag.ghost.style.top=(e.clientY-drag.oy)+'px';
+  const el=document.elementFromPoint(e.clientX,e.clientY); if(!el) return;
+  let zone=el.closest('.zone'); if(!zone){const t=el.closest('.tier'); if(t) zone=t.querySelector('.zone');}
+  if(zone&&!zone.closest('.editor')){
+    let before=null;
+    for(const k of zone.querySelectorAll('.card:not(.ph)')){const r=k.getBoundingClientRect();
+      if(e.clientY<r.top||(e.clientY<=r.bottom&&e.clientX<r.left+r.width/2)){before=k;break;}}
+    if(before){if(before.previousElementSibling!==drag.c) zone.insertBefore(drag.c,before);}
+    else if(zone.lastElementChild!==drag.c) zone.appendChild(drag.c);
+  }
+  const br=board.getBoundingClientRect();
+  if(e.clientY<br.top+40&&e.clientY>br.top) board.scrollTop-=14; else if(e.clientY>br.bottom-40&&e.clientY<br.bottom) board.scrollTop+=14;
+});
+document.addEventListener('pointerup',()=>{
+  if(!drag) return; const d=drag; drag=null;
+  if(d.started){d.ghost.remove(); d.c.classList.remove('ph'); save();}
+  else if(!presenting()) openEditor(d.c.dataset.id);
+  flushRemote();
+});
+document.addEventListener('contextmenu',e=>{
+  const c=e.target.closest('.card'); if(!c||c.closest('.editor')) return; e.preventDefault();
+  if(c.parentElement!==pool){pool.prepend(c); save(); return;}
+  const b=byId(c.dataset.id);
+  if(b&&confirm('Delete "'+b.n+'"?')){
+    builds=builds.filter(x=>x.id!==b.id); c.remove(); if(editing===b.id) closeEditor(); save();
+  }
+});
+
+/* tiers */
+board.addEventListener('click',e=>{
+  const b=e.target.closest('.ctrl b'); if(!b) return;
+  const t=b.closest('.tier'), a=b.dataset.a;
+  if(a==='del'){[...t.querySelectorAll('.card')].reverse().forEach(c=>pool.prepend(c)); t.remove();}
+  if(a==='up'&&t.previousElementSibling) board.insertBefore(t,t.previousElementSibling);
+  if(a==='down'&&t.nextElementSibling) board.insertBefore(t.nextElementSibling,t);
+  if(a==='col'){const l=t.querySelector('.label'); const n=+(l.dataset.ci||-1)+1; l.dataset.ci=n; l.style.background=TIER_COLORS[n%TIER_COLORS.length];}
+  save();
+});
+board.addEventListener('dblclick',e=>{
+  const sp=e.target.closest('.label span'); if(!sp||presenting()) return;
+  sp.contentEditable='true'; sp.focus(); document.getSelection().selectAllChildren(sp);
+});
+board.addEventListener('focusout',e=>{
+  const sp=e.target.closest('.label span'); if(!sp) return;
+  sp.contentEditable='false'; sp.textContent=sp.textContent.trim()||'?'; sp.classList.toggle('long',sp.textContent.length>3); save();
+});
+$('#title').addEventListener('input',save);
+$('#title').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();e.target.blur();}});
+
+/* editor */
+const ed=$('#editor'); let editing=null;
+function draft(){return {n:$('#eName').value.trim()||'New card',sub:$('#eSub').value.trim(),tint:$('#eTint').value};}
+function preview(){const p=$('#ePrev'); p.innerHTML=''; const c=document.createElement('div'); c.className='card'; p.appendChild(c); paint(c,draft());}
+function openEditor(id){
+  editing=id; const b=byId(id)||{n:'',sub:'',tint:'#7b4dff'};
+  $('#eHead').textContent=byId(id)?'Edit card':'New card';
+  $('#eName').value=b.n; $('#eSub').value=b.sub||''; $('#eTint').value=b.tint||'#7b4dff';
+  $('#eDel').style.display=byId(id)?'':'none';
+  ed.classList.add('show'); preview(); setTimeout(()=>$('#eName').focus(),50);
+}
+function closeEditor(){ed.classList.remove('show'); editing=null; flushRemote();}
+$('#eClose').onclick=closeEditor;
+['#eName','#eSub','#eTint'].forEach(s=>$(s).addEventListener('input',preview));
+$('#eSave').onclick=()=>{
+  let b=byId(editing);
+  if(b) Object.assign(b,draft()); else {b={id:'c'+Date.now(),...draft()}; builds.push(b); pool.prepend(cardEl(b));}
+  document.querySelectorAll(`.card[data-id="${b.id}"]`).forEach(c=>paint(c,b));
+  save(); closeEditor();
+};
+$('#eDel').onclick=()=>{
+  if(!confirm('Delete "'+$('#eName').value+'"?')) return;
+  builds=builds.filter(b=>b.id!==editing); document.querySelectorAll(`.card[data-id="${editing}"]`).forEach(c=>c.remove());
+  closeEditor(); save();
+};
+ed.addEventListener('keydown',e=>{if(e.key==='Enter') $('#eSave').click();});
+
+/* toolbar */
+$('#bAddTier').onclick=()=>{const n=board.querySelectorAll('.tier').length; board.appendChild(tierEl('New',TIER_COLORS[n%TIER_COLORS.length])); save(); board.scrollTop=board.scrollHeight;};
+$('#bAddBuild').onclick=()=>openEditor(null);
+$('#bReset').onclick=()=>{if(confirm('Move every card back to the bottom and reset the tiers?')){const s=fresh(); s.builds=builds; s.title=$('#title').textContent; render(s); save();}};
+
+document.addEventListener('keydown',e=>{
+  const typing=e.target.isContentEditable||/INPUT|SELECT/.test(e.target.tagName);
+  if(typing){if(e.key==='Enter'&&e.target.isContentEditable){e.preventDefault();e.target.blur();} if(e.key==='Escape') e.target.blur(); return;}
+  if(e.key==='p'||e.key==='P') $('#bMode').click();
+  if(e.key==='Escape') closeEditor();
+});
+addEventListener('resize',()=>document.querySelectorAll('.card').forEach(fit));
+/* resizable pool (height remembered per PC) */
+(()=>{
+  const pw=$('#poolwrap'), g=$('#grip');
+  const setH=h=>{h=Math.max(60,Math.min(innerHeight-140,h)); pw.style.height=h+'px'; return h;};
+  try{const h=+localStorage.getItem(KEY+'-poolh'); if(h) setH(h);}catch(e){}
+  g.addEventListener('pointerdown',e=>{
+    e.preventDefault(); g.setPointerCapture(e.pointerId); g.classList.add('on');
+    const move=ev=>setH(innerHeight-ev.clientY);
+    const up=ev=>{g.classList.remove('on'); g.removeEventListener('pointermove',move); g.removeEventListener('pointerup',up);
+      try{localStorage.setItem(KEY+'-poolh',Math.round(pw.getBoundingClientRect().height));}catch(e){}};
+    g.addEventListener('pointermove',move); g.addEventListener('pointerup',up);
+  });
+  g.addEventListener('dblclick',()=>{pw.style.height=''; try{localStorage.removeItem(KEY+'-poolh');}catch(e){}});
+})();
+render(load());
+let startPresent=false; try{startPresent=!!localStorage.getItem(KEY+'-present');}catch(e){}
+setMode(startPresent);
+</script>
+
+<!-- Live sync (only on the hosted https page): shared board in the pipeline's Firestore,
+     doc config/tierlist-poe2-leagues, same Google sign-in + allowlist as the pipeline board. -->
+<div id="sync" class="sync"></div>
+<style>
+.sync{position:fixed;left:12px;bottom:10px;z-index:80;font-size:13px;font-weight:600;display:flex;gap:8px;align-items:center;
+  background:#000c;border:1px solid var(--line);border-radius:20px;padding:5px 12px;color:var(--dim)}
+.sync:empty{display:none}
+.sync .dot{width:9px;height:9px;border-radius:50%;background:#555}
+.sync.live .dot{background:#3ddc6a;box-shadow:0 0 8px #3ddc6a}
+.sync.warn .dot{background:#e8a33a}
+.sync button{padding:4px 10px;font-size:13px}
+.present .sync.live{opacity:.0}
+.present .sync.live:hover{opacity:1}
+</style>
+<script type="module">
+if(location.protocol==='https:'||location.hostname==='localhost'||location.hostname==='127.0.0.1'){
+  const el=document.getElementById('sync');
+  const show=(cls,html)=>{el.className='sync '+cls; el.innerHTML='<span class="dot"></span>'+html;};
+  show('','Connecting…');
+  try{
+    const V='https://www.gstatic.com/firebasejs/10.13.2/';
+    const {initializeApp}=await import(V+'firebase-app.js');
+    const {getFirestore,doc,onSnapshot,setDoc,serverTimestamp}=await import(V+'firebase-firestore.js');
+    const {getAuth,GoogleAuthProvider,signInWithPopup,onAuthStateChanged}=await import(V+'firebase-auth.js');
+    // Same public web config as the pipeline board (index.html); access is gated by Firestore rules + allowlist.
+    const app=initializeApp({
+      apiKey:'AIzaSyCHyVL3XBiqnKRqK1gRIml0EYDnB3A8d6U',
+      authDomain:'ghazzy-video-pipeline-8ecd4.firebaseapp.com',
+      projectId:'ghazzy-video-pipeline-8ecd4',
+      storageBucket:'ghazzy-video-pipeline-8ecd4.firebasestorage.app',
+      messagingSenderId:'889310513985',
+      appId:'1:889310513985:web:faac82e551a72345d86fc0',
+    });
+    const db=getFirestore(app), auth=getAuth(app);
+    const ref=doc(db,'config',new URLSearchParams(location.search).get('b')?'tierlist-b-'+new URLSearchParams(location.search).get('b'):'tierlist-blank');
+    let lastSent=null, unsub=null;
+    const fail=err=>{
+      const m=String(err&&err.message||err);
+      window.syncPush=null;
+      show('warn',m.includes('insufficient permissions')?'Not on the allowlist — changes stay on this PC':'Sync error — changes stay on this PC');
+      console.error('[tierlist sync]',err);
+    };
+    const signInUi=()=>{
+      show('warn','Not synced <button id="syncIn">Sign in with Google</button>');
+      document.getElementById('syncIn').onclick=()=>signInWithPopup(auth,new GoogleAuthProvider()).catch(fail);
+    };
+    onAuthStateChanged(auth,user=>{
+      if(unsub){unsub();unsub=null;}
+      if(!user){window.syncPush=null; return signInUi();}
+      window.syncPush=s=>{
+        const json=JSON.stringify(s); if(json===lastSent) return;
+        lastSent=json;
+        setDoc(ref,{state:json,by:user.email||'',at:serverTimestamp()}).catch(fail);
+      };
+      if(!window.__regSub){
+        // Shared list of tierlists (names, custom boards) - read by the picker in the header.
+        const regRef=doc(db,'config','tierlist-boards');
+        window.__regSub=onSnapshot(regRef,s=>window.applyRegistry&&window.applyRegistry(s.exists()?(s.data().boards||[]):[]),()=>{});
+        window.registrySave=boards=>setDoc(regRef,{boards,by:user.email||'',at:serverTimestamp()}).catch(fail);
+      }
+      unsub=onSnapshot(ref,snap=>{
+        show('live','Live');
+        if(!snap.exists()){ window.syncPush(window.localState()); return; }   // first ever: seed from this browser
+        const json=snap.data().state; if(!json||json===lastSent) return;
+        lastSent=json;
+        try{ window.applyRemote(JSON.parse(json)); }catch(e){ console.error(e); }
+      },fail);
+    });
+  }catch(err){ show('warn','Offline — changes stay on this PC'); console.error(err); }
+}
+</script>
+<script>
+/* Tierlist picker. Built-in boards + custom ones, names from the shared registry
+   (config/tierlist-boards, wired up in the sync module below). Rename = edit the big title. */
+(()=>{
+  const DEF=[{id:'blank',name:'Blank tierlist',page:'tierlist-blank.html'},
+             {id:'poe2-leagues',name:'PoE 2 Leagues (before 1.0)',page:'tierlist-poe2-leagues.html'},
+             {id:'3.30',name:'PoE 3.30 Minion Builds',page:'tierlist.html'}];
+  const file=location.pathname.split('/').pop()||'tierlist-blank.html';
+  const b=new URLSearchParams(location.search).get('b');
+  const cur=b||({'tierlist-poe2-leagues.html':'poe2-leagues','tierlist.html':'3.30'}[file]||'blank');
+  const sel=document.getElementById('presetPick'), del=document.getElementById('presetDel');
+  const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+  const url=x=>x.page+(x.b?'?b='+encodeURIComponent(x.b):'');
+  let boards=DEF.map(x=>({...x}));
+  if(b) boards.push({id:b,name:document.getElementById('title').textContent.trim()||'New Tierlist',page:'tierlist-blank.html',b});
+  function draw(){
+    sel.innerHTML=boards.map(x=>`<option value="${esc(x.id)}">${esc(x.name)}</option>`).join('')+'<option value="__new">+ New blank tierlist</option>';
+    sel.value=cur; del.style.display=boards.some(x=>x.id===cur&&x.b)?'':'none';
+  }
+  const push=()=>window.registrySave&&window.registrySave(boards);
+  window.applyRegistry=list=>{
+    const m=new Map(DEF.map(x=>[x.id,{...x}]));
+    if(b&&!list.some(x=>x.id===b)) m.set(b,boards.find(x=>x.id===b));
+    list.forEach(x=>m.set(x.id,{...(m.get(x.id)||{}),...x}));
+    boards=[...m.values()].filter(Boolean); draw();
+  };
+  let t=null;
+  window.registryRename=name=>{
+    const x=boards.find(y=>y.id===cur); if(!x||!name||x.name===name) return;
+    x.name=name; draw(); clearTimeout(t); t=setTimeout(push,600);
+  };
+  sel.onchange=()=>{
+    if(sel.value==='__new'){
+      const id='t'+Date.now().toString(36);
+      boards.push({id,name:'New Tierlist',page:'tierlist-blank.html',b:id}); push();
+      setTimeout(()=>location.href='tierlist-blank.html?b='+id,300); return;
+    }
+    const x=boards.find(y=>y.id===sel.value); if(x) location.href=url(x);
+  };
+  del.onclick=()=>{
+    const x=boards.find(y=>y.id===cur);
+    if(!x||!x.b||!confirm('Remove "'+x.name+'" from the tierlist list?')) return;
+    boards=boards.filter(y=>y.id!==cur); push(); setTimeout(()=>location.href='tierlist-blank.html',300);
+  };
+  document.getElementById('title').addEventListener('input',e=>window.registryRename(e.target.textContent.trim()));
+  draw();
+})();
+</script>
+</body>
+</html>

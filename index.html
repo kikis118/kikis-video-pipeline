@@ -393,7 +393,17 @@
   }
   .badge.pending { background: #4a3d1a; color: var(--warn); }
 
-  /* "Video assets" dropdown: published scripts (script.html) + tierlist template pages */
+  /* ?view=todo|shorts|stream|config: the same page showing only that panel, full width -
+     every header item is its own page instead of an expanding panel on the board. */
+  a.secondary.board-nav-btn { display: none; }
+  body[data-view] a.secondary.board-nav-btn { display: inline-block; }
+  body[data-view] #foldersContainer, body[data-view] #status, body[data-view] #driveSyncNote,
+  body[data-view] #createFolderForm, body[data-view] .folders-toolbar { display: none !important; }
+  body[data-view="todo"] #todoPanel, body[data-view="shorts"] #shortsPanel,
+  body[data-view="stream"] #rerunPanel, body[data-view="config"] #configPanel { display: block; padding: 20px 28px; border-bottom: none; background: transparent; }
+  body[data-view] #todoPanel h2, body[data-view] #shortsPanel h2, body[data-view] #rerunPanel h2, body[data-view] #configPanel > h2:first-child { font-size: 20px; color: var(--text); margin-bottom: 16px; }
+  .folders-toolbar { display: flex; gap: 8px; padding: 12px 20px 0; }
+  /* "To-Do Videos" dropdown: to-do list, published scripts (script.html), tierlist */
   .assets-menu-wrap { position: relative; }
   button.secondary.assets-nav-btn { background: #1d2f4a; color: #9cc6ff; border: 1px solid #2d4a73; }
   .assets-menu {
@@ -681,30 +691,27 @@
 
   <div id="appRoot">
   <header>
-    <button class="secondary todo-nav-btn" onclick="toggleTodoPanel()">&#128203; To-Do Videos<span class="todo-nav-dot" id="todoNavDot" style="display: none;"></span></button>
-    <button class="secondary shorts-nav-btn" onclick="toggleShortsPanel()">&#127916; Shorts</button>
-    <button class="secondary rerun-nav-btn" id="rerunNavBtn" onclick="toggleRerunPanel()" style="display: none;">&#128225; 24/7 Stream</button>
+    <a class="secondary board-nav-btn" id="boardNavBtn" href="./">&#8592; Board</a>
+    <!-- Everything about videos lives under this one menu; each item is its own page. -->
     <div class="assets-menu-wrap">
-      <button class="secondary assets-nav-btn" onclick="toggleAssetsMenu(event)">&#127902; Video assets &#9662;</button>
+      <button class="secondary todo-nav-btn" onclick="toggleAssetsMenu(event)">&#128203; To-Do Videos &#9662;<span class="todo-nav-dot" id="todoNavDot" style="display: none;"></span></button>
       <div class="assets-menu" id="assetsMenu">
-        <div class="assets-menu-label">Video scripts</div>
-        <a href="script.html" target="_blank">&#128221; All published scripts</a>
-        <div class="assets-menu-label">Tierlist templates</div>
-        <a href="tierlist-poe2-leagues.html" target="_blank">PoE 2 Leagues (before 1.0)</a>
-        <a href="tierlist.html" target="_blank">PoE 3.30 Minion Builds</a>
+        <a href="?view=todo">&#128203; To-do list</a>
+        <a href="script.html">&#128221; Video scripts</a>
+        <a href="tierlist-blank.html">&#127942; Tierlist</a>
       </div>
     </div>
-    <button onclick="toggleCreateFolderForm()">+ Create Folder</button>
+    <a class="secondary shorts-nav-btn" href="?view=shorts">&#127916; Shorts</a>
+    <a class="secondary rerun-nav-btn" id="rerunNavBtn" href="?view=stream" style="display: none;">&#128225; 24/7 Stream</a>
     <a class="btn-twitch" id="openStreamBtn" href="https://twitch.tv/ghazzytv" target="_blank" rel="noopener">
       <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor" aria-hidden="true"><path d="M4.5 2 2 6.5v13h5.5V22l3-2.5h4L20.5 15V2H4.5Zm14.5 12-3 3h-4l-3 2.5V17H6V4h13v10Z"/><path d="M15.5 7h2v5h-2zM10 7h2v5h-2z"/></svg>
       <span class="live-dot"></span>
       <span id="openStreamLabel">Open Stream</span>
     </a>
-    <button class="secondary" id="toggleArchivedFoldersBtn" onclick="toggleArchivedFolders()">Show Archived Folders</button>
     <div class="spacer"></div>
     <span class="signed-in-as" id="signedInAs"></span>
     <button class="secondary" id="signOutBtn">Sign out</button>
-    <button class="secondary" onclick="toggleConfig()">&#9881; Config</button>
+    <a class="secondary" href="?view=config">&#9881; Config</a>
   </header>
 
   <div id="liveStatusBanner"></div>
@@ -777,6 +784,10 @@
   <div id="status">Connecting&hellip;</div>
   <div id="driveSyncNote">This board updates instantly - actual Google Drive files (moves, renames, new uploads) catch up separately, about every 1 minute (occasionally a bit longer if a sync is already running).</div>
 
+  <div class="folders-toolbar">
+    <button onclick="toggleCreateFolderForm()">+ Create Folder</button>
+    <button class="secondary" id="toggleArchivedFoldersBtn" onclick="toggleArchivedFolders()">Show Archived Folders</button>
+  </div>
   <div id="foldersContainer"></div>
   </div>
 
@@ -806,6 +817,18 @@
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
     const auth = getAuth(app);
+
+    // ?view=todo|shorts|stream|config shows just that panel as its own page (see the
+    // body[data-view] CSS); no view = the folder board.
+    var VIEW_PANELS = { todo: ['todoPanel', 'To-Do Videos'], shorts: ['shortsPanel', 'Shorts'], stream: ['rerunPanel', '24/7 Stream'], config: ['configPanel', 'Config'] };
+    var VIEW = new URLSearchParams(location.search).get('view') || '';
+    if (VIEW_PANELS[VIEW]) {
+      document.body.dataset.view = VIEW;
+      document.getElementById(VIEW_PANELS[VIEW][0]).classList.add('open');
+      document.title = VIEW_PANELS[VIEW][1] + ' - ' + document.title;
+    } else {
+      VIEW = '';
+    }
 
     var COLUMNS = ['Recorded', 'Finished'];
     var NEXT_STATUS = { Recorded: 'Finished', Finished: null };
@@ -1364,6 +1387,7 @@
     function renderTodoNavDot() {
       var dot = document.getElementById('todoNavDot');
       if (!dot) return;
+      if (VIEW === 'todo') markTodosSeen(state.rows.filter(function (r) { return r.status === 'Idea'; }));
       var unseen = state.rows.filter(function (r) { return r.status === 'Idea' && !seenTodoIds[r.id]; });
       if (!unseen.length) {
         dot.style.display = 'none';
@@ -3493,6 +3517,7 @@
     function boot() {
       seedReactList();
       loadPublishedScripts();
+      if (VIEW === 'config' && !configLoaded) refreshConfig();
       onSnapshot(collection(db, 'pipeline'), function (snapshot) {
         state.rows = snapshot.docs
           .map(function (d) {
