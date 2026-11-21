@@ -276,7 +276,9 @@ to `index.html`. Still no build step.
 - `script.html` renders talking-point formatting with the same rules as the shorts tool's
   studio.js (`+ ` green, `- ` red, `! ` amber, `> ` quote, `**bold**`, `==highlight==`) - keep the
   two `lineKind`/`fmt` functions in sync.
-- **script.html list page = ideas + finished scripts.** "💡 List of ideas" is the board's to-do rows
+- **script.html list page = scripts first.** "📝 Video scripts" (newest first, added/updated dates from
+  index.json `created`/`updated`) is always visible; "💡 List of ideas" is a collapsed dropdown above it.
+  The ideas is the board's to-do rows
   (pipeline `status=='Idea'`, live, add/rename here; checklists/Do Fast/delete still on
   `./?view=todo`, which the menu no longer links - only this page does). "📝 Finished video
   scripts" = scripts/index.json. Per-script title overrides and the "Script recorded" tick live in

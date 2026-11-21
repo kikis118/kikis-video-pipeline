@@ -73,6 +73,12 @@ li.editing{list-style:none;margin-left:-20px}
 .hint{color:var(--muted);font-size:13px;margin:-14px 0 18px}
 .hint button{padding:2px 9px;font-size:12px}
 .hide-resolved .nline.resolved{display:none}
+details.ideas{background:var(--panel);border:1px solid var(--border);border-radius:10px;margin:4px 0 22px}
+details.ideas>summary{cursor:pointer;padding:11px 14px;font-weight:600;list-style:none;color:#c9cfdc}
+details.ideas>summary::-webkit-details-marker{display:none}
+details.ideas>summary::before{content:"▸ ";color:var(--muted)}details.ideas[open]>summary::before{content:"▾ "}
+details.ideas .inner{padding:0 14px 12px}
+details.ideas .idea{background:var(--card)}
 h2.lh{font-size:15px;text-transform:uppercase;letter-spacing:.6px;color:var(--muted);margin:26px 0 8px}
 .idea,.sitem{display:flex;gap:10px;align-items:center;flex-wrap:wrap;background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:11px 14px;margin:8px 0}
 .idea .it{font-weight:600;flex:1;min-width:200px}.idea .in{flex-basis:100%;color:var(--muted);font-size:13px;white-space:pre-wrap;margin-top:-4px}
@@ -133,6 +139,8 @@ async function getJson(path) {
 //           overrides + "Script recorded" ticks, kept OUT of the published JSON so Publish can't undo them
 //   ideas   pipeline rows with status 'Idea' (the board's to-do videos), list page only
 let INDEX = null;
+let IDEAS_OPEN = false;   // ideas dropdown state survives live re-renders
+const nice = (d) => { const t = new Date(String(d).replace(' ', 'T')); return isNaN(t) ? d : t.toLocaleString([], { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }); };
 const statusOf = (sl) => ((window.notesApi && window.notesApi.status) || {})[sl] || {};
 const titleOf = (sl, fallback) => statusOf(sl).title || fallback;
 function signBar(what) {
@@ -146,10 +154,11 @@ function signBar(what) {
 
 async function showList() {
   document.title = 'Video Scripts';
+  const dd = document.querySelector('details.ideas'); if (dd) IDEAS_OPEN = dd.open;
   if (!INDEX) { try { INDEX = await getJson('scripts/index.json'); } catch (e) { INDEX = []; } }
   const api = window.notesApi || {};
   const ideas = (api.ideas || []).slice().sort((a, b) => (b.doFast ? 1 : 0) - (a.doFast ? 1 : 0) || (a.order ?? 1e9) - (b.order ?? 1e9) || (a.createdAtMs || 0) - (b.createdAtMs || 0));
-  const scripts = INDEX.map((x) => Object.assign({}, x, { st: statusOf(x.slug) })).sort((a, b) => (a.st.recorded ? 1 : 0) - (b.st.recorded ? 1 : 0));
+  const scripts = INDEX.map((x) => Object.assign({}, x, { st: statusOf(x.slug) })).sort((a, b) => (a.st.recorded ? 1 : 0) - (b.st.recorded ? 1 : 0) || String(b.updated).localeCompare(String(a.updated)));
   const ideasHtml = api.state !== 'ready' ? '<div class="empty">Sign in to see the list of ideas.</div>'
     : (ideas.map((r) => {
         const cl = Array.isArray(r.checklist) ? r.checklist : null;
@@ -160,17 +169,18 @@ async function showList() {
           ${r.notes ? `<div class="in">${esc(r.notes.length > 220 ? r.notes.slice(0, 220) + '…' : r.notes)}</div>` : ''}</div>`;
       }).join('') || '<div class="empty">No ideas yet.</div>');
   app.innerHTML = `<div class="top"><a href="./">← Pipeline board</a></div><h1>Video scripts</h1>
-    <div class="meta">Ideas for upcoming videos, and the finished talking-point scripts.</div>
+    <div class="meta">Talking-point scripts for upcoming videos - newest first.</div>
     ${signBar('Sign in to see the ideas list and tick off recorded scripts.')}
-    <h2 class="lh">💡 List of ideas</h2>
+    <details class="ideas" ${IDEAS_OPEN ? 'open' : ''}><summary>💡 List of ideas${api.state === 'ready' ? ` (${ideas.length})` : ''}</summary><div class="inner">
     <div class="addidea"><input id="newIdea" placeholder="New video idea…"><input id="newIdeaNotes" placeholder="Notes (optional)"><button data-addidea>+ Add idea</button></div>
     ${ideasHtml}
     ${api.state === 'ready' ? '<div style="margin-top:6px;font-size:13px"><a href="./?view=todo">Checklists, Do Fast and deleting ideas → board to-do page</a></div>' : ''}
-    <h2 class="lh">📝 Finished video scripts</h2>
+    </div></details>
+    <h2 class="lh">📝 Video scripts</h2>
     ${scripts.map((x) => `<div class="sitem ${x.st.recorded ? 'rec' : ''}"><span class="reccheck ${x.st.recorded ? '' : 'off'}">✓</span><a class="t" href="?s=${encodeURIComponent(x.slug)}">${esc(titleOf(x.slug, x.title))}</a>
         <button class="ed" data-rename-script="${esc(x.slug)}" data-cur="${esc(titleOf(x.slug, x.title))}" title="Rename">✎</button>
         <button class="recbtn ${x.st.recorded ? 'on' : ''}" data-recorded="${esc(x.slug)}" data-on="${x.st.recorded ? 1 : 0}"><span class="bx">${x.st.recorded ? '✓' : ''}</span>${x.st.recorded ? 'Script recorded' : 'Mark as recorded'}</button>
-        <div class="d">${x.sections} sections · updated ${esc(x.updated)}${x.st.recorded ? ' · recorded' : ''}</div></div>`).join('') || '<div class="empty">Nothing published yet.</div>'}`;
+        <div class="d">${x.created ? 'added ' + esc(nice(x.created)) + ' · ' : ''}updated ${esc(nice(x.updated))} · ${x.sections} sections${x.st.recorded ? ' · recorded' : ''}</div></div>`).join('') || '<div class="empty">Nothing published yet.</div>'}`;
 }
 
 // ---------- notes + edits (data comes from the Firestore module below)
@@ -202,7 +212,7 @@ function point(t, si, bucket, k) {
 function render() {
   const sc = SC;
   const total = sc.sections.reduce((a, s) => a + (+s.minutes || 0), 0);
-  const meta = [sc.channel, total ? `~${Math.round(total)} min` : '', sc.tiers && sc.tiers.length ? 'Tiers: ' + sc.tiers.join(' / ') : '', 'updated ' + sc.updated].filter(Boolean).join(' · ');
+  const meta = [sc.channel, total ? `~${Math.round(total)} min` : '', sc.tiers && sc.tiers.length ? 'Tiers: ' + sc.tiers.join(' / ') : '', 'updated ' + nice(sc.updated)].filter(Boolean).join(' · ');
   const api = window.notesApi || {};
   const hint = api.state === 'ready' ? 'Double-click any line to edit it or leave a note.'
     : api.state === 'signedout' ? 'Want to tweak a line or leave a note? <button data-signin>Sign in with Google</button>'
