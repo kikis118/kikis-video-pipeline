@@ -8,7 +8,7 @@
   "D"
  ],
  "channel": "GhazzyTV",
- "updated": "2026-11-21 18:12",
+ "updated": "2026-11-21 18:17",
  "sections": [
   {
    "title": "Intro",
@@ -147,9 +147,7 @@
    "prompts": [
     "Does an event league get a tier, or does it sit off the board?"
    ],
-   "deeper": [
-    "You were playing it late October - Ritual and Delirium Atlas points."
-   ]
+   "deeper": []
   },
   {
    "title": "The full board - and what 1.0 needs to learn",
@@ -164,9 +162,7 @@
    "prompts": [
     "Which past mechanic should 1.0 learn the most from?"
    ],
-   "deeper": [
-    "1.0 also adds Acts 5-6, the Shadow and Duelist, ~110 effectively new uniques, a 70-node Atlas tree."
-   ]
+   "deeper": []
   },
   {
    "title": "Outro",
