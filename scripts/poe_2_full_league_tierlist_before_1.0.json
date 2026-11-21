@@ -8,7 +8,7 @@
   "D"
  ],
  "channel": "GhazzyTV",
- "updated": "2026-11-21 18:17",
+ "updated": "2026-11-21 18:20",
  "sections": [
   {
    "title": "Intro",
@@ -30,8 +30,8 @@
     "The league mechanic itself - fun to engage with",
     "Loot and economy - did it feel rewarding? Issues?",
     "The patch around it - balance, endgame, how the game felt that season.",
-    "Staying power - did people keep playing, did it get better or fall off.",
-    "Worth saying: every one of these mechanics is now core, so you're ranking stuff that's still in your game."
+    "Player retention - did people keep playing, did it get better or fall off?",
+    "Worth mentioning: every one of these league mechanics is now core, but youre ranking them based on how they were on release."
    ],
    "prompts": [],
    "deeper": []
@@ -66,8 +66,7 @@
    ],
    "prompts": [],
    "deeper": [
-    "Ran ~20.5 weeks.",
-    "Private leagues arrived during 0.2 (0.2.0h)."
+    "Ran ~20.5 weeks."
    ]
   },
   {
@@ -144,9 +143,7 @@
     "Sacred Blooms bring back the Viridian Wildwood and wisps on your Atlas.",
     "Trial of Chaos finally lets you leave mid-run."
    ],
-   "prompts": [
-    "Does an event league get a tier, or does it sit off the board?"
-   ],
+   "prompts": [],
    "deeper": []
   },
   {
@@ -155,7 +152,7 @@
    "minutes": 2,
    "points": [
     "1.0 league is Conquerors of Wraeclast - troops, castles, sieges, three factions, 100 castles on one shared Atlas.",
-    "You said on Exilecon, your reaction was: 'straight up my alley' - RTS and risk woven into PoE - why?",
+    "You said on Exilecon, your reaction was: 'straight up my alley' - RTS into PoE - why?",
     "Your 1.0 start: Infernalist? Demon Magus?",
     "1.0 also adds Acts 5-6, the Shadow and Duelist, ~110 effectively new uniques, a 70-node Atlas tree."
    ],
