@@ -69,6 +69,26 @@ a.shot:hover img{border-color:var(--accent)}
 .tt-sep { height: 1px; margin: 5px 14px; background: linear-gradient(90deg, #0000, #5b4b2e, #0000); }
 .tt-implicitMod, .tt-explicitMod, .tt-runeMod, .tt-enchantMod, .tt-gemDescr { color: #8888ff; } .tt-craftedMod { color: #b4b4ff; }
 .tt-flavourText { color: #af6025; font-style: italic; } .tt-corrupted { color: #d20000; } .tt-secDescrText, .tt-descrText { color: #9a9a9a; }
+/* CURRENT | NEW in 1.0 tooltip pair - same as the shorts tool's Video Studio */
+.tt.tt-n { text-decoration-color: #6fd3ff; }
+.tt.tt-n::after { content: '✦'; font-size: .65em; color: #6fd3ff; vertical-align: super; margin-left: 1px; }
+.tt-pop.wide { width: min(780px, 96vw); background: transparent; border: 0; box-shadow: none; }
+.tt-pair { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; align-items: start; }
+.tt-col { background: #000000f2; border: 1px solid #5b4b2e; border-radius: 4px; box-shadow: 0 10px 30px #000c; overflow: hidden; }
+.tt-col:last-child { border-color: #2f6f8a; }
+.tt-lab { font: 600 11px/1 system-ui, sans-serif; letter-spacing: .08em; text-transform: uppercase; padding: 5px 0; color: #b9a27a; background: #120d06; }
+.tt-lab.tt-labnew { color: #7fe0ff; background: #06141a; }
+.tt-hnew { background: linear-gradient(#123240, #0a1a22); border-bottom-color: #2f6f8a; color: #bfefff; }
+.tt-new { text-align: left; color: #c9c9c9; }
+.tt-sum { color: #e6e6e6; margin-bottom: 4px; }
+.tt-ch { margin: 4px 0 6px 16px; padding: 0; color: #9fe6b0; } .tt-ch li { margin: 2px 0; }
+.tt-shot { display: block; width: 100%; max-height: 260px; object-fit: contain; margin: 6px 0 2px; border: 1px solid #2f6f8a33; }
+.tt-nl { color: #8888ff; text-align: center; }
+.tt-src { font: 11px system-ui, sans-serif; color: #6c8a96; margin-top: 6px; }
+.tt-none { color: #777; font-style: italic; }
+@media (max-width: 640px) { .tt-pair { grid-template-columns: 1fr; } }
+.tt-pop.wide { max-height: calc(100vh - 16px); overflow: hidden; }
+@media (max-width: 640px), (max-height: 700px) { .tt-shot { max-height: 150px; } .tt-ch li { margin: 1px 0; } }
 mark{background:#6b5726;color:#fff;padding:0 3px;border-radius:2px}
 
 /* Editing + notes: double-click a line. No buttons in the reading view. */
@@ -146,15 +166,17 @@ function fmt(t) {
 // Exact PoE 2 tooltips embedded by Publish (sc.tooltips, from the Studio's poe2db database):
 // [[Name]] / [[shown words|Name]] tags and exact names become hoverable (tap on phones).
 let TTRX = null;
+// names with a 'NEW in 1.0' side (sc.newtips, from the ExileCon keynote) get a small blue star
+function ttCls(n) { return 'tt' + (SC && SC.newtips && SC.newtips[String(n).replace(/&#39;/g, "'")] ? ' tt-n' : ''); }
 function tooltips(h) {
   const tips = (SC && SC.tooltips) || {};
   const held = [];
-  h = h.replace(/\[\[([^\]|]+)(?:\|([^\]]+))?\]\]/g, (m, a, b) => { held.push(tips[(b || a).replace(/&#39;/g, "'")] ? `<span class="tt" data-tt="${b || a}">${a}</span>` : a); return `\u0001${held.length - 1}\u0002`; });
+  h = h.replace(/\[\[([^\]|]+)(?:\|([^\]]+))?\]\]/g, (m, a, b) => { held.push(tips[(b || a).replace(/&#39;/g, "'")] ? `<span class="${ttCls(b || a)}" data-tt="${b || a}">${a}</span>` : a); return `\u0001${held.length - 1}\u0002`; });
   if (TTRX === null) {
     const names = Object.keys(tips).filter((n) => n.length >= 5).sort((a, b) => b.length - a.length);
     TTRX = names.length ? new RegExp(`(?<![\\w'&#;])(${names.map((n) => esc(n).replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|')})(?![\\w'])`, 'g') : false;
   }
-  if (TTRX) h = h.split(/(<[^>]+>)/).map((part) => (part.startsWith('<') ? part : part.replace(TTRX, (m) => { held.push(`<span class="tt" data-tt="${m}">${m}</span>`); return `\u0001${held.length - 1}\u0002`; }))).join('');
+  if (TTRX) h = h.split(/(<[^>]+>)/).map((part) => (part.startsWith('<') ? part : part.replace(TTRX, (m) => { held.push(`<span class="${ttCls(m)}" data-tt="${m}">${m}</span>`); return `\u0001${held.length - 1}\u0002`; }))).join('');
   return h.replace(/\u0001(\d+)\u0002/g, (m, i) => held[+i]);
 }
 function tooltipHtml(t) {
@@ -171,10 +193,30 @@ function tooltipHtml(t) {
 }
 const ttPop = document.createElement('div');
 ttPop.className = 'tt-pop'; document.body.appendChild(ttPop);
+// CURRENT | NEW in 1.0 popup. The NEW side comes from the ExileCon keynote (newtips.py): summary,
+// concrete changes, and the exact keynote screenshot of the tooltip (or its read text when no shot).
+function newSideHtml(n, imgSrc) {
+  const ch = (n.changes || []).map((c) => `<li>${esc(c)}</li>`).join('');
+  const lines = !imgSrc ? (n.lines || []).slice(0, 16).map((l) => `<div class="tt-nl">${esc(l)}</div>`).join('') : '';
+  const src = (n.sources || []).slice(0, 3).map((x) => esc(x.ts)).join(' · ');
+  return `<div class="tt-h tt-hnew"><div>${esc(n.term)}</div><div class="tt-b">ExileCon 2026 keynote</div></div><div class="tt-c tt-new">`
+    + `${n.summary ? `<div class="tt-sum">${esc(n.summary)}</div>` : ''}${ch ? `<ul class="tt-ch">${ch}</ul>` : ''}`
+    + `${imgSrc ? `<img class="tt-shot" src="${esc(imgSrc)}" alt="">` : ''}${lines ? `<div class="tt-sep"></div>${lines}` : ''}`
+    + `${src ? `<div class="tt-src">keynote @ ${src}</div>` : ''}</div>`;
+}
+function tipPairHtml(t, n, imgSrc) {
+  if (!n) return tooltipHtml(t);
+  const cur = t && !t.missing && (t.lines || []).length ? tooltipHtml(t)
+    : `<div class="tt-h" style="--c:#c8c8c8"><div>${esc(n.term)}</div><div class="tt-b">Not in the game yet</div></div><div class="tt-c tt-none">New in 1.0 - nothing to compare with in the current patch.</div>`;
+  return `<div class="tt-pair"><div class="tt-col"><div class="tt-lab">Current</div>${cur}</div><div class="tt-col"><div class="tt-lab tt-labnew">✨ New in 1.0</div>${newSideHtml(n, imgSrc)}</div></div>`;
+}
 function showTip(el) {
-  const t = SC && SC.tooltips && SC.tooltips[el.dataset.tt.replace(/&#39;/g, "'")];
-  if (!t) return;
-  ttPop.innerHTML = tooltipHtml(t);
+  const name = el.dataset.tt.replace(/&#39;/g, "'");
+  const t = SC && SC.tooltips && SC.tooltips[name];
+  const n = SC && SC.newtips && SC.newtips[name];
+  if (!t && !n) return;
+  ttPop.innerHTML = tipPairHtml(t, n, n && n.image ? n.image : '');
+  ttPop.classList.toggle('wide', !!n);
   ttPop.style.display = 'block';
   const r = el.getBoundingClientRect();
   ttPop.style.left = Math.min(innerWidth - ttPop.offsetWidth - 8, Math.max(8, r.left)) + 'px';
