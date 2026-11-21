@@ -8,7 +8,7 @@
   "D"
  ],
  "channel": "GhazzyTV",
- "updated": "2026-11-21 20:05",
+ "updated": "2026-11-21 20:29",
  "sections": [
   {
    "title": "Intro",
@@ -204,5 +204,386 @@
    "prompts": [],
    "deeper": []
   }
- ]
+ ],
+ "tooltips": {
+  "Smith of Kitava": {
+   "name": "Smith of Kitava",
+   "base": "Ascendancy",
+   "rarity": "Ascendancy",
+   "lines": [
+    {
+     "cls": "property",
+     "text": "Notables:"
+    },
+    {
+     "cls": "explicitMod",
+     "text": "Heat of the Forge"
+    },
+    {
+     "cls": "explicitMod",
+     "text": "Coal Stoker"
+    },
+    {
+     "cls": "explicitMod",
+     "text": "Against the Anvil"
+    },
+    {
+     "cls": "explicitMod",
+     "text": "Living Weapon"
+    },
+    {
+     "cls": "explicitMod",
+     "text": "Dedication to Kitava"
+    },
+    {
+     "cls": "explicitMod",
+     "text": "Internal Layer"
+    },
+    {
+     "cls": "explicitMod",
+     "text": "Tribute to Utula"
+    },
+    {
+     "cls": "explicitMod",
+     "text": "Forged in Flame"
+    },
+    {
+     "cls": "explicitMod",
+     "text": "Leather Bindings"
+    },
+    {
+     "cls": "explicitMod",
+     "text": "Molten Symbol"
+    },
+    {
+     "cls": "explicitMod",
+     "text": "Flowing Metal"
+    },
+    {
+     "cls": "explicitMod",
+     "text": "Smith's Masterwork"
+    },
+    {
+     "cls": "explicitMod",
+     "text": "Heatproofing"
+    },
+    {
+     "cls": "explicitMod",
+     "text": "Support Straps"
+    },
+    {
+     "cls": "explicitMod",
+     "text": "Kitavan Engraving"
+    },
+    {
+     "cls": "explicitMod",
+     "text": "Tantalum Alloy"
+    },
+    {
+     "cls": "explicitMod",
+     "text": "Spiked Plates"
+    },
+    {
+     "cls": "explicitMod",
+     "text": "Kitavan Imprint"
+    }
+   ],
+   "icon": "",
+   "category": "Ascendancy",
+   "url": "https://poe2db.tw/us/Smith_of_Kitava"
+  },
+  "Tactician": {
+   "name": "Tactician",
+   "base": "Ascendancy",
+   "rarity": "Ascendancy",
+   "lines": [
+    {
+     "cls": "property",
+     "text": "Notables:"
+    },
+    {
+     "cls": "explicitMod",
+     "text": "Watch How I Do It"
+    },
+    {
+     "cls": "explicitMod",
+     "text": "Whoever Pays Best"
+    },
+    {
+     "cls": "explicitMod",
+     "text": "A Solid Plan"
+    },
+    {
+     "cls": "explicitMod",
+     "text": "Right Where We Want Them"
+    },
+    {
+     "cls": "explicitMod",
+     "text": "Suppressing Fire"
+    },
+    {
+     "cls": "explicitMod",
+     "text": "Stay Light, Use Cover"
+    },
+    {
+     "cls": "explicitMod",
+     "text": "Polish That Gear"
+    },
+    {
+     "cls": "explicitMod",
+     "text": "Unleash Hell!"
+    },
+    {
+     "cls": "explicitMod",
+     "text": "Cannons, Ready!"
+    },
+    {
+     "cls": "explicitMod",
+     "text": "Strategic Embankments"
+    }
+   ],
+   "icon": "",
+   "category": "Ascendancy",
+   "url": "https://poe2db.tw/us/Tactician"
+  },
+  "Abyssal Lich": {
+   "name": "Abyssal Lich",
+   "base": "Ascendancy",
+   "rarity": "Ascendancy",
+   "lines": [
+    {
+     "cls": "property",
+     "text": "Notables:"
+    },
+    {
+     "cls": "explicitMod",
+     "text": "Eldritch Empowerment"
+    },
+    {
+     "cls": "explicitMod",
+     "text": "Crystalline Phylactery"
+    },
+    {
+     "cls": "explicitMod",
+     "text": "Rupture the Flesh"
+    },
+    {
+     "cls": "explicitMod",
+     "text": "Umbral Well"
+    },
+    {
+     "cls": "explicitMod",
+     "text": "Unwilling Offering"
+    },
+    {
+     "cls": "explicitMod",
+     "text": "Soulless Form"
+    },
+    {
+     "cls": "explicitMod",
+     "text": "Eternal Life"
+    },
+    {
+     "cls": "explicitMod",
+     "text": "Incessant Cacophony"
+    },
+    {
+     "cls": "explicitMod",
+     "text": "Steward of Kulemak"
+    }
+   ],
+   "icon": "",
+   "category": "Ascendancy",
+   "url": "https://poe2db.tw/us/Abyssal_Lich"
+  },
+  "Vaal Cultivation Orb": {
+   "name": "Vaal Cultivation Orb",
+   "base": "",
+   "rarity": "Currency",
+   "lines": [
+    {
+     "cls": "property",
+     "text": "Stackable Currency"
+    },
+    {
+     "cls": "property",
+     "text": "Stack Size: 1 / 10"
+    },
+    {
+     "cls": "explicitMod",
+     "text": "Replaces up to 2 modifiers on a Corrupted Vaal Unique\n\nReplaces other Uniques with a Corrupted Unique of the same Item Class"
+    }
+   ],
+   "icon": "https://cdn.poe2db.tw/image/Art/2DItems/Currency/IncursionCraftingOrbs/IncursionHistoricVaalOrb.webp",
+   "category": "Currency",
+   "url": "https://poe2db.tw/us/Vaal_Cultivation_Orb"
+  },
+  "Architect's Orb": {
+   "name": "Architect's Orb",
+   "base": "",
+   "rarity": "Currency",
+   "lines": [
+    {
+     "cls": "property",
+     "text": "Stackable Currency"
+    },
+    {
+     "cls": "property",
+     "text": "Stack Size: 1 / 10"
+    },
+    {
+     "cls": "explicitMod",
+     "text": "Modifies a Corrupted Equipment or Jewel item unpredictably or destroys it"
+    }
+   ],
+   "icon": "https://cdn.poe2db.tw/image/Art/2DItems/Currency/IncursionCraftingOrbs/IncursionGreaterVaalOrb.webp",
+   "category": "Currency",
+   "url": "https://poe2db.tw/us/Architects_Orb"
+  },
+  "Verisium": {
+   "name": "Verisium",
+   "base": "",
+   "rarity": "Currency",
+   "lines": [
+    {
+     "cls": "property",
+     "text": "Stackable Currency"
+    },
+    {
+     "cls": "property",
+     "text": "Stack Size: 1 / 1000"
+    }
+   ],
+   "icon": "https://cdn.poe2db.tw/image/Art/2DItems/Currency/Expedition2/RefinedVerisium.webp",
+   "category": "Currency",
+   "url": "https://poe2db.tw/us/Verisium"
+  },
+  "Infernalist": {
+   "name": "Infernalist",
+   "base": "Ascendancy",
+   "rarity": "Ascendancy",
+   "lines": [
+    {
+     "cls": "property",
+     "text": "Notables:"
+    },
+    {
+     "cls": "explicitMod",
+     "text": "Bringer of Flame"
+    },
+    {
+     "cls": "explicitMod",
+     "text": "Beidat's Gaze"
+    },
+    {
+     "cls": "explicitMod",
+     "text": "Loyal Hellhound"
+    },
+    {
+     "cls": "explicitMod",
+     "text": "Beidat's Hand"
+    },
+    {
+     "cls": "explicitMod",
+     "text": "Beidat's Will"
+    },
+    {
+     "cls": "explicitMod",
+     "text": "Altered Flesh"
+    },
+    {
+     "cls": "explicitMod",
+     "text": "Demonic Possession"
+    },
+    {
+     "cls": "explicitMod",
+     "text": "Mastered Darkness"
+    },
+    {
+     "cls": "explicitMod",
+     "text": "Pyromantic Pact"
+    },
+    {
+     "cls": "explicitMod",
+     "text": "Grinning Immolation"
+    },
+    {
+     "cls": "explicitMod",
+     "text": "Seething Body"
+    }
+   ],
+   "icon": "",
+   "category": "Ascendancy",
+   "url": "https://poe2db.tw/us/Infernalist"
+  },
+  "Demon Magus": {
+   "name": "Demon Magus",
+   "base": "",
+   "rarity": "New",
+   "lines": [],
+   "icon": "",
+   "category": "New in 1.0",
+   "url": ""
+  }
+ },
+ "newtips": {
+  "Infernalist": {
+   "term": "Infernalist",
+   "summary": "The Infernalist ascendancy gains a new Demon Magus node that binds a scourge demon to your will and supports socketing multiple gems.",
+   "changes": [
+    "New ascendancy notable: Demon Magus, which binds a scourge demon to your will after allocation",
+    "Demon Magus allows socketing multiple gems (per the keynote)"
+   ],
+   "lines": [],
+   "image": null,
+   "sources": [
+    {
+     "label": "ExileCon keynote @ 3:00:52 (said)",
+     "url": "https://www.twitch.tv/videos/2921352507?t=3h0m52s",
+     "ts": "3:00:52"
+    }
+   ],
+   "frame_url": null
+  },
+  "Demon Magus": {
+   "term": "Demon Magus",
+   "summary": "The Demon Magus is a new Infernalist ascendancy meta gem that summons a reviving demon minion which casts spells you socket into it, with spell costs paid by you and scaling damage based on socketed skill variety.",
+   "changes": [
+    "New Infernalist ascendancy skill: Demon Magus meta gem summons a Reviving Demon Magus that casts socketed Spells",
+    "Cost of Spells cast by the minion are paid by you",
+    "Spells cast by the minion cost 50% less",
+    "Minion deals 15% more Damage per different socketed Skill",
+    "Quality grants Minions 0-20% more Maximum Life",
+    "Requires Level 90, gem level 20 (Max)",
+    "You can socket multiple spells as well as supports of your choosing into it"
+   ],
+   "lines": [
+    "Demon Magus | Minion / Companion, Persistent, Meta / Level: 20 (Max) / Requires: Level 90 / Summon a Reviving Demon Magus which casts socketed Spells. / Cost of Spells cast by Minion are paid by you / Spells cast by Minion cost 50% less / Minion deals 15% more Damage per different socketed Skill / Additional Effects from Quality: / Minions have 0(0-20)% more Maximum Life / Place one or more Skill Gems into this Meta Gem's sockets in the Skills Panel. The socketed skills will be incorporated into the Meta Gem's effect."
+   ],
+   "image": "scripts/img/poe_2_full_league_tierlist_before_1.0/nt-demon_magus-magus.jpg",
+   "sources": [
+    {
+     "label": "ExileCon keynote @ 3:01:18 (on screen)",
+     "url": "https://www.twitch.tv/videos/2921352507?t=3h1m18s",
+     "ts": "3:01:18"
+    },
+    {
+     "label": "ExileCon keynote @ 3:01:27 (on screen)",
+     "url": "https://www.twitch.tv/videos/2921352507?t=3h1m27s",
+     "ts": "3:01:27"
+    },
+    {
+     "label": "ExileCon keynote @ 3:00:55 (said)",
+     "url": "https://www.twitch.tv/videos/2921352507?t=3h0m55s",
+     "ts": "3:00:55"
+    },
+    {
+     "label": "ExileCon keynote @ 3:02:42 (said)",
+     "url": "https://www.twitch.tv/videos/2921352507?t=3h2m42s",
+     "ts": "3:02:42"
+    }
+   ],
+   "frame_url": null
+  }
+ }
 }
