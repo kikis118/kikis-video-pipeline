@@ -1,0 +1,192 @@
+{
+ "title": "PoE 2 League Tierlist Before 1.0",
+ "tiers": [
+  "S",
+  "A",
+  "B",
+  "C",
+  "D"
+ ],
+ "channel": "GhazzyTV",
+ "updated": "2026-11-21 16:46",
+ "sections": [
+  {
+   "title": "Intro",
+   "subtitle": null,
+   "minutes": 0.75,
+   "points": [
+    "1.0 drops 11 December - before it does, every PoE 2 league so far, ranked.",
+    "Two years of Early Access: the launch, four challenge leagues and an event league.",
+    "Hook: tease the most controversial placement before revealing anything."
+   ],
+   "prompts": [],
+   "deeper": []
+  },
+  {
+   "title": "How I'm ranking them",
+   "subtitle": null,
+   "minutes": 1.25,
+   "points": [
+    "The league mechanic itself - fun to engage with, not just profitable.",
+    "Loot and economy - did it feel rewarding, could you progress.",
+    "The patch around it - balance, endgame, how the game felt that season.",
+    "Staying power - did people keep playing, did it get better or fall off.",
+    "Worth saying: every one of these mechanics is now core, so you're ranking stuff that's still in your game."
+   ],
+   "prompts": [
+    "Your own background: played since the 0.1 launch, did the 0.1 subathon."
+   ],
+   "deeper": [
+    "0.1 subathon was one minute per sub until Christmas.",
+    "There was a GhazzyTV meetup after the 0.1 subathon."
+   ]
+  },
+  {
+   "title": "0.1 - Early Access launch",
+   "subtitle": "6 December 2024 - no challenge league",
+   "minutes": 2,
+   "points": [
+    "No challenge league - everyone was on Early Access Standard. Rank it as a league or as 'the launch'?",
+    "What we had: 3 acts (plus Cruel), 6 classes, ~50 areas, ~175 skills.",
+    "The hype: over a million Early Access copies sold.",
+    "Your Demon Magus wish started here - 'screaming for it since 0.1'."
+   ],
+   "prompts": [
+    "Was 0.1 the most fun you had despite being the least finished?",
+    "What did 0.1 get right that later patches lost?"
+   ],
+   "deeper": [
+    "1.0 is roughly 3x faster on CPU than 0.1.0, per the keynote."
+   ]
+  },
+  {
+   "title": "0.2 - Dawn of the Hunt",
+   "subtitle": "4 April - 26 August 2025",
+   "minutes": 2.25,
+   "points": [
+    "First seasonal league - but officially not a 'full league': everything shipped straight into core, nothing exclusive.",
+    "Azmerian Wisps - they flee, you chase, monsters they touch get stronger and more rewarding.",
+    "12 Rogue Exiles that use and drop their own uniques, plus 4 unique Strongboxes.",
+    "The Huntress (Amazon, Ritualist) and spears; new Smith of Kitava, Tactician and Lich ascendancies.",
+    "100+ new uniques, 100+ new supports, 8 new endgame maps."
+   ],
+   "prompts": [
+    "Does a league without a real mechanic even deserve a tier?",
+    "Huntress / spear launch - how did the class feel?"
+   ],
+   "deeper": [
+    "Ran ~20.5 weeks.",
+    "Private leagues arrived during 0.2 (0.2.0h)."
+   ]
+  },
+  {
+   "title": "0.3 - Rise of the Abyssal",
+   "subtitle": "The Third Edict - 29 August - 9 December 2025",
+   "minutes": 2.5,
+   "points": [
+    "PoE 2's first proper 'full league'.",
+    "Fissures near packs - kill them, Abyssals climb out with necromantic mods, close the Abyss for a trove; sometimes it opens the Abyssal Depths.",
+    "Bones and the Well of Souls: hidden Desecrated mods, reveal and pick one of three. Also juiced waystones.",
+    "The patch was massive: Act 4 (non-linear, eight islands), Cruel removed for three interludes to 65.",
+    "Plus a support gem overhaul, an essence rework and a full balance pass."
+   ],
+   "prompts": [
+    "Was desecration the best crafting addition PoE 2 has had?",
+    "Shortest league of the lot - did it end too early or at the right time?"
+   ],
+   "deeper": [
+    "Shortest league: ~14.5 weeks.",
+    "Abyss went core in 0.4 and got its own Atlas passive tree.",
+    "Abyssal Lich alternate ascendancy came with the Abyss mechanic."
+   ]
+  },
+  {
+   "title": "0.4 - Fate of the Vaal",
+   "subtitle": "The Last of the Druids - 12 December 2025 - 25 May 2026",
+   "minutes": 2.5,
+   "points": [
+    "Vaal structures across Wraeclast - sacrifice nearby monsters to power devices that take you to Atziri's Temple.",
+    "You build the temple yourself - pick rooms, place them next to rooms that level them up; Royal Architect and Atziri at the top.",
+    "Vaal crafting: corruption benches, Architect's Orb, Vaal Cultivation Orb, transcendent limbs.",
+    "The Druid (Oracle, Shaman) and Talismans - shapeshifting into animal forms.",
+    "Tavern Talk take: big drop-off early over the economy, then the temple endgame won back the people who stayed."
+   ],
+   "prompts": [
+    "Agree with that take - slow start, great endgame?",
+    "Longest league of the lot - earned it or overstayed?"
+   ],
+   "deeper": [
+    "Longest league: ~23.4 weeks.",
+    "250+ new passives and the first Lineage Supports (8+).",
+    "Big CPU optimisations shipped with 0.4.",
+    "Moved to core in 0.5."
+   ]
+  },
+  {
+   "title": "0.5 - Runes of Aldur",
+   "subtitle": "Return of the Ancients - 29 May 2026 - early December 2026",
+   "minutes": 2.5,
+   "points": [
+    "A Remnant in every area - slot runeshapes to pick the item you want, then fight waves of risen monsters for it.",
+    "More runes = more waves and harder mods, but better items; Remnants roll 2-10 slots.",
+    "Verisium and Runeforging - and Runic Ward, a defence that kicks in at 1 life.",
+    "Runeforging also upgrades low-level uniques so they stay usable late.",
+    "Shipped with the 'Origins of Divinity' endgame overhaul - Delirium, Breach, Ritual and Expedition all reworked."
+   ],
+   "prompts": [
+    "Deterministic crafting - did it make loot feel worse or better?",
+    "Runic Ward - did it change how you built characters?"
+   ],
+   "deeper": [
+    "23 Kalguuran skills, 13 Alloys, Fluxes, Ancient and Mythical runes all come out of Remnants.",
+    "Moved to core in 0.5.5; still running until just before 1.0."
+   ]
+  },
+  {
+   "title": "Bonus: 0.5.5 - Forbidden Rites (event league)",
+   "subtitle": "4 September 2026 - runs alongside Runes of Aldur",
+   "minutes": 1.5,
+   "points": [
+    "Event league - Ritual in every campaign area, with levelling rewards instead of endgame ones.",
+    "Boss rituals chain: beat the boss and it carries into the next ritual's waves; spend the tribute on uniques.",
+    "Sacred Blooms bring back the Viridian Wildwood and wisps on your Atlas.",
+    "Trial of Chaos finally lets you leave mid-run."
+   ],
+   "prompts": [
+    "Does an event league get a tier, or does it sit off the board?"
+   ],
+   "deeper": [
+    "You were playing it late October - Ritual and Delirium Atlas points."
+   ]
+  },
+  {
+   "title": "The full board - and what 1.0 needs to learn",
+   "subtitle": null,
+   "minutes": 2,
+   "points": [
+    "Reveal the final board; call out the biggest gap between tiers.",
+    "1.0 league is Conquerors of Wraeclast - troops, castles, sieges, three factions, 100 castles on one shared Atlas.",
+    "Your ExileCon reaction: 'straight up my alley' - RTS and risk woven into PoE.",
+    "Your 1.0 start: Infernalist, triple Hellhounds / Demon Magus - then Shadow."
+   ],
+   "prompts": [
+    "Which past mechanic should 1.0 learn the most from?",
+    "Where would Conquerors land if it plays like the keynote?"
+   ],
+   "deeper": [
+    "1.0 also adds Acts 5-6, the Shadow and Duelist, ~110 effectively new uniques, a 70-node Atlas tree."
+   ]
+  },
+  {
+   "title": "Outro",
+   "subtitle": null,
+   "minutes": 0.5,
+   "points": [
+    "Ask: where would you put each league - drop your tier list in the comments.",
+    "Plug the 1.0 launch subathon."
+   ],
+   "prompts": [],
+   "deeper": []
+  }
+ ]
+}
