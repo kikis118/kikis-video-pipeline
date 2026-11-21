@@ -59,6 +59,16 @@ a.shot{display:block;margin:6px 0;color:var(--muted);text-decoration:none;font-s
 a.shot img{display:block;max-width:100%;max-height:520px;border-radius:8px;border:1px solid var(--border);margin-bottom:4px}
 a.shot:hover img{border-color:var(--accent)}
 .body li a:not(.shot){color:var(--accent)}
+/* PoE 2 tooltips on hover - same look as the shorts tool's Video Studio */
+.tt { text-decoration: underline dotted #b08a4a; text-underline-offset: 3px; cursor: help; }
+.tt-pop { display: none; position: fixed; z-index: 9999; width: 360px; background: #000000f2; border: 1px solid #5b4b2e; border-radius: 4px;
+  font-family: 'Palatino Linotype', Georgia, serif; font-size: 13.5px; text-align: center; color: #9a9a9a; box-shadow: 0 10px 30px #000c; pointer-events: none; }
+.tt-h { padding: 5px 10px; border-bottom: 1px solid #5b4b2e; background: linear-gradient(#3a2a12, #1c140a); color: var(--c); font-size: 16px; }
+.tt-h .tt-b { font-size: 14px; } .tt-c { padding: 6px 12px 8px; line-height: 1.35; }
+.tt-c img { max-height: 90px; margin-top: 6px; }
+.tt-sep { height: 1px; margin: 5px 14px; background: linear-gradient(90deg, #0000, #5b4b2e, #0000); }
+.tt-implicitMod, .tt-explicitMod, .tt-runeMod, .tt-enchantMod, .tt-gemDescr { color: #8888ff; } .tt-craftedMod { color: #b4b4ff; }
+.tt-flavourText { color: #af6025; font-style: italic; } .tt-corrupted { color: #d20000; } .tt-secDescrText, .tt-descrText { color: #9a9a9a; }
 mark{background:#6b5726;color:#fff;padding:0 3px;border-radius:2px}
 
 /* Editing + notes: double-click a line. No buttons in the reading view. */
@@ -129,10 +139,50 @@ function fmt(t) {
   if (k && k !== 'fmt-img') h = h.replace(/^(\+|-|−|–|!|&gt;)\s*/, '');
   // "+ Common praise: ..." -> the label before the colon goes bold
   if (k === 'fmt-pro' || k === 'fmt-con' || k === 'fmt-key') h = h.replace(/^([^:]{2,40}):/, '<b class="lbl">$1:</b>');
-  return links(h).replace(/\*\*(.+?)\*\*/g, '<b>$1</b>').replace(/==(.+?)==/g, '<mark>$1</mark>');
+  return links(tooltips(h)).replace(/\*\*(.+?)\*\*/g, '<b>$1</b>').replace(/==(.+?)==/g, '<mark>$1</mark>');
 }
 // ![caption](scripts/img/...) screenshots, [text](https://...) links, bare https:// links.
 // Only http(s) and our own scripts/img/ paths are allowed - nothing else becomes a link/image.
+// Exact PoE 2 tooltips embedded by Publish (sc.tooltips, from the Studio's poe2db database):
+// [[Name]] / [[shown words|Name]] tags and exact names become hoverable (tap on phones).
+let TTRX = null;
+function tooltips(h) {
+  const tips = (SC && SC.tooltips) || {};
+  const held = [];
+  h = h.replace(/\[\[([^\]|]+)(?:\|([^\]]+))?\]\]/g, (m, a, b) => { held.push(tips[(b || a).replace(/&#39;/g, "'")] ? `<span class="tt" data-tt="${b || a}">${a}</span>` : a); return `\u0001${held.length - 1}\u0002`; });
+  if (TTRX === null) {
+    const names = Object.keys(tips).filter((n) => n.length >= 5).sort((a, b) => b.length - a.length);
+    TTRX = names.length ? new RegExp(`(?<![\\w'&#;])(${names.map((n) => esc(n).replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|')})(?![\\w'])`, 'g') : false;
+  }
+  if (TTRX) h = h.split(/(<[^>]+>)/).map((part) => (part.startsWith('<') ? part : part.replace(TTRX, (m) => { held.push(`<span class="tt" data-tt="${m}">${m}</span>`); return `\u0001${held.length - 1}\u0002`; }))).join('');
+  return h.replace(/\u0001(\d+)\u0002/g, (m, i) => held[+i]);
+}
+function tooltipHtml(t) {
+  const col = { Unique: '#af6025', Rare: '#ffff77', Magic: '#8888ff', Gem: '#1ba29b', Currency: '#aa9e82' }[t.rarity] || '#c8c8c8';
+  let prev = null, body = '';
+  (t.lines || []).slice(0, 18).forEach((l) => {
+    const g = l.cls === 'property' ? 'p' : l.cls;
+    if (prev !== null && g !== prev) body += '<div class="tt-sep"></div>';
+    prev = g;
+    body += `<div class="tt-${esc(l.cls)}">${esc(l.text).replace(/\n/g, '<br>')}</div>`;
+  });
+  if ((t.lines || []).length > 18) body += '<div class="tt-property">…</div>';
+  return `<div class="tt-h" style="--c:${col}"><div>${esc(t.name)}</div>${t.base ? `<div class="tt-b">${esc(t.base)}</div>` : ''}</div><div class="tt-c">${body}${t.icon ? `<img src="${esc(t.icon)}">` : ''}</div>`;
+}
+const ttPop = document.createElement('div');
+ttPop.className = 'tt-pop'; document.body.appendChild(ttPop);
+function showTip(el) {
+  const t = SC && SC.tooltips && SC.tooltips[el.dataset.tt.replace(/&#39;/g, "'")];
+  if (!t) return;
+  ttPop.innerHTML = tooltipHtml(t);
+  ttPop.style.display = 'block';
+  const r = el.getBoundingClientRect();
+  ttPop.style.left = Math.min(innerWidth - ttPop.offsetWidth - 8, Math.max(8, r.left)) + 'px';
+  ttPop.style.top = (r.bottom + 8 + ttPop.offsetHeight > innerHeight ? Math.max(8, r.top - ttPop.offsetHeight - 8) : r.bottom + 8) + 'px';
+}
+document.addEventListener('mouseover', (e) => { const el = e.target.closest && e.target.closest('.tt[data-tt]'); if (el) showTip(el); else ttPop.style.display = 'none'; });
+document.addEventListener('click', (e) => { const el = e.target.closest && e.target.closest('.tt[data-tt]'); if (el) showTip(el); else ttPop.style.display = 'none'; });
+document.addEventListener('scroll', () => { ttPop.style.display = 'none'; }, true);
 function links(h) {
   return h
     .replace(/!\[([^\]]*)\]\(((?:scripts\/img\/|https?:\/\/)[^)\s]+)\)/g, (m, cap, u) => `<a class="shot" href="${u}" target="_blank" rel="noopener"><img src="${u}" alt="" loading="lazy"><span>${cap}</span></a>`)
