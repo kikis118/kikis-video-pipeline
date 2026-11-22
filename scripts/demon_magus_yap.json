@@ -2,7 +2,7 @@
  "title": "Demon Magus & Infernalist in PoE 1.0 Full Launch - My Exilecon Playtest Thoughts",
  "tiers": null,
  "channel": "GhazzyTV",
- "updated": "2026-11-21 20:59",
+ "updated": "2026-11-22 16:44",
  "sections": [
   {
    "title": "Intro",
@@ -139,6 +139,15 @@
    "category": "Ascendancy skill · Infernalist",
    "url": "https://poe2db.tw/us/Summon_Infernal_Hound"
   },
+  "Covenant skills": {
+   "name": "Covenant skills",
+   "base": "",
+   "rarity": "New",
+   "lines": [],
+   "icon": "",
+   "category": "New in 1.0",
+   "url": ""
+  },
   "Acolyte of Chayula": {
    "name": "Acolyte of Chayula",
    "base": "Ascendancy",
@@ -192,23 +201,39 @@
    "icon": "",
    "category": "Ascendancy",
    "url": "https://poe2db.tw/us/Acolyte_of_Chayula"
+  },
+  "Covenant of Gore": {
+   "name": "Covenant of Gore",
+   "base": "",
+   "rarity": "New",
+   "lines": [],
+   "icon": "",
+   "category": "New in 1.0",
+   "url": ""
   }
  },
  "newtips": {
   "Demon Magus": {
    "term": "Demon Magus",
-   "summary": "The Demon Magus is a new Infernalist ascendancy meta gem that summons a reviving demon minion which casts spells you socket into it, with spell costs paid by you and scaling damage based on socketed skill variety.",
+   "summary": "The Demon Magus is a new Infernalist ascendancy skill in PoE 2 1.0: a persistent, reviving minion/companion meta gem that casts spells you socket into it, with the spell costs paid by you.",
    "changes": [
-    "New Infernalist ascendancy skill: Demon Magus meta gem summons a Reviving Demon Magus that casts socketed Spells",
+    "New Infernalist ascendancy skill: Demon Magus, a persistent minion/companion meta gem",
+    "Summons a Reviving Demon Magus which casts socketed Spells",
     "Cost of Spells cast by the minion are paid by you",
     "Spells cast by the minion cost 50% less",
     "Minion deals 15% more Damage per different socketed Skill",
     "Quality grants Minions 0-20% more Maximum Life",
-    "Requires Level 90, gem level 20 (Max)",
-    "You can socket multiple spells as well as supports of your choosing into it"
+    "Requires Level 90; gem level 20 (Max)"
    ],
    "lines": [
-    "Demon Magus | Minion / Companion, Persistent, Meta / Level: 20 (Max) / Requires: Level 90 / Summon a Reviving Demon Magus which casts socketed Spells. / Cost of Spells cast by Minion are paid by you / Spells cast by Minion cost 50% less / Minion deals 15% more Damage per different socketed Skill / Additional Effects from Quality: / Minions have 0(0-20)% more Maximum Life / Place one or more Skill Gems into this Meta Gem's sockets in the Skills Panel. The socketed skills will be incorporated into the Meta Gem's effect."
+    "Demon Magus | Minion / Companion, Persistent, Meta / Level: 20 (Max) / Requires: Level 90",
+    "Summon a Reviving Demon Magus which casts socketed Spells.",
+    "Cost of Spells cast by Minion are paid by you",
+    "Spells cast by Minion cost 50% less",
+    "Minion deals 15% more Damage per different socketed Skill",
+    "Additional Effects from Quality:",
+    "Minions have 0(0-20)% more Maximum Life",
+    "Place one or more Skill Gems into this Meta Gem's sockets in the Skills Panel. The socketed skills will be incorporated into the Meta Gem's effect."
    ],
    "image": "scripts/img/demon_magus_yap/nt-demon_magus-magus.jpg",
    "sources": [
@@ -233,21 +258,48 @@
      "ts": "3:02:42"
     }
    ],
-   "frame_url": null
+   "frame_url": null,
+   "tooltip_seen": true,
+   "shots": [
+    {
+     "image": "scripts/img/demon_magus_yap/nt-demon_magus-orig-magus.jpg",
+     "ts": "",
+     "url": "",
+     "label": "ExileCon keynote - Demon Magus"
+    },
+    {
+     "image": "scripts/img/demon_magus_yap/nt-demon_magus-orig-min_magus_6.jpg",
+     "ts": "3:01:18",
+     "url": "https://www.twitch.tv/videos/2921352507?t=3h1m18s",
+     "label": "ExileCon keynote @ 3:01:18 - Demon Magus"
+    },
+    {
+     "image": "scripts/img/demon_magus_yap/nt-demon_magus-orig-h_10884.jpg",
+     "ts": "3:01:24",
+     "url": "https://www.twitch.tv/videos/2921352507?t=3h1m24s",
+     "label": "ExileCon keynote @ 3:01:24 - Demon Magus"
+    },
+    {
+     "image": "scripts/img/demon_magus_yap/nt-demon_magus-orig-h_10887.jpg",
+     "ts": "3:01:27",
+     "url": "https://www.twitch.tv/videos/2921352507?t=3h1m27s",
+     "label": "ExileCon keynote @ 3:01:27 - Demon Magus"
+    }
+   ]
   },
   "Infernal Hounds": {
    "term": "Infernal Hounds",
-   "summary": "Infernal Hounds now summon three at once and gain a Command skill, Instability, letting one hound charge, leap and explode for large Fire damage on a target.",
+   "summary": "Infernal Hounds received a major upgrade in PoE 2 1.0: you now get three of them, and they gain a Command skill (Instability) that makes a hound charge, leap, and explode for large Fire damage.",
    "changes": [
-    "You now get three Infernal Hounds instead of one",
-    "Added a Command skill: Instability, which commands one hound to charge at a target, leap at it and explode",
-    "Explosion deals 1632 to 2447 Fire damage at level 20",
-    "Explosion radius is 1.9 metres",
-    "Command has a cast time of 1.00s",
-    "Tooltip now notes the hound can be Commanded to explode on a target"
+    "You now get three Infernal Hounds (up from one)",
+    "Hounds gain a Command skill: Instability — command a hound to charge at a target, leap at it, and explode dealing large Fire damage",
+    "Tooltip now notes the hound can be Commanded to explode on a target",
+    "Command: Instability has a 1.00s cast time, deals 1632 to 2447 Fire damage, and has a 1.9 metre explosion radius (at level 20)",
+    "Skill tags now include Command in addition to Minion, Persistent, Fire"
    ],
    "lines": [
-    "SUMMON INFERNAL HOUND | Minion / Persistent, Command, Fire",
+    "SUMMON INFERNAL HOUND",
+    "Minion / Persistent, Command, Fire",
     "LEVEL: 20 (MAX)",
     "REQUIRES: LEVEL 90",
     "Summon a Reviving Infernal Hound which Ignites enemies near it. Can be Commanded to explode on a target.",
@@ -270,22 +322,74 @@
      "ts": "3:01:09"
     }
    ],
-   "frame_url": "https://www.twitch.tv/videos/2921352507?t=3h1m29s"
+   "frame_url": "https://www.twitch.tv/videos/2921352507?t=3h1m29s",
+   "tooltip_seen": true,
+   "shots": [
+    {
+     "image": "scripts/img/demon_magus_yap/nt-infernal_hounds-orig-min_hounds_3.jpg",
+     "ts": "3:01:29",
+     "url": "https://www.twitch.tv/videos/2921352507?t=3h1m29s",
+     "label": "ExileCon keynote @ 3:01:29 - Summon Infernal Hound"
+    },
+    {
+     "image": "scripts/img/demon_magus_yap/nt-infernal_hounds-orig-h_10892.jpg",
+     "ts": "3:01:32",
+     "url": "https://www.twitch.tv/videos/2921352507?t=3h1m32s",
+     "label": "ExileCon keynote @ 3:01:32 - Summon Infernal Hound"
+    }
+   ]
+  },
+  "Covenant skills": {
+   "term": "Infernal Covenant",
+   "summary": "Infernal Covenant is a new choice-based mechanic in PoE 2 1.0 where you make a deal with a Scourge demon lord, selecting one of three covenants that each grant a skill.",
+   "changes": [
+    "New mechanic: make a deal with a Scourge demon lord, usually sacrificing something to empower something else",
+    "Select one of three options to allocate: Covenant of Beidat, Covenant of Ghorr, or Covenant of K'Tash",
+    "Each option grants a corresponding skill"
+   ],
+   "lines": [
+    "Infernal Covenant | Select One:",
+    "1 Grants Skill: Covenant of Beidat",
+    "2 Grants Skill: Covenant of Ghorr",
+    "3 Grants Skill: Covenant of K'Tash",
+    "Infernal Covenant | Select one option to allocate",
+    "Click to allocate"
+   ],
+   "image": "scripts/img/demon_magus_yap/nt-infernal_covenant-infernalist_asc.jpg",
+   "sources": [
+    {
+     "label": "ExileCon keynote @ 3:01:39 (on screen)",
+     "url": "https://www.twitch.tv/videos/2921352507?t=3h1m39s",
+     "ts": "3:01:39"
+    }
+   ],
+   "frame_url": "https://www.twitch.tv/videos/2921352507?t=3h1m39s",
+   "tooltip_seen": true,
+   "shots": [
+    {
+     "image": "scripts/img/demon_magus_yap/nt-infernal_covenant-orig-x_hasc_0.jpg",
+     "ts": "3:01:39",
+     "url": "https://www.twitch.tv/videos/2921352507?t=3h1m39s",
+     "label": "ExileCon keynote @ 3:01:39 - Infernal Covenant"
+    },
+    {
+     "image": "scripts/img/demon_magus_yap/nt-infernal_covenant-orig-cov.jpg",
+     "ts": "",
+     "url": "",
+     "label": "ExileCon keynote - Infernal Covenant"
+    }
+   ]
   },
   "Acolyte of Chayula": {
    "term": "Acolyte of Chayula",
-   "summary": "The Acolyte of Chayula has been totally reworked: it gains a Herald of Chayula skill where non-Herald Attack Hits inflict Decay and Attack Killing Blows consume Decay to trigger Chaos explosions scaling with Decay, and the old Darkness mechanic has been moved to a keystone on the main passive tree and replaced with a summonable companion similar to Demon Magus.",
+   "summary": "The Acolyte of Chayula has been totally reworked: Herald of Chayula now causes all your hits to add Decay to monsters, and killing a monster triggers an explosion based on the Decay it had. The old Darkness mechanic has been moved entirely into a keystone on the main passive tree, and the Acolyte can now also summon a companion, similar to Demon Magus. Its tooltip wasn't shown yet.",
    "changes": [
-    "Acolyte of Chayula has been totally reworked",
-    "Gains Herald of Chayula: non-Herald Attack Hits inflict Decay",
-    "Attack Killing Blows on targets with Decay trigger an explosion of Chaos damage scaling with the amount of Decay on the target, not Weapon damage",
-    "Explodes for 13 Chaos Damage per Decay, radius 2.8 metres, 50% more Damage with Hits for blasts originating from a Unique Enemy",
-    "Old Darkness mechanic completely moved into a keystone on the main passive tree",
-    "Replaced with the ability to summon a companion, similar to Demon Magus"
+    "Herald of Chayula now causes all your hits to add Decay to monsters",
+    "Killing a monster triggers an explosion based on the amount of Decay it had",
+    "The old Darkness mechanic has been completely moved into a keystone on the main passive tree",
+    "The Acolyte can now also summon a companion, similar to Demon Magus"
    ],
-   "lines": [
-    "Herald of Chayula | Herald of Chayula / Buff / Attack, Persistent, AoE, Trigger, Chaos, Herald, Payoff / Level: 20 (Max) / Requires: Level 90 / Requires: Any Martial Weapon / Your non-Herald Attack Hits inflict Decay. Attack Killing Blows Consume Decay to Trigger an explosion of Chaos damage which scales with the amount of Decay on the target, but not your Weapon's damage. Using this Skill Consumes Decay to explode a target and any targets Hit with Decay. / Buff, Active, Explosion / Non-Herald Attack Hits inflict 10 Decay / Killing Blows with Attacks on Targets with Decay Trigger an Explosion / Buff, Active, Explosion / Critical Hit Chance: 5.00% / Attack Damage: 100% / Can't be Evaded / Cannot Inflict Decay / Explodes for 13 Chaos Damage per Decay / Explosion Damage is not based on Weapon Damage / Explosion radius is 2.8 metres / 50% more Damage with Hits for blasts originating from a Unique Enemy"
-   ],
+   "lines": [],
    "image": "scripts/img/demon_magus_yap/nt-acolyte_of_chayula-10961.jpg",
    "sources": [
     {
@@ -294,7 +398,87 @@
      "ts": "3:02:33"
     }
    ],
-   "frame_url": "https://www.twitch.tv/videos/2921352507?t=3h2m41s"
+   "frame_url": "https://www.twitch.tv/videos/2921352507?t=3h2m41s",
+   "tooltip_seen": false,
+   "shots": [
+    {
+     "image": "scripts/img/demon_magus_yap/nt-acolyte_of_chayula-orig-10961.jpg",
+     "ts": "3:02:41",
+     "url": "https://www.twitch.tv/videos/2921352507?t=3h2m41s",
+     "label": "ExileCon keynote @ 3:02:41 - Herald Of Chayula"
+    },
+    {
+     "image": "scripts/img/demon_magus_yap/nt-acolyte_of_chayula-orig-10965.jpg",
+     "ts": "3:02:45",
+     "url": "https://www.twitch.tv/videos/2921352507?t=3h2m45s",
+     "label": "ExileCon keynote @ 3:02:45 - Herald Of Chayula"
+    }
+   ]
+  },
+  "Covenant of Gore": {
+   "term": "Covenant of Ghorr",
+   "summary": "Covenant of Ghorr is a new Covenant skill in PoE 2 1.0, one of three demon-lord covenants (with Beidat and K'Tash) that sacrifice something to empower something else; Ghorr drains life to spawn a swarm of withering bloatflies.",
+   "changes": [
+    "New skill: Covenant of Ghorr, a Covenant skill dealing with a demon lord of the Scourge",
+    "Covenants are one of three options (Covenant of Beidat, Covenant of Ghorr, Covenant of K'Tash) allocated via Infernal Covenant",
+    "Sacrifices life (5% Life per Second while active) to create a Swarm of Withering Bloatflies every few seconds",
+    "Covenant buff grants 15% more Damage over Time and 1% maximum Life recovery on Kill to you and allies within it",
+    "Spawns a Swarm every 2 seconds; Swarm duration 6 seconds; Covenant duration 10 seconds; radius 4 metres; Limit 1 Covenant",
+    "Cooldown 15.00s, Cast Time 0.60s, Requires Level 90",
+    "Modifiers to Cooldown Recovery Rate also apply to Swarm Spawn frequency",
+    "Quality grants 0-20% more Area of Effect"
+   ],
+   "lines": [
+    "Covenant of Ghorr | Covenant of Ghorr / Spell / Minion, AoE, Duration / Level: 20 (Max) / Cost: 5% Life per Second / Cooldown Time: 15.00s / Cast Time: 0.60s / Requires: Level 90 / Forms a Covenant of Ghorr that drains your life while active to create a Swarm of Withering Bloatflies every few seconds. You and Allies deal more Damage over Time and recover Life on Kill while within the Covenant. / Spawns a Swarm every 2 seconds / Modifiers to Cooldown Recovery Rate also apply to Swarm Spawn frequency / Swarm duration is 6 seconds / Covenant Buff grants 15% more Damage over Time / Covenant Buff grants Recover 1% of maximum Life on Kill / Covenant radius is 4 metres / Covenant duration is 10 seconds / Limit 1 Covenant / Additional Effects from Quality: / 0(0-20)% more Area of Effect",
+    "Infernal Covenant | Select one option to allocate / 1 Grants Skill: Covenant of Beidat / 2 Grants Skill: Covenant of Ghorr / 3 Grants Skill: Covenant of K'Tash / Click to allocate"
+   ],
+   "image": "scripts/img/demon_magus_yap/nt-covenant_of_ghorr-10901.jpg",
+   "sources": [
+    {
+     "label": "ExileCon keynote @ 3:01:39 (on screen)",
+     "url": "https://www.twitch.tv/videos/2921352507?t=3h1m39s",
+     "ts": "3:01:39"
+    },
+    {
+     "label": "ExileCon keynote @ 3:01:29 (said)",
+     "url": "https://www.twitch.tv/videos/2921352507?t=3h1m29s",
+     "ts": "3:01:29"
+    }
+   ],
+   "frame_url": "https://www.twitch.tv/videos/2921352507?t=3h1m41s",
+   "tooltip_seen": true,
+   "shots": [
+    {
+     "image": "scripts/img/demon_magus_yap/nt-covenant_of_ghorr-orig-10901.jpg",
+     "ts": "3:01:41",
+     "url": "https://www.twitch.tv/videos/2921352507?t=3h1m41s",
+     "label": "ExileCon keynote @ 3:01:41 - Covenant Of Ghorr"
+    },
+    {
+     "image": "scripts/img/demon_magus_yap/nt-covenant_of_ghorr-orig-10905.jpg",
+     "ts": "3:01:45",
+     "url": "https://www.twitch.tv/videos/2921352507?t=3h1m45s",
+     "label": "ExileCon keynote @ 3:01:45 - Covenant Of Ghorr"
+    },
+    {
+     "image": "scripts/img/demon_magus_yap/nt-covenant_of_ghorr-orig-10910.jpg",
+     "ts": "3:01:50",
+     "url": "https://www.twitch.tv/videos/2921352507?t=3h1m50s",
+     "label": "ExileCon keynote @ 3:01:50 - Covenant Of Ghorr"
+    },
+    {
+     "image": "scripts/img/demon_magus_yap/nt-covenant_of_ghorr-orig-x_hasc_0.jpg",
+     "ts": "3:01:39",
+     "url": "https://www.twitch.tv/videos/2921352507?t=3h1m39s",
+     "label": "ExileCon keynote @ 3:01:39 - Infernal Covenant"
+    },
+    {
+     "image": "scripts/img/demon_magus_yap/nt-covenant_of_ghorr-orig-cov.jpg",
+     "ts": "",
+     "url": "",
+     "label": "ExileCon keynote - Infernal Covenant"
+    }
+   ]
   }
  }
 }
