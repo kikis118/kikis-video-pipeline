@@ -89,6 +89,22 @@ a.shot:hover img{border-color:var(--accent)}
 @media (max-width: 640px) { .tt-pair { grid-template-columns: 1fr; } }
 .tt-pop.wide { max-height: calc(100vh - 16px); overflow: hidden; }
 @media (max-width: 640px), (max-height: 700px) { .tt-shot { max-height: 150px; } .tt-ch li { margin: 1px 0; } }
+/* tooltip popup: interactive (originals, source links) + full-size lightbox */
+.tt-pop { pointer-events: auto; }
+.tt-pop.wide { overflow-y: auto; }
+.tt-ol { font: 600 10.5px/1.2 system-ui, sans-serif; letter-spacing: .06em; text-transform: uppercase; color: #6c8a96; margin: 9px 0 4px; }
+.tt-shot, .tt-orig { cursor: zoom-in; }
+.tt-origs { display: flex; gap: 4px; flex-wrap: wrap; }
+.tt-orig { width: calc(50% - 2px); aspect-ratio: 16 / 9; object-fit: cover; border: 1px solid #2f6f8a55; border-radius: 2px; }
+.tt-orig:hover, .tt-shot:hover { border-color: #7fe0ff; }
+.tt-src a, .tt-link a { color: #7fb8cc; }
+.tt-link { font: 11px system-ui, sans-serif; padding: 0 10px 7px; text-align: center; }
+.tt-miss { color: #ffcf7a; font: 12.5px/1.35 system-ui, sans-serif; margin: 5px 0; }
+.tt-lb { display: none; position: fixed; inset: 0; z-index: 10000; background: #000000e0; align-items: center; justify-content: center; padding: 16px; cursor: zoom-out; }
+.tt-lb figure { margin: 0; max-width: min(1700px, 100%); text-align: center; }
+.tt-lb img { max-width: 100%; max-height: calc(100vh - 80px); border: 1px solid #444; border-radius: 4px; }
+.tt-lb figcaption { color: #ccc; font: 13px/1.4 system-ui, sans-serif; margin-top: 8px; }
+.tt-lb a { color: #7fb0ff; } .tt-lbx { color: #777; }
 mark{background:#6b5726;color:#fff;padding:0 3px;border-radius:2px}
 
 /* Editing + notes: double-click a line. No buttons in the reading view. */
@@ -197,40 +213,76 @@ function tooltipHtml(t) {
   if ((t.lines || []).length > 18) body += '<div class="tt-property">…</div>';
   return `<div class="tt-h" style="--c:${col}"><div>${esc(t.name)}</div>${t.base ? `<div class="tt-b">${esc(t.base)}</div>` : ''}</div><div class="tt-c">${body}${t.icon ? `<img src="${esc(t.icon)}">` : ''}</div>`;
 }
-const ttPop = document.createElement('div');
-ttPop.className = 'tt-pop'; document.body.appendChild(ttPop);
-// CURRENT | NEW in 1.0 popup. The NEW side comes from the ExileCon keynote (newtips.py): summary,
-// concrete changes, and the exact keynote screenshot of the tooltip (or its read text when no shot).
-function newSideHtml(n, imgSrc) {
+const TT_SEL = '.tt[data-tt]';
+const ttImg = (p) => p;   // Publish already rewrote images to scripts/img/<slug>/nt-*
+function ttData(name) {
+  const t = SC && SC.tooltips && SC.tooltips[name], n = SC && SC.newtips && SC.newtips[name];
+  return t || n ? { t: t && !t.missing ? t : null, n: n || null } : null;
+}
+// ---- PoE tooltip popup: CURRENT | NEW in 1.0 (same code in the Studio's studio.js and script.html).
+// The re-rendered tooltip / summary is for easy reading; every keynote-sourced side also carries the
+// untouched original screenshots (click = full size + link to that moment in the VOD), and the
+// current side links to its poe2db page, so anything can be checked at the source.
+function newSideHtml(n) {
   const ch = (n.changes || []).map((c) => `<li>${esc(c)}</li>`).join('');
-  const lines = !imgSrc ? (n.lines || []).slice(0, 16).map((l) => `<div class="tt-nl">${esc(l)}</div>`).join('') : '';
-  const src = (n.sources || []).slice(0, 3).map((x) => esc(x.ts)).join(' · ');
+  const shots = (n.shots || []).filter((x) => x.image);
+  const lines = !n.image ? (n.lines || []).slice(0, 16).map((l) => `<div class="tt-nl">${esc(l)}</div>`).join('') : '';
+  const src = (n.sources || []).slice(0, 4).map((x) => `<a href="${esc(x.url)}" target="_blank" rel="noopener">${esc(x.ts)}</a>`).join(' · ');
+  const miss = n.tooltip_seen === false ? `<div class="tt-miss">⚠ ${esc(n.term)}'s own tooltip wasn't shown in the keynote - not available yet. Anything pictured below is related, not its tooltip.</div>` : '';
   return `<div class="tt-h tt-hnew"><div>${esc(n.term)}</div><div class="tt-b">ExileCon 2026 keynote</div></div><div class="tt-c tt-new">`
-    + `${n.summary ? `<div class="tt-sum">${esc(n.summary)}</div>` : ''}${ch ? `<ul class="tt-ch">${ch}</ul>` : ''}`
-    + `${imgSrc ? `<img class="tt-shot" src="${esc(imgSrc)}" alt="">` : ''}${lines ? `<div class="tt-sep"></div>${lines}` : ''}`
+    + `${n.summary ? `<div class="tt-sum">${esc(n.summary)}</div>` : ''}${ch ? `<ul class="tt-ch">${ch}</ul>` : ''}${miss}`
+    + (n.image ? `<div class="tt-ol">Tooltip from the keynote · click to enlarge</div><img class="tt-shot" src="${esc(ttImg(n.image))}" data-full="${esc(ttImg(n.image))}" data-cap="${esc(n.term)} - tooltip cut from the keynote" data-url="${esc(n.frame_url || '')}" alt="">` : '')
+    + (lines ? `<div class="tt-sep"></div>${lines}` : '')
+    + (shots.length ? `<div class="tt-ol">Original screenshots · click to view full size</div><div class="tt-origs">${shots.map((x) => `<img class="tt-orig" src="${esc(ttImg(x.image))}" data-full="${esc(ttImg(x.image))}" data-cap="${esc(x.label || '')}" data-url="${esc(x.url || '')}" title="${esc(x.label || '')}" alt="">`).join('')}</div>` : '')
     + `${src ? `<div class="tt-src">keynote @ ${src}</div>` : ''}</div>`;
 }
-function tipPairHtml(t, n, imgSrc) {
-  if (!n) return tooltipHtml(t);
-  const cur = t && !t.missing && (t.lines || []).length ? tooltipHtml(t)
-    : `<div class="tt-h" style="--c:#c8c8c8"><div>${esc(n.term)}</div><div class="tt-b">Not in the game yet</div></div><div class="tt-c tt-none">New in 1.0 - nothing to compare with in the current patch.</div>`;
-  return `<div class="tt-pair"><div class="tt-col"><div class="tt-lab">Current</div>${cur}</div><div class="tt-col"><div class="tt-lab tt-labnew">✨ New in 1.0</div>${newSideHtml(n, imgSrc)}</div></div>`;
+function curHtml(t) {
+  return tooltipHtml(t) + (t.url ? `<div class="tt-link"><a href="${esc(t.url)}" target="_blank" rel="noopener">Source: poe2db.tw ↗</a></div>` : '');
 }
-function showTip(el) {
-  const name = el.dataset.tt.replace(/&#39;/g, "'");
-  const t = SC && SC.tooltips && SC.tooltips[name];
-  const n = SC && SC.newtips && SC.newtips[name];
-  if (!t && !n) return;
-  ttPop.innerHTML = tipPairHtml(t, n, n && n.image ? n.image : '');
-  ttPop.classList.toggle('wide', !!n);
-  ttPop.style.display = 'block';
+function tipPairHtml(t, n) {
+  if (!n) return curHtml(t);
+  const cur = t && !t.missing && (t.lines || []).length ? curHtml(t)
+    : `<div class="tt-h" style="--c:#c8c8c8"><div>${esc(n.term)}</div><div class="tt-b">Not in the game yet</div></div><div class="tt-c tt-none">New in 1.0 - nothing to compare with in the current patch.</div>`;
+  return `<div class="tt-pair"><div class="tt-col"><div class="tt-lab">Current</div>${cur}</div><div class="tt-col"><div class="tt-lab tt-labnew">✨ New in 1.0</div>${newSideHtml(n)}</div></div>`;
+}
+const ttPop = document.createElement('div');
+ttPop.className = 'tt-pop'; document.body.appendChild(ttPop);
+const ttLb = document.createElement('div');
+ttLb.className = 'tt-lb'; document.body.appendChild(ttLb);
+let ttEl = null, ttHideT = null;
+function ttClose() { clearTimeout(ttHideT); ttPop.style.display = 'none'; ttEl = null; }
+async function ttShow(el) {
+  const d = await ttData(el.dataset.tt.replace(/&#39;/g, "'"));
+  if (!d || (!d.t && !d.n)) return;
+  ttEl = el;
+  ttPop.innerHTML = tipPairHtml(d.t, d.n);
+  ttPop.classList.toggle('wide', !!d.n);
+  ttPop.style.display = 'block'; ttPop.scrollTop = 0;
   const r = el.getBoundingClientRect();
   ttPop.style.left = Math.min(innerWidth - ttPop.offsetWidth - 8, Math.max(8, r.left)) + 'px';
-  ttPop.style.top = (r.bottom + 8 + ttPop.offsetHeight > innerHeight ? Math.max(8, r.top - ttPop.offsetHeight - 8) : r.bottom + 8) + 'px';
+  ttPop.style.top = (r.bottom + 8 + ttPop.offsetHeight > innerHeight ? Math.max(8, r.top - ttPop.offsetHeight - 8) : r.bottom + 6) + 'px';
 }
-document.addEventListener('mouseover', (e) => { const el = e.target.closest && e.target.closest('.tt[data-tt]'); if (el) showTip(el); else ttPop.style.display = 'none'; });
-document.addEventListener('click', (e) => { const el = e.target.closest && e.target.closest('.tt[data-tt]'); if (el) { showTip(el); if (el.closest('summary')) e.preventDefault(); } else ttPop.style.display = 'none'; });
-document.addEventListener('scroll', () => { ttPop.style.display = 'none'; }, true);
+function ttLightbox(src, cap, url) {
+  ttLb.innerHTML = `<figure><img src="${esc(src)}" alt=""><figcaption>${esc(cap || '')}${url ? ` · <a href="${esc(url)}" target="_blank" rel="noopener">watch this moment ↗</a>` : ''} · <a href="${esc(src)}" target="_blank" rel="noopener">open image ↗</a> <span class="tt-lbx">· click anywhere / Esc to close</span></figcaption></figure>`;
+  ttLb.style.display = 'flex';
+}
+// hover opens it; moving onto the popup keeps it open (so its links/images can be clicked); tap works too
+document.addEventListener('mouseover', (e) => {
+  if (ttPop.contains(e.target)) { clearTimeout(ttHideT); return; }
+  const el = e.target.closest && e.target.closest(TT_SEL);
+  if (el) { clearTimeout(ttHideT); if (el !== ttEl || ttPop.style.display !== 'block') ttShow(el); }
+  else if (ttPop.style.display === 'block') { clearTimeout(ttHideT); ttHideT = setTimeout(ttClose, 300); }
+});
+document.addEventListener('click', (e) => {
+  const img = e.target.closest && e.target.closest('.tt-pop img[data-full]');
+  if (img) { e.preventDefault(); ttLightbox(img.dataset.full, img.dataset.cap, img.dataset.url); return; }
+  if (ttLb.contains(e.target)) { if (!e.target.closest('a')) ttLb.style.display = 'none'; return; }
+  if (ttPop.contains(e.target)) return;
+  const el = e.target.closest && e.target.closest(TT_SEL);
+  if (el) { clearTimeout(ttHideT); ttShow(el); if (el.closest('summary')) e.preventDefault(); } else ttClose();
+});
+document.addEventListener('keydown', (e) => { if (e.key === 'Escape') { ttLb.style.display = 'none'; ttClose(); } });
+document.addEventListener('scroll', (e) => { if (!ttPop.contains(e.target) && !ttLb.contains(e.target)) ttClose(); }, true);
 function links(h) {
   return h
     .replace(/!\[([^\]]*)\]\(((?:scripts\/img\/|https?:\/\/)[^)\s]+)\)/g, (m, cap, u) => `<a class="shot" href="${u}" target="_blank" rel="noopener"><img src="${u}" alt="" loading="lazy"><span>${cap}</span></a>`)
