@@ -8,7 +8,7 @@
   "D"
  ],
  "channel": "GhazzyTV",
- "updated": "2026-11-21 20:59",
+ "updated": "2026-11-22 16:44",
  "sections": [
   {
    "title": "Intro",
@@ -471,18 +471,25 @@
  "newtips": {
   "Demon Magus": {
    "term": "Demon Magus",
-   "summary": "The Demon Magus is a new Infernalist ascendancy meta gem that summons a reviving demon minion which casts spells you socket into it, with spell costs paid by you and scaling damage based on socketed skill variety.",
+   "summary": "The Demon Magus is a new Infernalist ascendancy skill in PoE 2 1.0: a persistent, reviving minion/companion meta gem that casts spells you socket into it, with the spell costs paid by you.",
    "changes": [
-    "New Infernalist ascendancy skill: Demon Magus meta gem summons a Reviving Demon Magus that casts socketed Spells",
+    "New Infernalist ascendancy skill: Demon Magus, a persistent minion/companion meta gem",
+    "Summons a Reviving Demon Magus which casts socketed Spells",
     "Cost of Spells cast by the minion are paid by you",
     "Spells cast by the minion cost 50% less",
     "Minion deals 15% more Damage per different socketed Skill",
     "Quality grants Minions 0-20% more Maximum Life",
-    "Requires Level 90, gem level 20 (Max)",
-    "You can socket multiple spells as well as supports of your choosing into it"
+    "Requires Level 90; gem level 20 (Max)"
    ],
    "lines": [
-    "Demon Magus | Minion / Companion, Persistent, Meta / Level: 20 (Max) / Requires: Level 90 / Summon a Reviving Demon Magus which casts socketed Spells. / Cost of Spells cast by Minion are paid by you / Spells cast by Minion cost 50% less / Minion deals 15% more Damage per different socketed Skill / Additional Effects from Quality: / Minions have 0(0-20)% more Maximum Life / Place one or more Skill Gems into this Meta Gem's sockets in the Skills Panel. The socketed skills will be incorporated into the Meta Gem's effect."
+    "Demon Magus | Minion / Companion, Persistent, Meta / Level: 20 (Max) / Requires: Level 90",
+    "Summon a Reviving Demon Magus which casts socketed Spells.",
+    "Cost of Spells cast by Minion are paid by you",
+    "Spells cast by Minion cost 50% less",
+    "Minion deals 15% more Damage per different socketed Skill",
+    "Additional Effects from Quality:",
+    "Minions have 0(0-20)% more Maximum Life",
+    "Place one or more Skill Gems into this Meta Gem's sockets in the Skills Panel. The socketed skills will be incorporated into the Meta Gem's effect."
    ],
    "image": "scripts/img/poe_2_full_league_tierlist_before_1.0/nt-demon_magus-magus.jpg",
    "sources": [
@@ -507,7 +514,34 @@
      "ts": "3:02:42"
     }
    ],
-   "frame_url": null
+   "frame_url": null,
+   "tooltip_seen": true,
+   "shots": [
+    {
+     "image": "scripts/img/poe_2_full_league_tierlist_before_1.0/nt-demon_magus-orig-magus.jpg",
+     "ts": "",
+     "url": "",
+     "label": "ExileCon keynote - Demon Magus"
+    },
+    {
+     "image": "scripts/img/poe_2_full_league_tierlist_before_1.0/nt-demon_magus-orig-min_magus_6.jpg",
+     "ts": "3:01:18",
+     "url": "https://www.twitch.tv/videos/2921352507?t=3h1m18s",
+     "label": "ExileCon keynote @ 3:01:18 - Demon Magus"
+    },
+    {
+     "image": "scripts/img/poe_2_full_league_tierlist_before_1.0/nt-demon_magus-orig-h_10884.jpg",
+     "ts": "3:01:24",
+     "url": "https://www.twitch.tv/videos/2921352507?t=3h1m24s",
+     "label": "ExileCon keynote @ 3:01:24 - Demon Magus"
+    },
+    {
+     "image": "scripts/img/poe_2_full_league_tierlist_before_1.0/nt-demon_magus-orig-h_10887.jpg",
+     "ts": "3:01:27",
+     "url": "https://www.twitch.tv/videos/2921352507?t=3h1m27s",
+     "label": "ExileCon keynote @ 3:01:27 - Demon Magus"
+    }
+   ]
   }
  }
 }
