@@ -229,7 +229,7 @@ function newSideHtml(n) {
   const lines = !n.image ? (n.lines || []).slice(0, 16).map((l) => `<div class="tt-nl">${esc(l)}</div>`).join('') : '';
   const src = (n.sources || []).slice(0, 4).map((x) => `<a href="${esc(x.url)}" target="_blank" rel="noopener">${esc(x.ts)}</a>`).join(' · ');
   const miss = n.tooltip_seen === false ? `<div class="tt-miss">⚠ ${esc(n.term)}'s own tooltip wasn't shown in the keynote - not available yet. Anything pictured below is related, not its tooltip.</div>` : '';
-  return `<div class="tt-h tt-hnew"><div>${esc(n.term)}</div><div class="tt-b">ExileCon 2026 keynote</div></div><div class="tt-c tt-new">`
+  return `<div class="tt-h tt-hnew"><div>${esc(n.term)}</div><div class="tt-b">ExileCon 2026 keynote${n.game ? ' · ' + esc(n.game) : ''}</div></div><div class="tt-c tt-new">`
     + `${n.summary ? `<div class="tt-sum">${esc(n.summary)}</div>` : ''}${ch ? `<ul class="tt-ch">${ch}</ul>` : ''}${miss}`
     + (n.image ? `<div class="tt-ol">Tooltip from the keynote · click to enlarge</div><img class="tt-shot" src="${esc(ttImg(n.image))}" data-full="${esc(ttImg(n.image))}" data-cap="${esc(n.term)} - tooltip cut from the keynote" data-url="${esc(n.frame_url || '')}" alt="">` : '')
     + (lines ? `<div class="tt-sep"></div>${lines}` : '')
@@ -241,9 +241,11 @@ function curHtml(t) {
 }
 function tipPairHtml(t, n) {
   if (!n) return curHtml(t);
-  const cur = t && !t.missing && (t.lines || []).length ? curHtml(t)
+  const poe1 = String(n.game || '').startsWith('PoE 1');
+  const cur = t && !t.missing && (t.lines || []).length && !poe1 ? curHtml(t)
+    : poe1 ? `<div class="tt-h" style="--c:#c8c8c8"><div>${esc(n.term)}</div><div class="tt-b">Not in PoE 2</div></div><div class="tt-c tt-none">This is from Path of Exile 1 (${esc(n.game)}) - shown for reference.</div>`
     : `<div class="tt-h" style="--c:#c8c8c8"><div>${esc(n.term)}</div><div class="tt-b">Not in the game yet</div></div><div class="tt-c tt-none">New in 1.0 - nothing to compare with in the current patch.</div>`;
-  return `<div class="tt-pair"><div class="tt-col"><div class="tt-lab">Current</div>${cur}</div><div class="tt-col"><div class="tt-lab tt-labnew">✨ New in 1.0</div>${newSideHtml(n)}</div></div>`;
+  return `<div class="tt-pair"><div class="tt-col"><div class="tt-lab">Current</div>${cur}</div><div class="tt-col"><div class="tt-lab tt-labnew">✨ New in ${poe1 ? '3.30 (PoE 1)' : '1.0'}</div>${newSideHtml(n)}</div></div>`;
 }
 const ttPop = document.createElement('div');
 ttPop.className = 'tt-pop'; document.body.appendChild(ttPop);
