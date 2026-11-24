@@ -1,0 +1,180 @@
+{
+ "title": "Should PoE 2 Have the New Thread System Instead of Tablets?",
+ "tiers": null,
+ "channel": "GhazzyTV",
+ "updated": "2026-11-24 20:22",
+ "sections": [
+  {
+   "title": "Intro",
+   "subtitle": null,
+   "minutes": 0.75,
+   "points": [
+    "PoE 1's 3.30 killed scarabs and replaced them with Threads of Creation.",
+    "PoE 2 juices its endgame with tablets - and they're staying for 1.0.",
+    "So: should PoE 2 get a thread system instead of tablets?"
+   ],
+   "prompts": [
+    "Gut reaction when you saw threads at ExileCon - 'PoE 2 needs this' or not?"
+   ],
+   "deeper": []
+  },
+  {
+   "title": "PoE 1 - how threads work",
+   "subtitle": null,
+   "minutes": 2.5,
+   "points": [
+    "PoE 1: every big league mechanic has its own thread - Abyss, Blight, Legion, Breach, Betrayal, Expedition and more.",
+    "PoE 1: pick how many to spend at the map device - up to 8; harder content, scaled rewards.",
+    "PoE 1: each thread adds a chance at random league modifiers - several can stack in one map.",
+    "PoE 1: Atlas quest line unlocks 3 slots - three guaranteed mechanics per map.",
+    "+ PoE 1: your setup is remembered and pulled from stash - throw in a map and go."
+   ],
+   "prompts": [
+    "Walk us through your own thread setup - which ones and why?"
+   ],
+   "deeper": [
+    "PoE 1: high counts were tuned to guarantee more modifiers - 8 threads = at least 3.",
+    "PoE 1: you said fractured bases from threads might be worth doing on their own."
+   ]
+  },
+  {
+   "title": "Threads vs scarabs (PoE 1)",
+   "subtitle": null,
+   "minutes": 2.0,
+   "points": [
+    "GGG: threads mean way less busy work - no juggling dozens of scarab types.",
+    "Scarab effects didn't vanish - they moved to the Atlas tree for everyone.",
+    "Examples: True Terrors and Fate Bespoken used to be expensive scarabs.",
+    "+ You said you're very happy scarabs are gone - and you don't miss them.",
+    "You called the thread system very cool - you much prefer it to scarabs."
+   ],
+   "prompts": [
+    "Did moving scarab power onto the Atlas tree feel like a fair trade?"
+   ],
+   "deeper": [
+    "PoE 1: no Harvest thread - only the Sacred Flora Atlas node."
+   ]
+  },
+  {
+   "title": "PoE 2 - tablets today",
+   "subtitle": null,
+   "minutes": 1.5,
+   "points": [
+    "PoE 2: tablets are the endgame juicing item - and they stay in 1.0.",
+    "PoE 2 1.0: give a commander a Breach tablet for Womb Gifts, a Delirium tablet for Distilled Emotions."
+   ],
+   "prompts": [
+    "Explain how you juice with tablets right now - what's the setup each map?",
+    "What's the most annoying part of tablets day to day?"
+   ],
+   "deeper": []
+  },
+  {
+   "title": "The real differences",
+   "subtitle": null,
+   "minutes": 2.0,
+   "points": [
+    "PoE 1 threads: one stack per mechanic, auto-pulled every map - set it and forget it.",
+    "PoE 1 threads: difficulty climbs with every thread - rewards are meant to scale with it.",
+    "- PoE 1: early on the difficulty ramped far too steeply at high counts - GGG is reining it in.",
+    "- PoE 1: some mechanics fell well behind others under threads.",
+    "- You said you were losing money on threads at first - cheap, but not rewarding enough."
+   ],
+   "prompts": [
+    "Which gives more meaningful choice map to map - threads or tablets?",
+    "Is the thread difficulty ramp a design flaw or just tuning?"
+   ],
+   "deeper": [
+    "PoE 1: stacking 8 threads used to sometimes roll only one modifier.",
+    "PoE 1: leaving the Atlas got too hard as threads stacked without matching rewards."
+   ]
+  },
+  {
+   "title": "Pros and cons",
+   "subtitle": null,
+   "minutes": 2.0,
+   "points": [
+    "+ Threads: way less busy work, persistent setup, cleaner stash.",
+    "+ Threads: juice is on the Atlas tree for everyone, threads are the jackpot layer.",
+    "- Threads: 8 is overkill for most builds - two felt fine to you.",
+    "- Threads: you can tank 8 threads but lack the damage to make it worth it.",
+    "+ Tablets: PoE 2's own system - and 1.0 builds commanders around them."
+   ],
+   "prompts": [
+    "Biggest pro and biggest con of tablets in your eyes?"
+   ],
+   "deeper": []
+  },
+  {
+   "title": "My verdict",
+   "subtitle": null,
+   "minutes": 1.5,
+   "points": [
+    "Asked what should come from 3.30 to PoE 2, you said PoE 2 should keep its own league mechanics.",
+    "> Porting everything over is a recipe for disaster.",
+    "PoE 2 only reuses PoE 1 mechanics because it's still adding the core ones.",
+    "But threads themselves are a system you love - so does that rule apply here?"
+   ],
+   "prompts": [
+    "Final call: threads, tablets, or a blend for PoE 2?",
+    "If PoE 2 keeps tablets, what would you steal from threads?"
+   ],
+   "deeper": []
+  },
+  {
+   "title": "Outro",
+   "subtitle": null,
+   "minutes": 0.5,
+   "points": [
+    "Threads or tablets for PoE 2? Comments.",
+    "Subscribe for PoE 1 3.30 and PoE 2 1.0 coverage."
+   ],
+   "prompts": [],
+   "deeper": []
+  }
+ ],
+ "tooltips": {
+  "Threads of Creation": {
+   "name": "Threads of Creation",
+   "base": "",
+   "rarity": "New",
+   "lines": [],
+   "icon": "",
+   "category": "New in 1.0",
+   "url": ""
+  }
+ },
+ "newtips": {
+  "Threads of Creation": {
+   "term": "Threads of Creation",
+   "summary": "Threads of Creation is a totally new endgame mechanic in PoE 1 3.30: threads drop from the regular endgame drop pool and can be spent at the map device to guarantee primary league mechanics in your maps. As you progress the Atlas quest line you unlock all three map device slots, allowing up to three primary mechanics guaranteed at once. Its tooltip wasn't shown yet.",
+   "changes": [
+    "Threads of Creation is a new PoE 1 3.30 endgame mechanic, not present in the current game",
+    "Threads can drop from all ten primary league mechanics: Abyss, Blight, Legion, Breach, Incursion, Betrayal, Bestiary, Expedition, Ultimatum and Ritual",
+    "Threads also drop anywhere in the endgame from the regular drop pool",
+    "At the map device you choose how many threads to spend",
+    "Atlas quest line progression unlocks all three thread slots on the map device",
+    "Up to three primary mechanics can be guaranteed in your maps",
+    "A single map can roll all three of these mods and more, so valuable mod combinations are always possible"
+   ],
+   "lines": [],
+   "image": null,
+   "sources": [
+    {
+     "label": "ExileCon keynote @ 3:23:13 (said)",
+     "url": "https://www.twitch.tv/videos/2921352507?t=3h23m13s",
+     "ts": "3:23:13"
+    },
+    {
+     "label": "ExileCon keynote @ 3:24:38 (said)",
+     "url": "https://www.twitch.tv/videos/2921352507?t=3h24m38s",
+     "ts": "3:24:38"
+    }
+   ],
+   "frame_url": null,
+   "tooltip_seen": false,
+   "shots": [],
+   "game": "PoE 1 3.30"
+  }
+ }
+}
