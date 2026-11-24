@@ -1,89 +1,149 @@
 {
- "title": "Demon Magus & Infernalist in PoE 1.0 Full Launch - My Exilecon Playtest Thoughts",
+ "title": "The Minion Stuff I'm Most Excited For in PoE 2 1.0",
  "tiers": null,
  "channel": "GhazzyTV",
- "updated": "2026-11-22 16:44",
+ "updated": "2026-11-24 20:22",
  "sections": [
   {
    "title": "Intro",
    "subtitle": null,
    "minutes": 0.75,
    "points": [
-    "Straight up start the video with :  The Demon Magus might be the coolest thing they have done with minions so far in PoE 2",
-    "I got hands-on with it at Exilecon etc."
+    "The Demon Magus might be the coolest thing they've done with minions so far in PoE 2.",
+    "No new minion class in 1.0 - but a LOT of minion stuff to go through.",
+    "This is everything minion-related I'm most excited for - Demon Magus first.",
+    "**Subscribe** - I'll break down the patch notes the moment they drop."
    ],
    "prompts": [
-    "What was your first reaction when you saw the Demon Magus in the keynote?",
-    "How much time did you actually get with the Infernalist at Exilecon? Did the playtest change your mind from your initial read?"
+    "Why does Demon Magus top your list over everything else?"
    ],
    "deeper": [
-    "The presenter called the Demon Magus one of the coolest new things in the Infernal Ascendancy."
+    "You'd been screaming about Demon Magus since the 0.1 datamining.",
+    "You let out a shout at the reveal before the crowd connected the dots."
    ]
   },
   {
-   "title": "Ground rules - what I'm covering",
+   "title": "Ground rules",
    "subtitle": null,
-   "minutes": 1,
+   "minutes": 0.75,
    "points": [
-    "This is my subjective take from Exilecon playtest - not a guide, not a tier list.",
-    "I'll be covering Demon Magus, Infernal Hounds, and also looking at some of the Covenant skills"
+    "My take from the ExileCon playtest - not a guide, not a tier list.",
+    "I only properly tested Demon Magus behaviour: one spell gem plus Unearth and Bone Storm.",
+    "! No final minion numbers until the 1.0 patch notes are out."
    ],
-   "prompts": [],
+   "prompts": [
+    "What else minion-related did you get to see or touch at ExileCon?"
+   ],
    "deeper": []
   },
   {
-   "title": "Demon Magus - what it is",
+   "title": "Demon Magus",
+   "subtitle": null,
+   "minutes": 3.5,
+   "points": [
+    "Infernalist ascendancy: binds a Scourge Demon to you - socket multiple spells AND supports, it follows you and casts them.",
+    "Tooltip: Reviving companion - you pay its spell costs, but they cost 50% less.",
+    "+ Scaling hook: 15% more damage per **different** socketed skill - variety pays.",
+    "Playtest: it fired the cooldown spell whenever ready, otherwise spammed the main one - behaviour looked pretty good.",
+    "- Open question: does it scale past gem level 20? Couldn't get an answer.",
+    "The story: I brought it up with Jonathan and Mark on Tavern Talk - Mark said that reminded him it existed.",
+    "> If it's really good I take all the credit - if it's bad, it's all on Mark."
+   ],
+   "prompts": [
+    "Which spells and supports are you socketing first?",
+    "Does it feel like a real minion or more like a totem that follows you?",
+    "Performance verdict so far - or still too early?"
+   ],
+   "deeper": [
+    "Similar idea on Acolyte of Chayula: Keeper of the Flame, a clone companion that uses any Quarterstaff skill you give it.",
+    "You said you don't know about its performance yet - limited gems in the playtest."
+   ]
+  },
+  {
+   "title": "Triple Infernal Hounds & Covenants",
    "subtitle": null,
    "minutes": 2.5,
    "points": [
-    "Explain it - The Infernal Ascendancy's Demon Magus binds a Scourge Demon to your will after allocating it.",
-    "Other things etc. experience from playtest etc lil details"
+    "Infernal Hounds got a huge upgrade: three hounds plus a command skill to charge in and explode.",
+    "! You do NOT get all three by default - the node behind Infernal Hounds gives the two extra.",
+    "Show it in PoB: one hound without that point, three with it.",
+    "Command: Instability - one hound charges, leaps and explodes: 1632-2447 fire damage, 1.9 m radius.",
+    "Timothy and Viper told me there's definitely a build around the hounds exploding things.",
+    "Covenants: Infernal Covenant lets you pick Covenant of Beidat, Ghorr or K'Tash.",
+    "Covenant of Ghorr: drains 5% life a second, spawns Withering Bloatflies every 2 s, +15% more damage over time."
    ],
    "prompts": [
-    "How did it feel in practice - clunky or smooth?",
-    "What spell setup did you try in your playtest?",
-    "Does it feel like a real minion or more like a totem that follows you?"
+    "Is the exploding-hound build real or a meme?",
+    "Which Covenant are you building around - and is 5% life a second worth it?"
    ],
    "deeper": [
-    "The Acolyte of Chayula now summons a companion clone similar to the Demon Magus, which can use any Corsair skill you give it."
+    "Hound pops with a faster revive - you said that's definitely playable.",
+    "Beidat and K'Tash were only shown by name - their tooltips weren't on screen."
    ]
   },
   {
-   "title": "Infernal Hounds & Covenant skills",
+   "title": "Dancing Dervish",
    "subtitle": null,
-   "minutes": 2,
+   "minutes": 1.25,
    "points": [
-    "Infernal Hounds now give you three of them.",
-    "They gain a command skill that makes them charge in and explode.",
-    "Example: Covenant of Gore sacrifices life to create a swarm of blowflies that wither your enemies."
+    "Dancing Dervish is coming to PoE 2.",
+    "PoE 1 version: a sword that starts Rampage - then it leaves your hands and becomes a cycloning minion.",
+    "You're unarmed while it spins around killing everything - pure minion fantasy.",
+    "I want a build around it - balance changes pending."
    ],
-   "prompts": [],
+   "prompts": [
+    "Which class or ascendancy would you put it on in PoE 2?",
+    "Is it a fun toy or a real build in your eyes?"
+   ],
+   "deeper": [
+    "You said it should be really fun - and doubted Duelist is the best home for it."
+   ]
+  },
+  {
+   "title": "Also on my list",
+   "subtitle": null,
+   "minutes": 2.0,
+   "points": [
+    "Permanent zombies",
+    "The new staff",
+    "Arakaali's Fang",
+    "New spectres",
+    "! Details on these land with the patch notes."
+   ],
+   "prompts": [
+    "Permanent zombies: what changes and what does it unlock?",
+    "The new staff: what did you see, and does it change your build plans?",
+    "Arakaali's Fang: what do you expect it to do in PoE 2?",
+    "New spectres: which one are you most excited to test?"
+   ],
    "deeper": []
   },
   {
-   "title": "How it compares - Acolyte of Chayula",
+   "title": "More minion news from the keynote",
    "subtitle": null,
    "minutes": 1.5,
    "points": [
-    "Acolyte of Chayula now also has the possibility to summon a companion clone similar to the Demon Magus.",
-    "That clone can use any Corsair skill you give it.",
-    "The old Darkness mechanic moved to a keystone on the main passive tree."
+    "Siege Breaker belt: order your minions to charge at enemies and detonate.",
+    "Dominate: a curse that turns enemies into minions - they're resurrected to serve you after dying.",
+    "+ Living Lightning no longer deals minion damage - it now uses attack or spell damage."
    ],
    "prompts": [
-    "Does moving Darkness to a keystone make Acolyte more or less appealing to you?"
+    "Siege Breaker with exploding hounds - combo or overkill?",
+    "Any minion balance change you're hoping for in the patch notes?"
    ],
    "deeper": []
   },
   {
    "title": "Final thoughts",
    "subtitle": null,
-   "minutes": 1,
+   "minutes": 1.0,
    "points": [
-    "My plan: Infernalist with Demon Magus on 1.0 launch - my rough plan and why waiting for patch notes is so important.",
-    "The customization of socketed spells is the big draw for me."
+    "Heavily leaning Infernalist - triple hellhounds and Demon Magus.",
+    "Demon Magus is most likely the first thing I play.",
+    "Everything else on the list gets a real verdict once patch notes are out."
    ],
    "prompts": [
-    "Any concerns about how it'll scale into endgame?"
+    "If you had to lock in one minion build for 1.0 today, what is it?"
    ],
    "deeper": []
   },
@@ -92,7 +152,8 @@
    "subtitle": null,
    "minutes": 0.5,
    "points": [
-    "Drop a comment for viewers: are you also going Infernalist on launch?",
+    "Which minion change are YOU most excited for? Comments.",
+    "1.0 launch subathon on 11 December - come hang out.",
     "Thanks for watching - see you in 1.0."
    ],
    "prompts": [],
@@ -109,44 +170,75 @@
    "category": "New in 1.0",
    "url": ""
   },
-  "Infernal Hounds": {
-   "name": "Summon Infernal Hound",
-   "base": "Minion",
+  "Unearth": {
+   "name": "Unearth",
+   "base": "intelligence",
    "rarity": "Gem",
    "lines": [
     {
      "cls": "property",
-     "text": "Companion, Persistent, Fire"
+     "text": "grants_active_skill, Spell, Minion, AoE, Physical, Duration, Repeatable"
+    },
+    {
+     "cls": "property",
+     "text": "Tier: 1"
     },
     {
      "cls": "property",
      "text": "Level: (1—20)"
     },
     {
+     "cls": "property",
+     "text": "Cost: (7—76) Mana"
+    },
+    {
+     "cls": "property",
+     "text": "Cast Time: 0.95 sec"
+    },
+    {
+     "cls": "property",
+     "text": "Critical Hit Chance: 15.00%"
+    },
+    {
      "cls": "requirements",
-     "text": "Requires: Level (1—90)"
+     "text": "Requires: Level (1—90), (4—157) Int"
     },
     {
      "cls": "secDescrText",
-     "text": "Activate to summon a Reviving Infernal Hound which Ignites enemies near it."
+     "text": "Raise spikes of bone from the earth in front of you, damaging enemies. The bones of Corpses and dead Reviving Minions in the area are ripped out and reassembled into short-lived Bone Construct Minions that fight for you. Larger Corpses create more than one Bone Construct."
     },
     {
      "cls": "explicitMod",
-     "text": "Minions Ignite Enemies within a radius of 2.5 metres as though dealt Base Fire Damage equal to 20% of Minion's Maximum Life"
+     "text": "Deals (4—117) to (6—176) Physical Damage"
+    },
+    {
+     "cls": "explicitMod",
+     "text": "Limit (8—20) Bone Constructs"
+    },
+    {
+     "cls": "explicitMod",
+     "text": "Cone length is 6 metres"
+    },
+    {
+     "cls": "explicitMod",
+     "text": "Bone Construct duration is 15 seconds"
+    },
+    {
+     "cls": "explicitMod",
+     "text": "Reviving Minions can only create\n one Bone Construct per death"
+    },
+    {
+     "cls": "explicitMod",
+     "text": "minion aggro radius +% [305,400]"
+    },
+    {
+     "cls": "explicitMod",
+     "text": "movement speed +% final while performing action [-70]"
     }
    ],
-   "icon": "",
-   "category": "Ascendancy skill · Infernalist",
-   "url": "https://poe2db.tw/us/Summon_Infernal_Hound"
-  },
-  "Covenant skills": {
-   "name": "Covenant skills",
-   "base": "",
-   "rarity": "New",
-   "lines": [],
-   "icon": "",
-   "category": "New in 1.0",
-   "url": ""
+   "icon": "https://cdn.poe2db.tw/image/Art/2DArt/SkillIcons/WitchUnearth.webp",
+   "category": "Skill gem",
+   "url": "https://poe2db.tw/us/Unearth"
   },
   "Acolyte of Chayula": {
    "name": "Acolyte of Chayula",
@@ -202,14 +294,221 @@
    "category": "Ascendancy",
    "url": "https://poe2db.tw/us/Acolyte_of_Chayula"
   },
-  "Covenant of Gore": {
-   "name": "Covenant of Gore",
+  "Keeper of the Flame": {
+   "name": "Keeper of the Flame",
    "base": "",
    "rarity": "New",
    "lines": [],
    "icon": "",
    "category": "New in 1.0",
    "url": ""
+  },
+  "Infernal Hounds": {
+   "name": "Summon Infernal Hound",
+   "base": "Minion",
+   "rarity": "Gem",
+   "lines": [
+    {
+     "cls": "property",
+     "text": "Companion, Persistent, Fire"
+    },
+    {
+     "cls": "property",
+     "text": "Level: (1—20)"
+    },
+    {
+     "cls": "requirements",
+     "text": "Requires: Level (1—90)"
+    },
+    {
+     "cls": "secDescrText",
+     "text": "Activate to summon a Reviving Infernal Hound which Ignites enemies near it."
+    },
+    {
+     "cls": "explicitMod",
+     "text": "Minions Ignite Enemies within a radius of 2.5 metres as though dealt Base Fire Damage equal to 20% of Minion's Maximum Life"
+    }
+   ],
+   "icon": "",
+   "category": "Ascendancy skill · Infernalist",
+   "url": "https://poe2db.tw/us/Summon_Infernal_Hound"
+  },
+  "Infernal Covenant": {
+   "name": "Infernal Covenant",
+   "base": "",
+   "rarity": "New",
+   "lines": [],
+   "icon": "",
+   "category": "New in 1.0",
+   "url": ""
+  },
+  "Covenant of Beidat": {
+   "name": "Covenant of Beidat",
+   "base": "",
+   "rarity": "New",
+   "lines": [],
+   "icon": "",
+   "category": "New in 1.0",
+   "url": ""
+  },
+  "Covenant of Ghorr": {
+   "name": "Covenant of Ghorr",
+   "base": "",
+   "rarity": "New",
+   "lines": [],
+   "icon": "",
+   "category": "New in 1.0",
+   "url": ""
+  },
+  "Rampage": {
+   "name": "Rampage",
+   "base": "strength",
+   "rarity": "Gem",
+   "lines": [
+    {
+     "cls": "property",
+     "text": "intelligence, grants_active_skill, Attack, Shapeshift, Bear, AoE, Melee, Slam, Sustained, Channelling, Travel"
+    },
+    {
+     "cls": "property",
+     "text": "Tier: 11"
+    },
+    {
+     "cls": "property",
+     "text": "Level: (1—20)"
+    },
+    {
+     "cls": "property",
+     "text": "Cost: (14—97) Mana 5 Rage per second"
+    },
+    {
+     "cls": "property",
+     "text": "Attack Speed: 70% of base"
+    },
+    {
+     "cls": "property",
+     "text": "Attack Damage: (75—306)% of base"
+    },
+    {
+     "cls": "requirements",
+     "text": "Requires: Level (1—90), (4—86) Str, (4—86) Int"
+    },
+    {
+     "cls": "requirements",
+     "text": "Requires: Talismans"
+    },
+    {
+     "cls": "secDescrText",
+     "text": "Shapeshift into a Bear and charge forward, Slamming the ground as you run. Channelling ends after a short amount of time but can be prolonged by spending Rage."
+    },
+    {
+     "cls": "explicitMod",
+     "text": "+0.5 seconds to base attack time if not standing"
+    },
+    {
+     "cls": "explicitMod",
+     "text": "Rage cost is ignored for first 2.5 seconds of Channelling"
+    },
+    {
+     "cls": "explicitMod",
+     "text": "Run speed is affected by movement speed modifiers instead of Attack speed modifiers"
+    },
+    {
+     "cls": "explicitMod",
+     "text": "Cannot gain Rage while using this Skill"
+    },
+    {
+     "cls": "explicitMod",
+     "text": "Impact radius is 2.2 metres"
+    }
+   ],
+   "icon": "https://cdn.poe2db.tw/image/Art/2DArt/SkillIcons/DruidBearRampage.webp",
+   "category": "Skill gem",
+   "url": "https://poe2db.tw/us/Rampage"
+  },
+  "Siege Breaker": {
+   "name": "Siege Breaker",
+   "base": "",
+   "rarity": "New",
+   "lines": [],
+   "icon": "",
+   "category": "New in 1.0",
+   "url": ""
+  },
+  "Dominate": {
+   "name": "Dominate",
+   "base": "",
+   "rarity": "New",
+   "lines": [],
+   "icon": "",
+   "category": "New in 1.0",
+   "url": ""
+  },
+  "Living Lightning": {
+   "name": "Living Lightning",
+   "base": "Support",
+   "rarity": "Gem",
+   "lines": [
+    {
+     "cls": "property",
+     "text": "grants_active_skill, Minion, Trigger, Lightning, Duration"
+    },
+    {
+     "cls": "property",
+     "text": "Category: Living Lightning"
+    },
+    {
+     "cls": "property",
+     "text": "Tier: 2"
+    },
+    {
+     "cls": "requirements",
+     "text": "Support Requirements: +5 Int"
+    },
+    {
+     "cls": "secDescrText",
+     "text": "Supports Skills which cause Damaging Hits. Living Lightning Minions are created when dealing Lightning damage with Supported Skills - bundles of living electricity that target nearby enemies with Chaining Attacks. Enemies will not directly engage these Minions, and can pass through them. Does not modify skills used by Minions."
+    },
+    {
+     "cls": "explicitMod",
+     "text": "Trigger Living Lightning on dealing Lightning Damage with Supported Skill"
+    },
+    {
+     "cls": "explicitMod",
+     "text": "Chains 3 times"
+    },
+    {
+     "cls": "explicitMod",
+     "text": "This Skill is Triggered on dealing Lightning Damage with Supported Skill"
+    },
+    {
+     "cls": "explicitMod",
+     "text": "Creates 1 Minion\nLevel of Minions is based on Level of Triggering Skill"
+    },
+    {
+     "cls": "explicitMod",
+     "text": "Minion duration is 30 seconds"
+    },
+    {
+     "cls": "explicitMod",
+     "text": "Limit 5 Minions"
+    },
+    {
+     "cls": "explicitMod",
+     "text": "Minions convert 100% of Physical damage to Lightning damage"
+    },
+    {
+     "cls": "explicitMod",
+     "text": "Minions Attack every 0.14 seconds"
+    },
+    {
+     "cls": "explicitMod",
+     "text": "Minions disperse after 3 Attacks"
+    }
+   ],
+   "icon": "https://cdn.poe2db.tw/image/Art/2DArt/SkillIcons/Support/LivingLightningSupport.webp",
+   "category": "Support gem",
+   "url": "https://poe2db.tw/us/Living_Lightning"
   }
  },
  "newtips": {
@@ -285,7 +584,141 @@
      "url": "https://www.twitch.tv/videos/2921352507?t=3h1m27s",
      "label": "ExileCon keynote @ 3:01:27 - Demon Magus"
     }
-   ]
+   ],
+   "game": null
+  },
+  "Unearth": {
+   "term": "Unearth",
+   "summary": "The keynote did not show or describe any changes to Unearth itself; the word \"unearthing\" appeared only in flavor text about empowered boss effects and league mechanics. Its tooltip wasn't shown yet.",
+   "changes": [],
+   "lines": [],
+   "image": "scripts/img/demon_magus_yap/nt-unearth-umbra_cauldron_0.jpg",
+   "sources": [
+    {
+     "label": "ExileCon keynote @ 3:13:22 (on screen)",
+     "url": "https://www.twitch.tv/videos/2921352507?t=3h13m22s",
+     "ts": "3:13:22"
+    },
+    {
+     "label": "ExileCon keynote @ 3:15:04 (said)",
+     "url": "https://www.twitch.tv/videos/2921352507?t=3h15m4s",
+     "ts": "3:15:04"
+    },
+    {
+     "label": "ExileCon keynote @ 3:28:14 (said)",
+     "url": "https://www.twitch.tv/videos/2921352507?t=3h28m14s",
+     "ts": "3:28:14"
+    }
+   ],
+   "frame_url": "https://www.twitch.tv/videos/2921352507?t=3h13m22s",
+   "tooltip_seen": false,
+   "shots": [
+    {
+     "image": "scripts/img/demon_magus_yap/nt-unearth-orig-umbra_cauldron_0.jpg",
+     "ts": "3:13:22",
+     "url": "https://www.twitch.tv/videos/2921352507?t=3h13m22s",
+     "label": "ExileCon keynote @ 3:13:22 - Blood Moon"
+    },
+    {
+     "image": "scripts/img/demon_magus_yap/nt-unearth-orig-cauldron.jpg",
+     "ts": "",
+     "url": "",
+     "label": "ExileCon keynote - Butcher"
+    },
+    {
+     "image": "scripts/img/demon_magus_yap/nt-unearth-orig-umbra_cauldron_3.jpg",
+     "ts": "3:13:25",
+     "url": "https://www.twitch.tv/videos/2921352507?t=3h13m25s",
+     "label": "ExileCon keynote @ 3:13:25 - Butcher"
+    }
+   ],
+   "game": null
+  },
+  "Acolyte of Chayula": {
+   "term": "Acolyte of Chayula",
+   "summary": "The Acolyte of Chayula has been totally reworked: Herald of Chayula now causes all your hits to add Decay to monsters, and killing a monster triggers an explosion based on the Decay it had. The old Darkness mechanic has been moved entirely into a keystone on the main passive tree, and the Acolyte can now also summon a companion, similar to Demon Magus. Its tooltip wasn't shown yet.",
+   "changes": [
+    "Herald of Chayula now causes all your hits to add Decay to monsters",
+    "Killing a monster triggers an explosion based on the amount of Decay it had",
+    "The old Darkness mechanic has been completely moved into a keystone on the main passive tree",
+    "The Acolyte can now also summon a companion, similar to Demon Magus"
+   ],
+   "lines": [],
+   "image": "scripts/img/demon_magus_yap/nt-acolyte_of_chayula-10961.jpg",
+   "sources": [
+    {
+     "label": "ExileCon keynote @ 3:02:33 (said)",
+     "url": "https://www.twitch.tv/videos/2921352507?t=3h2m33s",
+     "ts": "3:02:33"
+    }
+   ],
+   "frame_url": "https://www.twitch.tv/videos/2921352507?t=3h2m41s",
+   "tooltip_seen": false,
+   "shots": [
+    {
+     "image": "scripts/img/demon_magus_yap/nt-acolyte_of_chayula-orig-10961.jpg",
+     "ts": "3:02:41",
+     "url": "https://www.twitch.tv/videos/2921352507?t=3h2m41s",
+     "label": "ExileCon keynote @ 3:02:41 - Herald Of Chayula"
+    },
+    {
+     "image": "scripts/img/demon_magus_yap/nt-acolyte_of_chayula-orig-10965.jpg",
+     "ts": "3:02:45",
+     "url": "https://www.twitch.tv/videos/2921352507?t=3h2m45s",
+     "label": "ExileCon keynote @ 3:02:45 - Herald Of Chayula"
+    }
+   ],
+   "game": null
+  },
+  "Keeper of the Flame": {
+   "term": "Keeper of the Flame",
+   "summary": "Keeper of the Flame is a new level 90 Minion/Companion Meta gem that summons a reviving companion which uses socketed Quarterstaff skills, dealing 20% more damage per different socketed skill.",
+   "changes": [
+    "New Meta gem: Keeper of the Flame (Minion/Companion, Persistent, Meta), max level 20, requires level 90",
+    "Summons a Reviving Companion that uses socketed Quarterstaff Skills",
+    "Socketed attacks do not cost mana",
+    "Minion deals 20% more damage per different socketed skill",
+    "Socketed skill gems are incorporated into the Meta gem's effect",
+    "Related passive 'Shared Teachings' grants skill Dreamer's Path: you and your Keeper of the Flame Melee Hits grant the other Flame Training"
+   ],
+   "lines": [
+    "KEEPER OF THE FLAME | Minion / Companion Persistent, Meta / LEVEL: 20 (MAX) / REQUIRES: LEVEL 90 / Summon a Reviving Companion to aid you in combat. The Keeper will use socketed Quarterstaff Skills.",
+    "SOCKETED ATTACKS DO NOT COST MANA",
+    "MINION DEALS 20% MORE DAMAGE PER DIFFERENT SOCKETED SKILL",
+    "PLACE ONE OR MORE SKILL GEMS INTO THIS META GEM'S SOCKETS IN THE SKILLS PANEL. THE SOCKETED SKILLS WILL BE INCORPORATED INTO THE META GEM'S EFFECT.",
+    "Shared Teachings | Grants Skill: Dreamer's Path / You and your Keeper of the Flame Melee Hits grant the other Flame Training"
+   ],
+   "image": "scripts/img/demon_magus_yap/nt-keeper_of_the_flame-min_clone_0.jpg",
+   "sources": [
+    {
+     "label": "ExileCon keynote @ 3:03:00 (on screen)",
+     "url": "https://www.twitch.tv/videos/2921352507?t=3h3m0s",
+     "ts": "3:03:00"
+    }
+   ],
+   "frame_url": "https://www.twitch.tv/videos/2921352507?t=3h3m0s",
+   "tooltip_seen": true,
+   "shots": [
+    {
+     "image": "scripts/img/demon_magus_yap/nt-keeper_of_the_flame-orig-min_clone_0.jpg",
+     "ts": "3:03:00",
+     "url": "https://www.twitch.tv/videos/2921352507?t=3h3m0s",
+     "label": "ExileCon keynote @ 3:03:00 - Keeper Of The Flame"
+    },
+    {
+     "image": "scripts/img/demon_magus_yap/nt-keeper_of_the_flame-orig-min_clone_3.jpg",
+     "ts": "3:03:03",
+     "url": "https://www.twitch.tv/videos/2921352507?t=3h3m3s",
+     "label": "ExileCon keynote @ 3:03:03 - Keeper Of The Flame"
+    },
+    {
+     "image": "scripts/img/demon_magus_yap/nt-keeper_of_the_flame-orig-min_clone_6.jpg",
+     "ts": "3:03:06",
+     "url": "https://www.twitch.tv/videos/2921352507?t=3h3m6s",
+     "label": "ExileCon keynote @ 3:03:06 - Shared Teachings"
+    }
+   ],
+   "game": null
   },
   "Infernal Hounds": {
    "term": "Infernal Hounds",
@@ -337,9 +770,10 @@
      "url": "https://www.twitch.tv/videos/2921352507?t=3h1m32s",
      "label": "ExileCon keynote @ 3:01:32 - Summon Infernal Hound"
     }
-   ]
+   ],
+   "game": null
   },
-  "Covenant skills": {
+  "Infernal Covenant": {
    "term": "Infernal Covenant",
    "summary": "Infernal Covenant is a new choice-based mechanic in PoE 2 1.0 where you make a deal with a Scourge demon lord, selecting one of three covenants that each grant a skill.",
    "changes": [
@@ -378,44 +812,56 @@
      "url": "",
      "label": "ExileCon keynote - Infernal Covenant"
     }
-   ]
-  },
-  "Acolyte of Chayula": {
-   "term": "Acolyte of Chayula",
-   "summary": "The Acolyte of Chayula has been totally reworked: Herald of Chayula now causes all your hits to add Decay to monsters, and killing a monster triggers an explosion based on the Decay it had. The old Darkness mechanic has been moved entirely into a keystone on the main passive tree, and the Acolyte can now also summon a companion, similar to Demon Magus. Its tooltip wasn't shown yet.",
-   "changes": [
-    "Herald of Chayula now causes all your hits to add Decay to monsters",
-    "Killing a monster triggers an explosion based on the amount of Decay it had",
-    "The old Darkness mechanic has been completely moved into a keystone on the main passive tree",
-    "The Acolyte can now also summon a companion, similar to Demon Magus"
    ],
-   "lines": [],
-   "image": "scripts/img/demon_magus_yap/nt-acolyte_of_chayula-10961.jpg",
+   "game": null
+  },
+  "Covenant of Beidat": {
+   "term": "Covenant of Beidat",
+   "summary": "Covenant of Beidat is one of three selectable options in the new Infernal Covenant system, where you make a deal with a Scourge demon lord, usually sacrificing something to empower something else. Its tooltip wasn't shown yet.",
+   "changes": [
+    "Infernal Covenant is a new selectable system: choose one of three covenants (Covenant of Beidat, Covenant of Ghorr, Covenant of K'Tash), each granting a skill",
+    "Covenant of Beidat is one of the three Infernal Covenant options and grants a skill when allocated"
+   ],
+   "lines": [
+    "Infernal Covenant | Select one option to allocate",
+    "1 Grants Skill: Covenant of Beidat",
+    "2 Grants Skill: Covenant of Ghorr",
+    "3 Grants Skill: Covenant of K'Tash",
+    "Click to allocate"
+   ],
+   "image": "scripts/img/demon_magus_yap/nt-covenant_of_beidat-infernalist_asc.jpg",
    "sources": [
     {
-     "label": "ExileCon keynote @ 3:02:33 (said)",
-     "url": "https://www.twitch.tv/videos/2921352507?t=3h2m33s",
-     "ts": "3:02:33"
+     "label": "ExileCon keynote @ 3:01:39 (on screen)",
+     "url": "https://www.twitch.tv/videos/2921352507?t=3h1m39s",
+     "ts": "3:01:39"
     }
    ],
-   "frame_url": "https://www.twitch.tv/videos/2921352507?t=3h2m41s",
+   "frame_url": "https://www.twitch.tv/videos/2921352507?t=3h1m39s",
    "tooltip_seen": false,
    "shots": [
     {
-     "image": "scripts/img/demon_magus_yap/nt-acolyte_of_chayula-orig-10961.jpg",
-     "ts": "3:02:41",
-     "url": "https://www.twitch.tv/videos/2921352507?t=3h2m41s",
-     "label": "ExileCon keynote @ 3:02:41 - Herald Of Chayula"
+     "image": "scripts/img/demon_magus_yap/nt-covenant_of_beidat-orig-10898.jpg",
+     "ts": "3:01:38",
+     "url": "https://www.twitch.tv/videos/2921352507?t=3h1m38s",
+     "label": "ExileCon keynote @ 3:01:38 - Infernal Covenant"
     },
     {
-     "image": "scripts/img/demon_magus_yap/nt-acolyte_of_chayula-orig-10965.jpg",
-     "ts": "3:02:45",
-     "url": "https://www.twitch.tv/videos/2921352507?t=3h2m45s",
-     "label": "ExileCon keynote @ 3:02:45 - Herald Of Chayula"
+     "image": "scripts/img/demon_magus_yap/nt-covenant_of_beidat-orig-x_hasc_0.jpg",
+     "ts": "3:01:39",
+     "url": "https://www.twitch.tv/videos/2921352507?t=3h1m39s",
+     "label": "ExileCon keynote @ 3:01:39 - Infernal Covenant"
+    },
+    {
+     "image": "scripts/img/demon_magus_yap/nt-covenant_of_beidat-orig-cov.jpg",
+     "ts": "",
+     "url": "",
+     "label": "ExileCon keynote - Infernal Covenant"
     }
-   ]
+   ],
+   "game": null
   },
-  "Covenant of Gore": {
+  "Covenant of Ghorr": {
    "term": "Covenant of Ghorr",
    "summary": "Covenant of Ghorr is a new Covenant skill in PoE 2 1.0, one of three demon-lord covenants (with Beidat and K'Tash) that sacrifice something to empower something else; Ghorr drains life to spawn a swarm of withering bloatflies.",
    "changes": [
@@ -478,7 +924,148 @@
      "url": "",
      "label": "ExileCon keynote - Infernal Covenant"
     }
-   ]
+   ],
+   "game": null
+  },
+  "Siege Breaker": {
+   "term": "Siege Breaker",
+   "summary": "Siege Breaker is a new unique Ornate Belt revealed at ExileCon 2026 that grants the Bunkerbuster skill, letting you order your minions to charge at enemies and detonate on reaching them. Its tooltip wasn't shown yet.",
+   "changes": [
+    "New unique belt: Siege Breaker (Ornate Belt)",
+    "Grants a new skill, Bunkerbuster, which orders minions to charge at enemies and detonate when they reach them"
+   ],
+   "lines": [],
+   "image": "scripts/img/demon_magus_yap/nt-siege_breaker-10534.jpg",
+   "sources": [
+    {
+     "label": "ExileCon keynote @ 2:55:22 (said)",
+     "url": "https://www.twitch.tv/videos/2921352507?t=2h55m22s",
+     "ts": "2:55:22"
+    }
+   ],
+   "frame_url": "https://www.twitch.tv/videos/2921352507?t=2h55m34s",
+   "tooltip_seen": false,
+   "shots": [
+    {
+     "image": "scripts/img/demon_magus_yap/nt-siege_breaker-orig-10534.jpg",
+     "ts": "2:55:34",
+     "url": "https://www.twitch.tv/videos/2921352507?t=2h55m34s",
+     "label": "ExileCon keynote @ 2:55:34 - Siegebreaker"
+    },
+    {
+     "image": "scripts/img/demon_magus_yap/nt-siege_breaker-orig-10538.jpg",
+     "ts": "2:55:38",
+     "url": "https://www.twitch.tv/videos/2921352507?t=2h55m38s",
+     "label": "ExileCon keynote @ 2:55:38 - Siegebreaker"
+    }
+   ],
+   "game": null
+  },
+  "Dominate": {
+   "term": "Dominate",
+   "summary": "Dominate is a new curse spell in PoE 2 1.0 that curses enemies in an area after a delay and resurrects slain monsters as temporary minions under your control.",
+   "changes": [
+    "New skill: Dominate, a Spell with Minion, AoE, Trigger, Duration, Curse, and Repeatable tags",
+    "Curses all targets in an area after a 1.5 second delay",
+    "Summons slain monsters under your control for a short duration",
+    "Dominated minions deal 50% of monster damage",
+    "Dominated minion duration is 15 seconds",
+    "Curse duration is 9 seconds",
+    "Curse radius is 3.1 metres",
+    "Level 20 (max), 178 mana cost, 0.70s cast time, requires level 90"
+   ],
+   "lines": [
+    "DOMINATE | DOMINATE / Spell / Minion, AoE, Trigger, Duration, Curse, Repeatable / LEVEL: 20 (MAX) / COST: 178 MANA / CAST TIME: 0.70S / REQUIRES: LEVEL 90 / Curse all targets in an area after a short delay, summoning any slain monsters under your control for a short duration. / CURSE APPLIES AFTER 1.5 SECONDS DELAY / CURSE RADIUS IS 3.1 METRES / DOMINATED MINIONS DEAL 50% OF MONSTER DAMAGE / DOMINATED MINION DURATION IS 15 SECONDS / CURSE DURATION IS 9 SECONDS"
+   ],
+   "image": "scripts/img/demon_magus_yap/nt-dominate-10927.jpg",
+   "sources": [
+    {
+     "label": "ExileCon keynote @ 3:01:59 (said)",
+     "url": "https://www.twitch.tv/videos/2921352507?t=3h1m59s",
+     "ts": "3:01:59"
+    }
+   ],
+   "frame_url": "https://www.twitch.tv/videos/2921352507?t=3h2m7s",
+   "tooltip_seen": true,
+   "shots": [
+    {
+     "image": "scripts/img/demon_magus_yap/nt-dominate-orig-10927.jpg",
+     "ts": "3:02:07",
+     "url": "https://www.twitch.tv/videos/2921352507?t=3h2m7s",
+     "label": "ExileCon keynote @ 3:02:07 - Dominate"
+    },
+    {
+     "image": "scripts/img/demon_magus_yap/nt-dominate-orig-10931.jpg",
+     "ts": "3:02:11",
+     "url": "https://www.twitch.tv/videos/2921352507?t=3h2m11s",
+     "label": "ExileCon keynote @ 3:02:11 - Dominate"
+    },
+    {
+     "image": "scripts/img/demon_magus_yap/nt-dominate-orig-10935.jpg",
+     "ts": "3:02:15",
+     "url": "https://www.twitch.tv/videos/2921352507?t=3h2m15s",
+     "label": "ExileCon keynote @ 3:02:15 - Dominate"
+    }
+   ],
+   "game": null
+  },
+  "Living Lightning": {
+   "term": "Living Lightning",
+   "summary": "Living Lightning now deals attack damage or spell damage based on the supported skill instead of minion damage, making it a much more useful support. The tooltip now specifies it supports Skills which Hit and cannot support Skills used by Minions.",
+   "changes": [
+    "Damage now scales as attack damage or spell damage depending on the supported skill, rather than minion damage",
+    "Support requirement text changed from 'Supports Skills which cause Damaging Hits' to 'Supports Skills which Hit'",
+    "Added 'Cannot Support Skills used by Minions'",
+    "Added Spell, Attack, and Melee tags to the support",
+    "Trigger condition wording changed to 'on dealing Lightning damage with Supported Skill'",
+    "Minions now described as 'bundles of living electricity' targeting nearby targets with Chaining bolts"
+   ],
+   "lines": [
+    "LIVING LIGHTNING | Support / Spell, Attack, Melee, Trigger, Lightning, Duration, Chaining",
+    "CATEGORY: LIVING LIGHTNING",
+    "SUPPORT REQUIREMENTS: +5 INT (20)",
+    "Supports Skills which Hit. Living Lightning bundles are created when dealing Lightning damage with Supported Skills — bundles of living electricity that target nearby targets with Chaining bolts. Targets will not directly engage these bundles of light, and can pass through them. Cannot Support Skills used by Minions.",
+    "SUPPORT | LIVING LIGHTNING | LIVING BOLT (A) | LIVING BOLT (S)",
+    "TRIGGER LIVING LIGHTNING ON DEALING LIGHTNING DAMAGE WITH SUPPORTED SKILL",
+    "SUPPORTABLE SKILLS / UNSUPPORTABLE SKILLS",
+    "VINE ARROW / TOXIC GROWTH / THUNDERSTORM / LIGHTNING ARROW / ESCAPE SHOT / FREEZING SALVO / BOW SHOT"
+   ],
+   "image": "scripts/img/demon_magus_yap/nt-living_lightning-living.jpg",
+   "sources": [
+    {
+     "label": "ExileCon keynote @ 2:59:31 (on screen)",
+     "url": "https://www.twitch.tv/videos/2921352507?t=2h59m31s",
+     "ts": "2:59:31"
+    },
+    {
+     "label": "ExileCon keynote @ 2:59:20 (said)",
+     "url": "https://www.twitch.tv/videos/2921352507?t=2h59m20s",
+     "ts": "2:59:20"
+    }
+   ],
+   "frame_url": "https://www.twitch.tv/videos/2921352507?t=2h59m31s",
+   "tooltip_seen": true,
+   "shots": [
+    {
+     "image": "scripts/img/demon_magus_yap/nt-living_lightning-orig-supp_living_0.jpg",
+     "ts": "2:59:31",
+     "url": "https://www.twitch.tv/videos/2921352507?t=2h59m31s",
+     "label": "ExileCon keynote @ 2:59:31 - Living Lightning"
+    },
+    {
+     "image": "scripts/img/demon_magus_yap/nt-living_lightning-orig-supp_living_3.jpg",
+     "ts": "2:59:34",
+     "url": "https://www.twitch.tv/videos/2921352507?t=2h59m34s",
+     "label": "ExileCon keynote @ 2:59:34 - Living Lightning"
+    },
+    {
+     "image": "scripts/img/demon_magus_yap/nt-living_lightning-orig-supp_living_6.jpg",
+     "ts": "2:59:37",
+     "url": "https://www.twitch.tv/videos/2921352507?t=2h59m37s",
+     "label": "ExileCon keynote @ 2:59:37 - Living Lightning"
+    }
+   ],
+   "game": null
   }
  }
 }
