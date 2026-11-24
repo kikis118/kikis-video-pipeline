@@ -2,7 +2,7 @@
  "title": "The Minion Stuff I'm Most Excited For in PoE 2 1.0",
  "tiers": null,
  "channel": "GhazzyTV",
- "updated": "2026-11-24 20:22",
+ "updated": "2026-11-24 20:51",
  "sections": [
   {
    "title": "Intro",
@@ -12,7 +12,7 @@
     "The Demon Magus might be the coolest thing they've done with minions so far in PoE 2.",
     "No new minion class in 1.0 - but a LOT of minion stuff to go through.",
     "This is everything minion-related I'm most excited for - Demon Magus first.",
-    "**Subscribe** - I'll break down the patch notes the moment they drop."
+    "**Subscribe** for the 1.0 patch-notes coverage."
    ],
    "prompts": [
     "Why does Demon Magus top your list over everything else?"
@@ -28,7 +28,7 @@
    "minutes": 0.75,
    "points": [
     "My take from the ExileCon playtest - not a guide, not a tier list.",
-    "I only properly tested Demon Magus behaviour: one spell gem plus Unearth and Bone Storm.",
+    "I only tested Demon Magus behaviour - just Unearth and Bone Storm were available, one spammable, one cooldown.",
     "! No final minion numbers until the 1.0 patch notes are out."
    ],
    "prompts": [
@@ -44,8 +44,8 @@
     "Infernalist ascendancy: binds a Scourge Demon to you - socket multiple spells AND supports, it follows you and casts them.",
     "Tooltip: Reviving companion - you pay its spell costs, but they cost 50% less.",
     "+ Scaling hook: 15% more damage per **different** socketed skill - variety pays.",
-    "Playtest: it fired the cooldown spell whenever ready, otherwise spammed the main one - behaviour looked pretty good.",
-    "- Open question: does it scale past gem level 20? Couldn't get an answer.",
+    "Playtest: it fired the cooldown spell whenever it was ready - behaviour looked fine, pretty good even.",
+    "- Open question: does it scale with your minion level, or is it stuck at level 20? Couldn't get that info.",
     "The story: I brought it up with Jonathan and Mark on Tavern Talk - Mark said that reminded him it existed.",
     "> If it's really good I take all the credit - if it's bad, it's all on Mark."
    ],
@@ -139,7 +139,7 @@
    "minutes": 1.0,
    "points": [
     "Heavily leaning Infernalist - triple hellhounds and Demon Magus.",
-    "Demon Magus is most likely the first thing I play.",
+    "Most likely Demon Magus first - still have to figure that out.",
     "Everything else on the list gets a real verdict once patch notes are out."
    ],
    "prompts": [
