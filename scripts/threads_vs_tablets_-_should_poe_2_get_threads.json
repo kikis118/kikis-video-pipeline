@@ -2,7 +2,7 @@
  "title": "Should PoE 2 Have the New Thread System Instead of Tablets?",
  "tiers": null,
  "channel": "GhazzyTV",
- "updated": "2026-11-24 20:22",
+ "updated": "2026-11-24 20:51",
  "sections": [
   {
    "title": "Intro",
@@ -33,8 +33,8 @@
     "Walk us through your own thread setup - which ones and why?"
    ],
    "deeper": [
-    "PoE 1: high counts were tuned to guarantee more modifiers - 8 threads = at least 3.",
-    "PoE 1: you said fractured bases from threads might be worth doing on their own."
+    "PoE 1: GGG's fix - high counts now guarantee a minimum number of modifiers; 8 threads = at least 3.",
+    "PoE 1: you called the fractured bases from threads really cool - pick one of three and fracture it."
    ]
   },
   {
@@ -74,19 +74,18 @@
    "subtitle": null,
    "minutes": 2.0,
    "points": [
-    "PoE 1 threads: one stack per mechanic, auto-pulled every map - set it and forget it.",
+    "PoE 1 threads: up to 3 mechanics per map, up to 8 each - auto-pulled every map, set it and forget it.",
     "PoE 1 threads: difficulty climbs with every thread - rewards are meant to scale with it.",
-    "- PoE 1: early on the difficulty ramped far too steeply at high counts - GGG is reining it in.",
-    "- PoE 1: some mechanics fell well behind others under threads.",
-    "- You said you were losing money on threads at first - cheap, but not rewarding enough."
+    "- PoE 1: GGG admitted thread difficulty ramped far too steeply at high counts (6 to 8 especially) - they're reining it in.",
+    "- PoE 1: GGG also said some mechanics fell well behind others under threads.",
+    "- Running Abyss threads, you said you were losing money - cheap enough, but not a lot back."
    ],
    "prompts": [
     "Which gives more meaningful choice map to map - threads or tablets?",
     "Is the thread difficulty ramp a design flaw or just tuning?"
    ],
    "deeper": [
-    "PoE 1: stacking 8 threads used to sometimes roll only one modifier.",
-    "PoE 1: leaving the Atlas got too hard as threads stacked without matching rewards."
+    "PoE 1 (GGG): before the fix, 8 threads could roll a single modifier if you were unlucky."
    ]
   },
   {
@@ -96,9 +95,9 @@
    "points": [
     "+ Threads: way less busy work, persistent setup, cleaner stash.",
     "+ Threads: juice is on the Atlas tree for everyone, threads are the jackpot layer.",
-    "- Threads: 8 is overkill for most builds - two felt fine to you.",
-    "- Threads: you can tank 8 threads but lack the damage to make it worth it.",
-    "+ Tablets: PoE 2's own system - and 1.0 builds commanders around them."
+    "- Threads: on your build 8 was overkill - two felt fine, and packs die faster without 8.",
+    "- Threads: you over-juiced past your damage - could tank it, couldn't kill it fast enough.",
+    "+ Tablets: PoE 2's own system - and in 1.0 you can even hand one to a commander."
    ],
    "prompts": [
     "Biggest pro and biggest con of tablets in your eyes?"
