@@ -115,6 +115,12 @@ a.shot:hover img{border-color:var(--accent)}
   border-radius: 4px; padding: 0 6px; font: 13px/20px system-ui, sans-serif; cursor: pointer; }
 .tt-x:hover { border-color: #7fe0ff; }
 .tt { transition: background .12s; } .tt:hover { background: #ffffff10; border-radius: 2px; }
+/* pinned tooltip = a small movable, resizable window (drag bar / labels; corner to resize) */
+.tt-pop.pinned { resize: both; min-width: 260px; min-height: 120px; }
+.tt-drag { cursor: grab; user-select: none; touch-action: none; font: 600 11px/22px system-ui, sans-serif; color: #9fb6c2;
+  background: #0b1218; border: 1px solid #2f6f8a; border-radius: 4px 4px 0 0; padding: 0 34px 0 8px; letter-spacing: .03em; }
+.tt-pop.pinned .tt-lab { cursor: grab; user-select: none; }
+.tt-pop.dragging, .tt-pop.dragging .tt-drag, .tt-pop.dragging .tt-lab { cursor: grabbing; }
 mark{background:#6b5726;color:#fff;padding:0 3px;border-radius:2px}
 
 /* Editing + notes: double-click a line. No buttons in the reading view. */
@@ -265,7 +271,7 @@ ttLb.className = 'tt-lb'; document.body.appendChild(ttLb);
 // pointer pass straight through (never blocks other names), closes the moment you leave the name.
 // Click a name = pinned: stays put while you hover elsewhere, screenshots/links are clickable;
 // click it again, x, Esc or click outside to close. Same pattern as Maxroll / PoE Vault tooltips.
-let ttEl = null, ttPinned = false, ttOpenT = null, ttSeq = 0;
+let ttEl = null, ttPinned = false, ttOpenT = null, ttSeq = 0, ttDragPos = null;  // ttDragPos: where you last dragged a pinned one
 function ttClose() { clearTimeout(ttOpenT); ttSeq++; ttPop.style.display = 'none'; ttPop.classList.remove('pinned'); ttEl = null; ttPinned = false; }
 async function ttShow(el, pin) {
   const seq = ++ttSeq;
@@ -277,9 +283,16 @@ async function ttShow(el, pin) {
       + (d.n ? ' keeps it open so you can view the original screenshots' : ' keeps it open') + '</div>')
     + tipPairHtml(d.t, d.n)
     + (pin ? '<button class="tt-x" type="button" title="Close (Esc)">✕</button>' : '');
+  if (pin) ttPop.insertAdjacentHTML('afterbegin', '<div class="tt-drag" title="Drag to move · drag the corner to resize">⠿ drag to move</div>');
   ttPop.classList.toggle('wide', !!d.n);
   ttPop.classList.toggle('pinned', !!pin);
+  ttPop.style.width = ''; ttPop.style.height = '';
   ttPop.style.display = 'block'; ttPop.scrollTop = 0;
+  if (pin && ttDragPos) {
+    ttPop.style.left = Math.max(0, Math.min(innerWidth - 80, ttDragPos.x)) + 'px';
+    ttPop.style.top = Math.max(0, Math.min(innerHeight - 60, ttDragPos.y)) + 'px';
+    return;
+  }
   const r = el.getBoundingClientRect(), h = ttPop.offsetHeight, w = ttPop.offsetWidth;
   const below = r.bottom + 6, above = r.top - h - 6;
   ttPop.style.left = Math.max(8, Math.min(innerWidth - w - 8, r.left)) + 'px';
@@ -314,7 +327,22 @@ document.addEventListener('click', (e) => {
   if (ttPop.style.display === 'block') ttClose();
 });
 document.addEventListener('keydown', (e) => { if (e.key === 'Escape') { ttLb.style.display = 'none'; ttClose(); } });
-document.addEventListener('scroll', (e) => { if (!ttPop.contains(e.target) && !ttLb.contains(e.target)) ttClose(); }, true);
+// drag a pinned tooltip by its bar or its Current / New labels
+document.addEventListener('pointerdown', (e) => {
+  const h = e.target.closest && e.target.closest('.tt-pop.pinned .tt-drag, .tt-pop.pinned .tt-lab');
+  if (!h) return;
+  e.preventDefault();
+  const r = ttPop.getBoundingClientRect(), dx = e.clientX - r.left, dy = e.clientY - r.top;
+  ttPop.classList.add('dragging');
+  const move = (ev) => {
+    ttDragPos = { x: Math.max(0, Math.min(innerWidth - 80, ev.clientX - dx)), y: Math.max(0, Math.min(innerHeight - 40, ev.clientY - dy)) };
+    ttPop.style.left = ttDragPos.x + 'px'; ttPop.style.top = ttDragPos.y + 'px';
+  };
+  const up = () => { ttPop.classList.remove('dragging'); removeEventListener('pointermove', move); removeEventListener('pointerup', up); };
+  addEventListener('pointermove', move); addEventListener('pointerup', up);
+});
+// a hover preview closes on scroll; a pinned one is a fixed window and stays
+document.addEventListener('scroll', (e) => { if (!ttPinned && !ttPop.contains(e.target) && !ttLb.contains(e.target)) ttClose(); }, true);
 function links(h) {
   return h
     .replace(/!\[([^\]]*)\]\(((?:scripts\/img\/|https?:\/\/)[^)\s]+)\)/g, (m, cap, u) => `<a class="shot" href="${u}" target="_blank" rel="noopener"><img src="${u}" alt="" loading="lazy"><span>${cap}</span></a>`)
