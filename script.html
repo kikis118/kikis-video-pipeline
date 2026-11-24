@@ -105,6 +105,16 @@ a.shot:hover img{border-color:var(--accent)}
 .tt-lb img { max-width: 100%; max-height: calc(100vh - 80px); border: 1px solid #444; border-radius: 4px; }
 .tt-lb figcaption { color: #ccc; font: 13px/1.4 system-ui, sans-serif; margin-top: 8px; }
 .tt-lb a { color: #7fb0ff; } .tt-lbx { color: #777; }
+/* hover = see-through quick look, click = pinned + interactive (studio.js / script.html ttShow) */
+.tt-pop { pointer-events: none; }
+.tt-pop.wide { overflow: hidden; }
+.tt-pop.pinned { pointer-events: auto; overflow-y: auto; outline: 1px solid #7fe0ff66; border-radius: 4px; }
+.tt-hint { font: 12px/1.5 system-ui, sans-serif; color: #d6e6ee; text-align: center; background: #0d2430; border: 1px solid #2f6f8a; border-radius: 4px; padding: 3px 8px; margin-bottom: 4px; }
+.tt-pin { display: inline-block; background: #ffd400; color: #1a1400; font-weight: 700; border-radius: 3px; padding: 0 6px; margin-right: 4px; }
+.tt-x { position: absolute; top: 3px; right: 4px; z-index: 2; border: 1px solid #3a4a55; background: #0b1218; color: #cfe8f2;
+  border-radius: 4px; padding: 0 6px; font: 13px/20px system-ui, sans-serif; cursor: pointer; }
+.tt-x:hover { border-color: #7fe0ff; }
+.tt { transition: background .12s; } .tt:hover { background: #ffffff10; border-radius: 2px; }
 mark{background:#6b5726;color:#fff;padding:0 3px;border-radius:2px}
 
 /* Editing + notes: double-click a line. No buttons in the reading view. */
@@ -251,37 +261,57 @@ const ttPop = document.createElement('div');
 ttPop.className = 'tt-pop'; document.body.appendChild(ttPop);
 const ttLb = document.createElement('div');
 ttLb.className = 'tt-lb'; document.body.appendChild(ttLb);
-let ttEl = null, ttHideT = null;
-function ttClose() { clearTimeout(ttHideT); ttPop.style.display = 'none'; ttEl = null; }
-async function ttShow(el) {
+// Hover = quick look: opens after a short dwell (no flicker when sweeping across text), lets the
+// pointer pass straight through (never blocks other names), closes the moment you leave the name.
+// Click a name = pinned: stays put while you hover elsewhere, screenshots/links are clickable;
+// click it again, x, Esc or click outside to close. Same pattern as Maxroll / PoE Vault tooltips.
+let ttEl = null, ttPinned = false, ttOpenT = null, ttSeq = 0;
+function ttClose() { clearTimeout(ttOpenT); ttSeq++; ttPop.style.display = 'none'; ttPop.classList.remove('pinned'); ttEl = null; ttPinned = false; }
+async function ttShow(el, pin) {
+  const seq = ++ttSeq;
   const d = await ttData(el.dataset.tt.replace(/&#39;/g, "'"));
-  if (!d || (!d.t && !d.n)) return;
-  ttEl = el;
-  ttPop.innerHTML = tipPairHtml(d.t, d.n);
+  if (seq !== ttSeq || !d || (!d.t && !d.n)) return;  // a newer hover/click (or a close) won
+  ttEl = el; ttPinned = !!pin;
+  // hover: a clear "click to pin" bar on top (Ghazzy should see it can stay open); pinned: a close button
+  ttPop.innerHTML = (pin ? '' : '<div class="tt-hint"><span class="tt-pin">📌 Click to pin</span>'
+      + (d.n ? ' keeps it open so you can view the original screenshots' : ' keeps it open') + '</div>')
+    + tipPairHtml(d.t, d.n)
+    + (pin ? '<button class="tt-x" type="button" title="Close (Esc)">✕</button>' : '');
   ttPop.classList.toggle('wide', !!d.n);
+  ttPop.classList.toggle('pinned', !!pin);
   ttPop.style.display = 'block'; ttPop.scrollTop = 0;
-  const r = el.getBoundingClientRect();
-  ttPop.style.left = Math.min(innerWidth - ttPop.offsetWidth - 8, Math.max(8, r.left)) + 'px';
-  ttPop.style.top = (r.bottom + 8 + ttPop.offsetHeight > innerHeight ? Math.max(8, r.top - ttPop.offsetHeight - 8) : r.bottom + 6) + 'px';
+  const r = el.getBoundingClientRect(), h = ttPop.offsetHeight, w = ttPop.offsetWidth;
+  const below = r.bottom + 6, above = r.top - h - 6;
+  ttPop.style.left = Math.max(8, Math.min(innerWidth - w - 8, r.left)) + 'px';
+  ttPop.style.top = (below + h <= innerHeight - 8 ? below : above >= 8 ? above : Math.max(8, innerHeight - h - 8)) + 'px';
 }
 function ttLightbox(src, cap, url) {
   ttLb.innerHTML = `<figure><img src="${esc(src)}" alt=""><figcaption>${esc(cap || '')}${url ? ` · <a href="${esc(url)}" target="_blank" rel="noopener">watch this moment ↗</a>` : ''} · <a href="${esc(src)}" target="_blank" rel="noopener">open image ↗</a> <span class="tt-lbx">· click anywhere / Esc to close</span></figcaption></figure>`;
   ttLb.style.display = 'flex';
 }
-// hover opens it; moving onto the popup keeps it open (so its links/images can be clicked); tap works too
 document.addEventListener('mouseover', (e) => {
-  if (ttPop.contains(e.target)) { clearTimeout(ttHideT); return; }
+  if (ttPinned) return;
   const el = e.target.closest && e.target.closest(TT_SEL);
-  if (el) { clearTimeout(ttHideT); if (el !== ttEl || ttPop.style.display !== 'block') ttShow(el); }
-  else if (ttPop.style.display === 'block') { clearTimeout(ttHideT); ttHideT = setTimeout(ttClose, 300); }
+  if (el && el === ttEl && ttPop.style.display === 'block') return;
+  clearTimeout(ttOpenT);
+  if (el) ttOpenT = setTimeout(() => ttShow(el, false), ttPop.style.display === 'block' ? 0 : 140);
+  else if (ttPop.style.display === 'block' || ttEl) ttClose();
 });
+// a name inside an editable bullet: clicking it pins the tooltip instead of starting an edit
+document.addEventListener('mousedown', (e) => { if (e.target.closest && e.target.closest(TT_SEL)) e.preventDefault(); });
 document.addEventListener('click', (e) => {
+  if (e.target.closest && e.target.closest('.tt-pop .tt-x')) { ttClose(); return; }
   const img = e.target.closest && e.target.closest('.tt-pop img[data-full]');
   if (img) { e.preventDefault(); ttLightbox(img.dataset.full, img.dataset.cap, img.dataset.url); return; }
   if (ttLb.contains(e.target)) { if (!e.target.closest('a')) ttLb.style.display = 'none'; return; }
   if (ttPop.contains(e.target)) return;
   const el = e.target.closest && e.target.closest(TT_SEL);
-  if (el) { clearTimeout(ttHideT); ttShow(el); if (el.closest('summary')) e.preventDefault(); } else ttClose();
+  if (el) {
+    e.preventDefault();
+    if (ttPinned && el === ttEl) { ttClose(); return; }
+    clearTimeout(ttOpenT); ttShow(el, true); return;
+  }
+  if (ttPop.style.display === 'block') ttClose();
 });
 document.addEventListener('keydown', (e) => { if (e.key === 'Escape') { ttLb.style.display = 'none'; ttClose(); } });
 document.addEventListener('scroll', (e) => { if (!ttPop.contains(e.target) && !ttLb.contains(e.target)) ttClose(); }, true);
